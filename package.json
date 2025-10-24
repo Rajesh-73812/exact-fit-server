@@ -1,0 +1,57 @@
+{
+  "name": "exact-fit-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js",
+    "dev": "nodemon server.js",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rajesh-73812/exact-fit-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rajesh-73812/exact-fit-server/issues"
+  },
+  "homepage": "https://github.com/Rajesh-73812/exact-fit-server#readme",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "joi": "^18.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.15.3",
+    "node-cron": "^4.2.1",
+    "nodemon": "^3.1.10",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.38.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-boundaries": "^5.1.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2"
+  },
+  "lint-staged": {
+    "*.js": "eslint --fix",
+    "*.ts": "eslint --fix",
+    "*.jsx": "eslint --fix",
+    "*.tsx": "eslint --fix"
+  }
+}
