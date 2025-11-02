@@ -55,3 +55,29 @@ npm install eslint-plugin-boundaries --save-dev
     Ensuring the commit message follows a specific format.
 
     Running linting or formatting checks before pushing code to a remote repository.
+
+<!---------------------------------------- ADMIN ---------------------------------------------------->
+
+# 1.1) api/admin/auth/V1/register: [POST]
+
+| Step | Action                                                                          |
+| ---- | ------------------------------------------------------------------------------- |
+| 🔢 1 | Admin enters their email and password                                           |
+| 🔐 2 | Input is validated using `loginValidator` (email, password)                     |
+| 🧐 3 | Backend checks if the admin already exists in the database                      |
+| 🔒 4 | If the admin exists, return a conflict response (409)                           |
+| 🧑‍💻 5 | If the admin does not exist, hash the password using bcrypt                     |
+| 📝 6 | New admin is created in the database with hashed password                       |
+| ✅ 7 | Admin is successfully registered, and a success response with email is returned |
+
+# 1.2) api/admin/auth/V1/login: [POST]
+
+| Step | Action                                                                |
+| ---- | --------------------------------------------------------------------- |
+| 🔢 1 | Admin enters their email and password                                 |
+| 🔐 2 | Input is validated using `loginValidator` (email, password)           |
+| 🧐 3 | Backend checks if the admin exists in the database                    |
+| 🔑 4 | If admin doesn't exist, return an error response (404)                |
+| 🔒 5 | Compare the entered password with the hashed password using bcrypt    |
+| 🪪 6 | If passwords match, generate a JWT token for the session              |
+| ✅ 7 | Login is successful, and the JWT token is returned for authentication |
