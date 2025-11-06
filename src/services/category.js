@@ -46,8 +46,10 @@ const categoryExists = async (category_slug, from = null) => {
         "position",
         "description",
         "image_url",
+        "image_alt",
         "status",
         "external_link",
+        "createdAt",
       ],
     });
     if (!category) {
@@ -110,6 +112,12 @@ const getAllCategory = async ({ search, position, page = 1, limit = 10 }) => {
     limit,
     offset,
   });
+
+  const activeCount = await Category.count({ where: { status: "active" } });
+  const inactiveCount = await Category.count({ where: { status: "inactive" } });
+  categories.activeCount = activeCount;
+  categories.inactiveCount = inactiveCount;
+
   return categories;
 };
 

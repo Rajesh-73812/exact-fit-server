@@ -44,7 +44,7 @@ const user = sequelize.define(
       },
     },
     role: {
-      type: DataTypes.ENUM("technician", "admin", "customer"),
+      type: DataTypes.ENUM("technician", "admin", "customer"), // add super admin if needed
       allowNull: false,
       validate: {
         notEmpty: { msg: "Role cannot be empty" },

@@ -2,12 +2,16 @@ const CategoryService = require("../../services/category");
 
 const upsertCategory = async (req, res) => {
   const created_by = req.user ? req.user.id : null;
+  console.log(created_by, "created_byyyyyyyyyyyyyyyyyyy");
+  console.log(req.body, "bodydddddddddyyyyyyyyyyyyyyyyy");
+
   const {
     category_slug,
     title,
     position,
     description,
     image_url,
+    image_alt,
     status,
     external_link,
   } = req.body;
@@ -28,6 +32,7 @@ const upsertCategory = async (req, res) => {
       position,
       description,
       image_url,
+      image_alt,
       status,
       external_link,
       created_by: created_by,
@@ -88,6 +93,8 @@ const getAllCategory = async (req, res) => {
       success: true,
       message: "Category fetched sucessfully!",
       data: category,
+      activeCategoryCount: category.activeCount,
+      inactiveCategoryCount: category.inactiveCount,
     });
   } catch (error) {
     console.error(error);
