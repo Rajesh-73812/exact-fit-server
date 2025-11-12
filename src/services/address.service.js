@@ -1,4 +1,4 @@
-const Address = require('../models/address');
+const Address = require("../models/address");
 
 const createAddress = async (data, { transaction } = {}) => {
   return await Address.create(data, { transaction });

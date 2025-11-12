@@ -10,7 +10,6 @@ const cors = require("cors");
 require("./src/models/category");
 require("./src/models/associations");
 
-
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
