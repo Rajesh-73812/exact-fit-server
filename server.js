@@ -79,4 +79,8 @@ if (process.env.NODE_ENV !== "test") {
   }
 })();
 
+app.get("/", (req, res) => {
+  res.send("Server is Running..............");
+});
+
 module.exports = app;
