@@ -45,22 +45,34 @@ const upsertTechnician = async (req, res) => {
     let id_proofs = null;
 
     if (req.files?.profile_pic) {
-      profile_pic = await uploadToS3(req.files.profile_pic[0], "technicians/profile_pics");
+      profile_pic = await uploadToS3(
+        req.files.profile_pic[0],
+        "technicians/profile_pics"
+      );
     }
     if (req.files?.id_proof) {
-      id_proofs = await uploadToS3(req.files.id_proof[0], "technicians/id_proofs");
+      id_proofs = await uploadToS3(
+        req.files.id_proof[0],
+        "technicians/id_proofs"
+      );
     }
 
     // UPDATE
     if (id) {
-      const existing = await technicianService.getTechnicianById(id, { transaction });
+      const existing = await technicianService.getTechnicianById(id, {
+        transaction,
+      });
       if (!existing) {
         await transaction.rollback();
-        return res.status(404).json({ success: false, message: "Technician not found." });
+        return res
+          .status(404)
+          .json({ success: false, message: "Technician not found." });
       }
 
-      if (profile_pic && existing.profile_pic) await deleteFromS3(existing.profile_pic);
-      if (id_proofs && existing.id_proofs) await deleteFromS3(existing.id_proofs);
+      if (profile_pic && existing.profile_pic)
+        await deleteFromS3(existing.profile_pic);
+      if (id_proofs && existing.id_proofs)
+        await deleteFromS3(existing.id_proofs);
 
       await technicianService.updateTechnician(
         id,
@@ -79,30 +91,57 @@ const upsertTechnician = async (req, res) => {
         { transaction }
       );
 
-      const addrPayload = { emirate, area, appartment, addtional_address, category, save_as_address_type, location, latitude, longitude };
-      const existingAddr = await addressService.getAddressByUserId(id, { transaction });
+      const addrPayload = {
+        emirate,
+        area,
+        appartment,
+        addtional_address,
+        category,
+        save_as_address_type,
+        location,
+        latitude,
+        longitude,
+      };
+      const existingAddr = await addressService.getAddressByUserId(id, {
+        transaction,
+      });
 
       if (existingAddr) {
-        await addressService.updateAddress(existingAddr.id, addrPayload, { transaction });
+        await addressService.updateAddress(existingAddr.id, addrPayload, {
+          transaction,
+        });
       } else {
-        await addressService.createAddress({ id: uuidv4(), user_id: id, ...addrPayload }, { transaction });
+        await addressService.createAddress(
+          { id: uuidv4(), user_id: id, ...addrPayload },
+          { transaction }
+        );
       }
 
       await transaction.commit();
-      return res.status(200).json({ success: true, message: "Technician updated successfully." });
+      return res
+        .status(200)
+        .json({ success: true, message: "Technician updated successfully." });
     }
 
     // CREATE
-    const emailExists = await technicianService.getTechnicianByEmail(email, { transaction });
+    const emailExists = await technicianService.getTechnicianByEmail(email, {
+      transaction,
+    });
     if (emailExists) {
       await transaction.rollback();
-      return res.status(400).json({ success: false, message: "Email already exists." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email already exists." });
     }
 
-    const mobileExists = await technicianService.getTechnicianByMobile(mobile, { transaction });
+    const mobileExists = await technicianService.getTechnicianByMobile(mobile, {
+      transaction,
+    });
     if (mobileExists) {
       await transaction.rollback();
-      return res.status(400).json({ success: false, message: "Mobile already exists." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Mobile already exists." });
     }
 
     const tech = await technicianService.createTechnician(
@@ -142,18 +181,28 @@ const upsertTechnician = async (req, res) => {
     );
 
     await transaction.commit();
-    return res.status(201).json({ success: true, message: "Technician created.", data: tech });
+    return res
+      .status(201)
+      .json({ success: true, message: "Technician created.", data: tech });
   } catch (error) {
     await transaction.rollback();
     console.error(error);
-    return res.status(500).json({ success: false, message: "Server error.", error: error.message });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error.", error: error.message });
   }
 };
 
-
 const getAllTechnicians = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = "", sort = "created_desc", emirate, area } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      sort = "created_desc",
+      emirate,
+      area,
+    } = req.query;
     const offset = (page - 1) * limit;
     const filters = { role: "technician" };
 
@@ -174,11 +223,23 @@ const getAllTechnicians = async (req, res) => {
     // ✅ Construct case-insensitive search query
     if (normalizedSearch) {
       filters[Op.or] = [
-        sequelize.where(sequelize.fn("LOWER", sequelize.col("fullname")), { [Op.like]: `%${normalizedSearch}%` }),
-        sequelize.where(sequelize.fn("LOWER", sequelize.col("email")), { [Op.like]: `%${normalizedSearch}%` }),
-        sequelize.where(sequelize.fn("LOWER", sequelize.col("mobile")), { [Op.like]: `%${normalizedSearch}%` }),
-        sequelize.where(sequelize.fn("LOWER", sequelize.col("service_category")), { [Op.like]: `%${normalizedSearch}%` }),
-        sequelize.where(sequelize.fn("LOWER", sequelize.col("services_known")), { [Op.like]: `%${normalizedSearch}%` }),
+        sequelize.where(sequelize.fn("LOWER", sequelize.col("fullname")), {
+          [Op.like]: `%${normalizedSearch}%`,
+        }),
+        sequelize.where(sequelize.fn("LOWER", sequelize.col("email")), {
+          [Op.like]: `%${normalizedSearch}%`,
+        }),
+        sequelize.where(sequelize.fn("LOWER", sequelize.col("mobile")), {
+          [Op.like]: `%${normalizedSearch}%`,
+        }),
+        sequelize.where(
+          sequelize.fn("LOWER", sequelize.col("service_category")),
+          { [Op.like]: `%${normalizedSearch}%` }
+        ),
+        sequelize.where(
+          sequelize.fn("LOWER", sequelize.col("services_known")),
+          { [Op.like]: `%${normalizedSearch}%` }
+        ),
       ];
     }
 
@@ -262,73 +323,72 @@ const getAllTechnicians = async (req, res) => {
  * @route GET /api/admin/technicians/:id
  * @access Admin
  */
-  const getTechnicianByIdController = async (req, res) => {
-    const transaction = await sequelize.transaction();
-    try {
-      const { id } = req.params;
+const getTechnicianByIdController = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const { id } = req.params;
 
-      if (!id) {
-        return res.status(400).json({
-          success: false,
-          message: "Technician ID is required.",
-          code: "TECHNICIAN_ID_MISSING",
-        });
-      }
-
-      // Fetch technician with address
-      const technician = await technicianService.getTechnicianByIdWithAddress(id);
-
-      if (!technician) {
-        return res.status(404).json({
-          success: false,
-          message: "Technician not found.",
-          code: "TECHNICIAN_NOT_FOUND",
-        });
-      }
-
-      // Convert to plain object
-      const tech = technician.toJSON();
-
-      // Map response (same format as getAllTechnicians)
-      const response = {
-        id: tech.id,
-        fullname: tech.fullname,
-        email: tech.email,
-        mobile: tech.mobile,
-        profile_pic: tech.profile_pic || null,
-        service_category: tech.service_category || null,
-        services_known: tech.services_known || null,
-        service_type: tech.service_type || 'general',
-        description: tech.description || null,
-        id_proof_type: tech.id_proof_type || null,
-        id_proofs: tech.id_proofs || null,
-        status: tech.status || 'pending',
-        is_active: tech.is_active || false,
-        addresses: tech.addresses || [],
-        createdAt: tech.createdAt,
-        updatedAt: tech.updatedAt,
-      };
-
-      await transaction.commit();
-
-      return res.status(200).json({
-        success: true,
-        message: "Technician retrieved successfully.",
-        code: "TECHNICIAN_FETCH_SUCCESS",
-        data: response,
-      });
-    } catch (error) {
-      await transaction.rollback();
-      console.error("Error in getTechnicianByIdController:", error);
-      return res.status(500).json({
+    if (!id) {
+      return res.status(400).json({
         success: false,
-        message: "Internal server error.",
-        code: "TECHNICIAN_INTERNAL_SERVER_ERROR",
-        error: error.message,
+        message: "Technician ID is required.",
+        code: "TECHNICIAN_ID_MISSING",
       });
     }
-  };
 
+    // Fetch technician with address
+    const technician = await technicianService.getTechnicianByIdWithAddress(id);
+
+    if (!technician) {
+      return res.status(404).json({
+        success: false,
+        message: "Technician not found.",
+        code: "TECHNICIAN_NOT_FOUND",
+      });
+    }
+
+    // Convert to plain object
+    const tech = technician.toJSON();
+
+    // Map response (same format as getAllTechnicians)
+    const response = {
+      id: tech.id,
+      fullname: tech.fullname,
+      email: tech.email,
+      mobile: tech.mobile,
+      profile_pic: tech.profile_pic || null,
+      service_category: tech.service_category || null,
+      services_known: tech.services_known || null,
+      service_type: tech.service_type || "general",
+      description: tech.description || null,
+      id_proof_type: tech.id_proof_type || null,
+      id_proofs: tech.id_proofs || null,
+      status: tech.status || "pending",
+      is_active: tech.is_active || false,
+      addresses: tech.addresses || [],
+      createdAt: tech.createdAt,
+      updatedAt: tech.updatedAt,
+    };
+
+    await transaction.commit();
+
+    return res.status(200).json({
+      success: true,
+      message: "Technician retrieved successfully.",
+      code: "TECHNICIAN_FETCH_SUCCESS",
+      data: response,
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Error in getTechnicianByIdController:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+      code: "TECHNICIAN_INTERNAL_SERVER_ERROR",
+      error: error.message,
+    });
+  }
+};
 
 /**
  * @desc Toggle technician active/inactive status
@@ -417,11 +477,10 @@ const deleteTechnician = async (req, res) => {
   }
 };
 
-
 module.exports = {
   upsertTechnician,
   getAllTechnicians,
   getTechnicianByIdController,
   updateTechnicianToggleStatus,
-  deleteTechnician
+  deleteTechnician,
 };

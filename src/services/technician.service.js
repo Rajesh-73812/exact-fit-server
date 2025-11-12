@@ -1,15 +1,18 @@
-const Address = require('../models/address');
-const User = require('../models/user');
+const Address = require("../models/address");
+const User = require("../models/user");
 
-const normalizeServicesKnown = (data) => {
-  if (Array.isArray(data)) return data.join(', ');
-  if (typeof data === 'string') return data;
-  return '';
-};
+// const normalizeServicesKnown = (data) => {
+//   if (Array.isArray(data)) return data.join(", ");
+//   if (typeof data === "string") return data;
+//   return "";
+// };
 
 const parseServicesKnown = (str) => {
   if (!str) return [];
-  return str.split(',').map(s => s.trim()).filter(Boolean);
+  return str
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 };
 
 const createTechnician = async (data) => {
@@ -56,7 +59,7 @@ const deleteTechnician = async (id) => {
 
 const getTechnicianByIdWithAddress = async (id) => {
   return await User.findByPk(id, {
-    include: [{ model: Address, as: 'addresses' }],
+    include: [{ model: Address, as: "addresses" }],
   });
 };
 
