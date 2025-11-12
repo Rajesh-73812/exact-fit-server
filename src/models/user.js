@@ -54,6 +54,38 @@ const user = sequelize.define(
         },
       },
     },
+    id_proofs: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Stores uploaded ID proof URLs (Aadhar, Emirates ID, etc.)",
+    },
+    id_proof_type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "ID Proof type (Aadhar, PAN, Passport etc)",
+    },
+    service_category: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Technician’s main service category (e.g., electrician, plumber)",
+    },
+
+    services_known: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: "List of services the technician can perform",
+    },
+
+    service_type: {
+      type: DataTypes.ENUM("general", "emergency"),
+      allowNull: true,
+      comment: "Service type the technician offers",
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "Technician’s profile or work description",
+    },
     onesignal_id: {
       type: DataTypes.STRING(255),
       allowNull: true,
