@@ -67,7 +67,8 @@ const user = sequelize.define(
     service_category: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: "Technician’s main service category (e.g., electrician, plumber)",
+      comment:
+        "Technician’s main service category (e.g., electrician, plumber)",
     },
 
     services_known: {
