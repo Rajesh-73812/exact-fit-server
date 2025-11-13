@@ -1,12 +1,12 @@
-const CategoryService = require("../../services/category");
+const Service = require("../../services/service");
 
-const upsertCategory = async (req, res) => {
+const upsertService = async (req, res) => {
   const created_by = req.user ? req.user.id : null;
   console.log(created_by, "created_byyyyyyyyyyyyyyyyyyy");
   console.log(req.body, "bodydddddddddyyyyyyyyyyyyyyyyy");
 
   const {
-    category_slug,
+    service_slug,
     title,
     position,
     description,
@@ -17,17 +17,14 @@ const upsertCategory = async (req, res) => {
   } = req.body;
 
   try {
-    const existingCategory = await CategoryService.categoryExists(
-      title,
-      category_slug
-    );
-    if (existingCategory) {
+    const existingservice = await Service.ServiceExists(title, service_slug);
+    if (existingservice) {
       return res
         .status(400)
         .json({ success: false, message: `${title} already exists!` });
     }
 
-    const categoryData = {
+    const serviceData = {
       title,
       position,
       description,
@@ -38,29 +35,29 @@ const upsertCategory = async (req, res) => {
       created_by: created_by,
     };
 
-    const { category, created } = await CategoryService.upsertCategory(
-      category_slug,
-      categoryData
+    const { service, created } = await Service.upsertService(
+      service_slug,
+      serviceData
     );
     if (created) {
       return res.status(201).json({
         success: true,
-        message: `Category "${category.title}" created successfully.`,
-        data: category,
+        message: `service "${service.title}" created successfully.`,
+        data: service,
       });
     } else {
       return res.status(200).json({
         success: true,
-        message: `Category "${category.title}" updated successfully.`,
-        data: category,
+        message: `service "${service.title}" updated successfully.`,
+        data: service,
       });
     }
   } catch (error) {
-    console.error("Error in upsertCategory controller:", error);
+    console.error("Error in upsertservice controller:", error);
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(409).json({
         success: false,
-        message: "A category with this slug or title already exists.",
+        message: "A service with this slug or title already exists.",
       });
     }
 
@@ -73,7 +70,7 @@ const upsertCategory = async (req, res) => {
   }
 };
 
-const getAllCategory = async (req, res) => {
+const getAllService = async (req, res) => {
   const user_id = req.user?.id;
   if (user_id) {
     console.log(user_id);
@@ -83,7 +80,7 @@ const getAllCategory = async (req, res) => {
   try {
     const pageNum = page ? parseInt(page) : 1;
     const LimitNum = limit ? parseInt(limit) : 10;
-    const category = await CategoryService.getAllCategory({
+    const service = await Service.getAllService({
       search,
       page: pageNum,
       limit: LimitNum,
@@ -91,10 +88,10 @@ const getAllCategory = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Category fetched sucessfully!",
-      data: category,
-      activeCategoryCount: category.activeCount,
-      inactiveCategoryCount: category.inactiveCount,
+      message: "service fetched sucessfully!",
+      data: service,
+      activeserviceCount: service.activeCount,
+      inactiveserviceCount: service.inactiveCount,
     });
   } catch (error) {
     console.error(error);
@@ -105,29 +102,29 @@ const getAllCategory = async (req, res) => {
   }
 };
 
-const updateCategoryByStatus = async (req, res) => {
+const updateServiceByStatus = async (req, res) => {
   const user_id = req.user?.id;
-  console.log(user_id);
-  const { category_slug } = req.params;
-  if (!category_slug) {
+  console.log(user_id, "user_iddddddddddddddddddddddddddddd");
+  const { service_slug } = req.params;
+  if (!service_slug) {
     return res.status(400).json({
       success: false,
-      message: "Category slug is required.",
+      message: "service slug is required.",
     });
   }
 
   try {
-    const existingCategory = await CategoryService.categoryExists(
-      category_slug,
+    const existingservice = await Service.ServiceExists(
+      service_slug,
       "update-status"
     );
     return res.status(200).json({
       success: true,
-      message: "Category updated sucessfully",
-      data: existingCategory,
+      message: "service updated sucessfully",
+      data: existingservice,
     });
   } catch (error) {
-    console.error("Error updating category status:", error);
+    console.error("Error updating service status:", error);
 
     return res.status(500).json({
       success: false,
@@ -136,31 +133,31 @@ const updateCategoryByStatus = async (req, res) => {
   }
 };
 
-const deleteCategory = async (req, res) => {
-  const { category_slug } = req.params;
-  if (!category_slug) {
+const deleteService = async (req, res) => {
+  const { service_slug } = req.params;
+  if (!service_slug) {
     return res.status(400).json({
       success: false,
-      message: "Category slug is required.",
+      message: "service slug is required.",
     });
   }
 
   try {
-    const categoryExists = await CategoryService.categoryExists(
-      category_slug,
-      "delete-category"
+    const serviceExists = await Service.ServiceExists(
+      service_slug,
+      "delete-service"
     );
-    if (!categoryExists) {
+    if (!serviceExists) {
       return res.status(404).json({
         success: false,
         message:
-          "Category not found. Please check the category slug and try again.",
+          "service not found. Please check the service slug and try again.",
       });
     }
 
     return res
       .status(200)
-      .json({ success: true, message: "Category deleted successfully." });
+      .json({ success: true, message: "service deleted successfully." });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
@@ -170,32 +167,29 @@ const deleteCategory = async (req, res) => {
   }
 };
 
-const getCategoryBySlug = async (req, res) => {
-  const { category_slug } = req.params;
-  if (!category_slug) {
+const getServiceBySlug = async (req, res) => {
+  const { service_slug } = req.params;
+  if (!service_slug) {
     return res.status(400).json({
       success: false,
-      message: "Category slug is required.",
+      message: "service slug is required.",
     });
   }
 
   try {
-    const category = await CategoryService.categoryExists(
-      category_slug,
-      "by-slug"
-    );
-    if (!category) {
+    const service = await Service.ServiceExists(service_slug, "by-slug");
+    if (!service) {
       return res.status(404).json({
         success: false,
         message:
-          "Category not found. Please check the category slug and try again.",
+          "service not found. Please check the service slug and try again.",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Category fetched successfully.",
-      data: category,
+      message: "service fetched successfully.",
+      data: service,
     });
   } catch (error) {
     console.error(error);
@@ -207,9 +201,9 @@ const getCategoryBySlug = async (req, res) => {
 };
 
 module.exports = {
-  upsertCategory,
-  getAllCategory,
-  updateCategoryByStatus,
-  deleteCategory,
-  getCategoryBySlug,
+  upsertService,
+  getAllService,
+  updateServiceByStatus,
+  deleteService,
+  getServiceBySlug,
 };
