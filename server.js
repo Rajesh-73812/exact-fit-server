@@ -60,15 +60,15 @@ if (process.env.NODE_ENV !== "test") {
     });
 }
 
-if (process.env.NODE_ENV !== "test") {
-  async function checkTables() {
-    const [results] = await sequelize.query("SHOW TABLES");
-    console.log("All tables in the database:");
-    results.forEach((row) => console.log(Object.values(row)[0]));
-  }
+// if (process.env.NODE_ENV !== "test") {
+//   async function checkTables() {
+//     const [results] = await sequelize.query("SHOW TABLES");
+//     console.log("All tables in the database:");
+//     results.forEach((row) => console.log(Object.values(row)[0]));
+//   }
 
-  checkTables();
-}
+//   checkTables();
+// }
 
 (async () => {
   try {

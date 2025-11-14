@@ -20,6 +20,14 @@ const endPoints = {
     deleteSubServiceBySlug: `/${VERSION}/delete-sub-service-by-slug/:sub_service_slug`,
     statusUpdate: `/${VERSION}/update-sub-service-status/:sub_service_slug`,
   },
+
+  // for user
+  user: {
+    requestOTP: `/${VERSION}/request-otp`,
+    verifyOTP: `/${VERSION}/verify-otp`,
+    resendOTP: `/${VERSION}/resend-otp`,
+    profileUpdate: `/${VERSION}/update-profile`,
+  },
 };
 
 module.exports = {
