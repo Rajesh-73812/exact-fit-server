@@ -1,4 +1,15 @@
 const User = require("../models/user");
+const Address = require("../models/address");
+
+const twilio = require("twilio")(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+// const isValidUAENumber = (mobile) => {
+//   const uaeRegex = /^\+9715[024568]\d{7}$/; // 50,52,54,55,56,58
+//   return uaeRegex.test(mobile.trim());
+// };
 
 const registerAdmin = async ({ email, password }) => {
   const admin = await User.create(
@@ -68,8 +79,196 @@ const updateProfileService = async (userId, profileData) => {
   };
 };
 
+// for mobile
+
+const createUserWithMobile = async (mobile) => {
+  try {
+    // findOrCreate returns [instance, created(boolean)]
+    const [userRecord, created] = await User.findOrCreate({
+      where: { mobile },
+      defaults: {
+        mobile,
+        fullname: null,
+        email: null,
+        password: null,
+        role: "customer", // choose sensible default
+      },
+    });
+
+    // return plain JS object similar to userExists
+    return {
+      id: userRecord.id,
+      mobile: userRecord.mobile,
+      fullname: userRecord.fullname,
+      email: userRecord.email,
+      role: userRecord.role,
+      created: !!created,
+    };
+  } catch (error) {
+    // handle unique constraint race: if another request created the user simultaneously,
+    // you can fallback to fetching it again
+    if (error.name === "SequelizeUniqueConstraintError") {
+      const existing = await userExists(mobile);
+      if (existing) return { ...existing, created: false };
+    }
+    console.error("Create user error:", error);
+    throw new Error("Failed to create user. Please try again later.");
+  }
+};
+
+const sendOTP = async (mobile) => {
+  // if (!isValidUAENumber(mobile)) {
+  //   throw new Error("Invalid UAE mobile number format.");
+  // }
+
+  try {
+    const verification = await twilio.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verifications.create({ to: mobile, channel: "sms" });
+
+    if (verification.status === "pending") {
+      return { success: true, sid: verification.sid };
+    } else {
+      throw new Error("Failed to send OTP. Please try again.");
+    }
+  } catch (error) {
+    if (error.code === 60202) {
+      throw new Error("OTP already sent recently. Please wait 30 seconds.");
+    }
+    if (error.code === 20429) {
+      throw new Error("Too many requests. Try again later.");
+    }
+    if (error.code === 20001) {
+      throw new Error("Invalid mobile number.");
+    }
+    throw new Error(
+      "Unable to send OTP at the moment. Please try again later."
+    );
+  }
+};
+
+const verifyOTP = async (mobile, code) => {
+  // if (!isValidUAENumber(mobile)) {
+  //   throw new Error("Invalid UAE mobile number.");
+  // }
+  if (!code || code.toString().length !== 6) {
+    throw new Error("OTP must be 6 digits.");
+  }
+
+  try {
+    const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
+    if (!serviceSid) {
+      console.error("Missing TWILIO_VERIFY_SERVICE_SID");
+      return { valid: false, message: "OTP service not configured." };
+    }
+
+    // Verify the code
+    const check = await twilio.verify.v2
+      .services(serviceSid)
+      .verificationChecks.create({
+        to: mobile,
+        code: code.toString(),
+      });
+
+    // Twilio returns status === "approved" when code is valid
+    if (check && check.status === "approved") {
+      return { valid: true, payload: check };
+    }
+
+    // Any other status is considered invalid/expired
+    return { valid: false, message: "Invalid or expired OTP." };
+  } catch (error) {
+    if (error.code === 20404) {
+      return { valid: false, message: "OTP expired or not found." };
+    }
+    if (error.code === 60200) {
+      return { valid: false, message: "Invalid OTP." };
+    }
+    throw new Error("OTP verification failed. Please try again.");
+  }
+};
+
+const userExists = async (mobile) => {
+  // const formattedMobile = mobile.trim();
+  // if (!isValidUAENumber(formattedMobile)) {
+  //   throw new Error("Invalid UAE mobile number format.");
+  // }
+
+  try {
+    const user = await User.findOne({
+      where: { mobile: mobile },
+      attributes: ["id", "fullname", "email", "mobile", "role"],
+      raw: true,
+    });
+
+    if (!user) {
+      return null; // User not found
+    }
+    return {
+      id: user.id,
+      mobile: user.mobile,
+      fullname: user.fullname,
+      role: user.role,
+    };
+  } catch (error) {
+    console.error("Sequelize Error in userExists:", error.message);
+    throw new Error("Failed to verify user. Please try again later.");
+  }
+};
+
+const updateProfile = async (userId, userData, addressData) => {
+  const t = await User.sequelize.transaction();
+  try {
+    let updatedUser = null;
+    let updatedAddress = null;
+
+    // 1. Update User
+    if (Object.keys(userData).length > 0) {
+      const [updated] = await User.update(userData, {
+        where: { id: userId },
+        transaction: t,
+      });
+
+      if (updated === 0) throw new Error("USER_NOT_FOUND");
+    }
+
+    // Fetch updated user
+    updatedUser = await User.findByPk(userId, { transaction: t });
+
+    // 2. Upsert Address
+    if (Object.keys(addressData).length > 0) {
+      await Address.upsert(
+        { user_id: userId, ...addressData },
+        { transaction: t }
+      );
+    }
+
+    // Fetch updated address
+    updatedAddress = await Address.findOne({
+      where: { user_id: userId },
+      transaction: t,
+    });
+
+    await t.commit();
+
+    return {
+      success: true,
+      user: updatedUser,
+      address: updatedAddress,
+    };
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
+};
+
 module.exports = {
   registerAdmin,
   checkUserExists,
   updateProfileService,
+  createUserWithMobile,
+  sendOTP,
+  verifyOTP,
+  userExists,
+  updateProfile,
 };

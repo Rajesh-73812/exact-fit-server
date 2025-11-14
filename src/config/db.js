@@ -12,7 +12,7 @@ const sequelize = new Sequelize(
     dialect: "mysql",
     dialectModule: require("mysql2"),
     timezone: process.env.TIMEZONE || "+05:30",
-    logging: process.env.NODE_ENV === "development" ? console.log : false,
+    logging: process.env.NODE_ENV === "development" ? false : console.log,
     pool: {
       max: 10, // Maximum number of connection in pool
       min: 0, // Minimum number of connection in pool
