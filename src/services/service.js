@@ -11,8 +11,9 @@ const ServiceExists = async (service_slug, from = null) => {
   }
 
   if (from === "update-status") {
+    console.log(service_slug, "frommmmmmmmm2222");
     const service = await Service.findOne({ where: { service_slug } });
-
+    console.log(service, "serviceeeeeeeeeeeeee");
     if (!service) {
       return null;
     }
@@ -107,7 +108,7 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
   const offset = (page - 1) * limit;
   const services = await Service.findAll({
     where,
-    attributes: ["title", "service_slug", "status", "position"],
+    attributes: ["id", "title", "service_slug", "status", "position"],
     order: [
       ["position", "ASC"],
       ["updatedAt", "DESC"],
