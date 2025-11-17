@@ -28,6 +28,11 @@ const endPoints = {
     resendOTP: `/${VERSION}/resend-otp`,
     profileUpdate: `/${VERSION}/update-profile`,
   },
+  dashboard: {
+    getStats: `/${VERSION}/dashboard-stats`,
+    getAllServiceAndSubServices: `/${VERSION}/get-all-services-sub-services`,
+    getDefaultAddress: `/${VERSION}/get-default-address`,
+  },
 };
 
 module.exports = {

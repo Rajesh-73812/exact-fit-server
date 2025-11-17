@@ -22,6 +22,11 @@ const address = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    building: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Building name or number (optional)",
+    },
     area: {
       type: DataTypes.STRING,
       allowNull: true,
@@ -35,10 +40,19 @@ const address = sequelize.define(
       allowNull: true,
     },
     category: {
-      type: DataTypes.ENUM("resedential", "commercial"), //resedential, commercial
+      type: DataTypes.ENUM("residential", "commercial"), //resedential, commercial
       allowNull: true,
     },
     save_as_address_type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    is_default: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    mobile: {
       type: DataTypes.STRING,
       allowNull: true,
     },
