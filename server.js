@@ -8,6 +8,15 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 require("./src/models/sub-service");
+require("./src/models/propertyType");
+require("./src/models/subscriptionPlan");
+require("./src/models/subscriptionPlanPropertyPrice");
+require("./src/models/subscriptionPlanService");
+require("./src/models/subscriptionCustomPlanSubservice");
+require("./src/models/userSubscription");
+require("./src/models/userSubscriptionSchedule");
+require("./src/models/user");
+require("./src/models/service");
 require("./src/models/associations");
 
 app.use(express.json());
