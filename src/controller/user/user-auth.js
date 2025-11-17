@@ -150,6 +150,7 @@ const updateUserProfile = async (req, res) => {
     email,
     emirate,
     area,
+    building,
     appartment,
     addtional_address,
     category,
@@ -167,6 +168,7 @@ const updateUserProfile = async (req, res) => {
   if (emirate !== undefined) addressData.emirate = emirate;
   if (area !== undefined) addressData.area = area;
   if (appartment !== undefined) addressData.appartment = appartment;
+  if (building !== undefined) addressData.building = building;
   if (addtional_address !== undefined)
     addressData.addtional_address = addtional_address;
   if (category !== undefined) addressData.category = category;
