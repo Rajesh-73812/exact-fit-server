@@ -259,7 +259,8 @@ const getAllServices = async (options = {}) => {
 // for getting default address
 const getDefaultAddress = async (user_id) => {
   const address = await Address.findOne({
-    where: { user_id, is_default: true },
+    where: { user_id },
+    order: [["createdAt", "DESC"]],
   });
   return address;
 };
