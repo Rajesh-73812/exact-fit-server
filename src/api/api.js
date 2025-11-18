@@ -27,11 +27,14 @@ const endPoints = {
     verifyOTP: `/${VERSION}/verify-otp`,
     resendOTP: `/${VERSION}/resend-otp`,
     profileUpdate: `/${VERSION}/update-profile`,
+    userDetails: `/${VERSION}/user-details`,
   },
   dashboard: {
     getStats: `/${VERSION}/dashboard-stats`,
     getAllServiceAndSubServices: `/${VERSION}/get-all-services-sub-services`,
     getDefaultAddress: `/${VERSION}/get-default-address`,
+    getServicesBySlug: `/${VERSION}/get-services-by-slug/:slug`,
+    getSubServicesBySlug: `/${VERSION}/get-sub-services-by-slug/:slug`,
   },
 };
 
