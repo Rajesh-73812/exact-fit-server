@@ -12,4 +12,9 @@ router.patch(
   userAuthController.updateUserProfile
 );
 
+router.get(
+  endPoints.user.userDetails,
+  middleware.authMiddleware,
+  userAuthController.getUserDetails
+);
 module.exports = router;

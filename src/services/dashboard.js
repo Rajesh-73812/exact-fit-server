@@ -160,11 +160,11 @@ const getAllServices = async (options = {}) => {
   const order =
     String(sort.order || "DESC").toUpperCase() === "ASC" ? "ASC" : "DESC";
 
-  // Service-level where clause
+  // Base where clauses
   const serviceWhere = {};
-  // SubService-level where clause (for the included model)
   const subServiceWhere = {};
 
+  // Apply filters
   if (filters.category) {
     serviceWhere.category = filters.category;
   }
@@ -172,34 +172,28 @@ const getAllServices = async (options = {}) => {
     serviceWhere.status = filters.is_active ? "active" : "inactive";
   }
 
-  if (search && String(search).trim().length > 0) {
+  // Search handling
+  if (search && String(search).trim()) {
     const likePattern = `%${search.trim()}%`;
 
-    // Conditions for the main Service model
-    serviceWhere[Op.or] = [
+    const searchConditions = [
       { title: { [Op.like]: likePattern } },
       { description: { [Op.like]: likePattern } },
-      // Add more Service fields if needed for search
     ];
 
-    // Conditions for the included SubService model
+    // Always search in Service
+    serviceWhere[Op.or] = searchConditions;
+
+    // Also search in SubService (will be OR'd via include)
     subServiceWhere[Op.or] = [
       { title: { [Op.like]: likePattern } },
-      // If SubService model has a description field, add it here:
-      // { description: { [Op.like]: likePattern } },
+      // Add description if exists
     ];
-
-    // IMPORTANT: If you want services to appear IF ANY of their sub_services match,
-    // you MUST make the `required: true` for the include, so it acts like an INNER JOIN.
-    // If you keep `required: false` (LEFT JOIN), then you need to handle the search differently
-    // if you want services *without* matching sub_services to still appear if the service itself matches.
-    // The current approach with `required: true` is simpler for combined searching.
-    // If a service has no matching sub_services AND the service itself doesn't match the search, it won't be returned.
   }
 
   try {
     const { count, rows } = await Service.findAndCountAll({
-      where: serviceWhere, // Conditions for the Service model
+      where: serviceWhere,
       include: [
         {
           model: SubService,
@@ -213,24 +207,35 @@ const getAllServices = async (options = {}) => {
             "status",
             "createdAt",
           ],
-          where: subServiceWhere, // *** CRITICAL CHANGE HERE: Conditions for the SubService model ***
-          required: Object.keys(subServiceWhere).length > 0, // Make it a required (INNER) join if subService search conditions exist
-          // Otherwise, it remains a LEFT JOIN (required: false)
+          where: subServiceWhere,
+          required: false, // LEFT JOIN: Keep service even if no sub-service matches
         },
       ],
       limit,
       offset,
       order: [[sortBy, order]],
-      distinct: true, // Ensures the count is for distinct services even with joins
+      distinct: true,
+      subQuery: false, // Important for correct pagination with includes
     });
 
     const pages = Math.max(Math.ceil(count / limit), 1);
 
     const data = rows.map((r) => {
-      const plain = r.get ? r.get({ plain: true }) : r;
-      plain.subServiceCount = Array.isArray(plain.sub_services)
-        ? plain.sub_services.length
-        : 0;
+      const plain = r.get({ plain: true });
+      const allSubServices = plain.sub_services || [];
+
+      // Filter sub-services client-side if search was applied
+      let filteredSubServices = allSubServices;
+      if (search && String(search).trim()) {
+        const pattern = new RegExp(search.trim(), "i");
+        filteredSubServices = allSubServices.filter(
+          (ss) => pattern.test(ss.title)
+          // Add more fields if needed
+        );
+      }
+
+      plain.sub_services = filteredSubServices;
+      plain.subServiceCount = filteredSubServices.length;
       return plain;
     });
 
@@ -259,9 +264,52 @@ const getDefaultAddress = async (user_id) => {
   return address;
 };
 
+const getServicesBySlug = async (service_slug) => {
+  console.log(service_slug, "slugggggggggggggg");
+  try {
+    const service = await Service.findOne({
+      where: { service_slug },
+      include: [
+        {
+          model: SubService,
+          as: "sub_services",
+          attributes: [
+            "id",
+            "title",
+            "sub_service_slug",
+            "price",
+            "discount",
+            "status",
+            "createdAt",
+          ],
+        },
+      ],
+    });
+    console.log(service, "serviceeeeeeeeeeeeee");
+    return service;
+  } catch (error) {
+    console.error("Error fetching services by slug:", error);
+    throw new Error("Failed to fetch services by slug");
+  }
+};
+
+const getSubServicesBySlug = async (sub_service_slug) => {
+  try {
+    const subService = await SubService.findOne({
+      where: { sub_service_slug },
+    });
+    return subService;
+  } catch (error) {
+    console.error("Error fetching sub-services by slug:", error);
+    throw new Error("Failed to fetch sub-services by slug");
+  }
+};
+
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,
   getAllServices,
   getDefaultAddress,
+  getServicesBySlug,
+  getSubServicesBySlug,
 };

@@ -14,4 +14,15 @@ router.get(
   dashboardController.getAllServices
 );
 
+router.get(
+  endPoints.dashboard.getServicesBySlug,
+  middleware.authMiddleware,
+  dashboardController.getServicesBySlug
+);
+router.get(
+  endPoints.dashboard.getSubServicesBySlug,
+  middleware.authMiddleware,
+  dashboardController.getSubServicesBySlug
+);
+
 module.exports = router;

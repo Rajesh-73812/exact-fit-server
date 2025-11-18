@@ -7,7 +7,7 @@ const loadRoutes = require("./src/routes/index");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
-require("./src/models/sub-service");
+require("./src/models/user");
 require("./src/models/associations");
 
 app.use(express.json());

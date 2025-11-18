@@ -197,18 +197,27 @@ const userExists = async (mobile) => {
   try {
     const user = await User.findOne({
       where: { mobile: mobile },
-      attributes: ["id", "fullname", "email", "mobile", "role"],
+      attributes: [
+        "id",
+        "fullname",
+        "email",
+        "mobile",
+        "role",
+        "is_profile_update",
+      ],
       raw: true,
     });
 
     if (!user) {
       return null; // User not found
     }
+    console.log(user, "userrrrrrrrrrrrr");
     return {
       id: user.id,
       mobile: user.mobile,
       fullname: user.fullname,
       role: user.role,
+      is_profile_update: user.is_profile_update,
     };
   } catch (error) {
     console.error("Sequelize Error in userExists:", error.message);
@@ -224,6 +233,7 @@ const updateProfile = async (userId, userData, addressData) => {
 
     // 1. Update User
     if (Object.keys(userData).length > 0) {
+      userData.is_profile_update = true;
       const [updated] = await User.update(userData, {
         where: { id: userId },
         transaction: t,
@@ -262,6 +272,24 @@ const updateProfile = async (userId, userData, addressData) => {
   }
 };
 
+const getUserById = async (userId) => {
+  const user = await User.findByPk(userId, {
+    include: [
+      {
+        model: Address,
+        as: "addresses",
+      },
+    ],
+    raw: true,
+  });
+
+  if (!user) {
+    return null; // User not found
+  }
+
+  return user;
+};
+
 module.exports = {
   registerAdmin,
   checkUserExists,
@@ -271,4 +299,5 @@ module.exports = {
   verifyOTP,
   userExists,
   updateProfile,
+  getUserById,
 };

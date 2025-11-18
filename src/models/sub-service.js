@@ -82,21 +82,21 @@ const subService = sequelize.define(
     tableName: "sub_service",
     timestamps: true,
     paranoid: true,
+    // models/sub_service.js
     hooks: {
-      // This hook runs before validation, ensuring the slug is present for uniqueness checks
-      beforeValidate: (service, options) => {
-        // Only generate slug if title is present and service_slug is not already set
-        console.log(options.transaction, "comes from service options");
-        if (service.title) {
-          let baseSlug = slugify(service.title, {
+      beforeValidate: (subService, options) => {
+        // ← rename parameter
+        if (subService.title) {
+          const baseSlug = slugify(subService.title, {
             lower: true,
             strict: true,
-            locale: "en", //locale: "en" tells slugify to use English language character mapping when generating the slug.
+            locale: "en",
             trim: true,
           });
-          // For new records, or if title changed, generate/update the slug
-          if (!service.service_slug || service.changed("title")) {
-            service.service_slug = baseSlug;
+
+          // CORRECT field name
+          if (!subService.sub_service_slug || subService.changed("title")) {
+            subService.sub_service_slug = baseSlug;
           }
         }
       },

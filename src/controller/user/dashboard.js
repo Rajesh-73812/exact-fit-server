@@ -60,7 +60,43 @@ const getDefaultAddress = async (req, res) => {
   }
 };
 
+const getServicesBySlug = async (req, res) => {
+  const { slug } = req.params;
+  try {
+    const services = await dashboardService.getServicesBySlug(slug);
+    return res.status(200).json({
+      success: true,
+      data: services,
+    });
+  } catch (error) {
+    console.error("Error fetching services by slug:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch services by slug",
+    });
+  }
+};
+
+const getSubServicesBySlug = async (req, res) => {
+  const { slug } = req.params;
+  try {
+    const subServices = await dashboardService.getSubServicesBySlug(slug);
+    return res.status(200).json({
+      success: true,
+      data: subServices,
+    });
+  } catch (error) {
+    console.error("Error fetching sub-services by slug:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch sub-services by slug",
+    });
+  }
+};
+
 module.exports = {
   getAllServices,
   getDefaultAddress,
+  getServicesBySlug,
+  getSubServicesBySlug,
 };

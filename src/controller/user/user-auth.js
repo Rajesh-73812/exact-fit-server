@@ -78,6 +78,7 @@ const verifyOtpLogin = async (req, res) => {
       id: user.id,
       role: user.role,
       mobile: user.mobile,
+      is_profile_update: user.is_profile_update,
     });
     return res.status(200).json({
       success: true,
@@ -211,9 +212,35 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+const getUserDetails = async (req, res) => {
+  const userId = req.user?.id || null;
+
+  try {
+    const userDetails = await userService.getUserById(userId);
+    if (!userDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: userDetails,
+    });
+  } catch (error) {
+    console.error("Get User Details Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve user details",
+    });
+  }
+};
+
 module.exports = {
   requestOtpLogin,
   verifyOtpLogin,
   resendOtp,
   updateUserProfile,
+  getUserDetails,
 };
