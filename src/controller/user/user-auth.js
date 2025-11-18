@@ -78,7 +78,6 @@ const verifyOtpLogin = async (req, res) => {
       id: user.id,
       role: user.role,
       mobile: user.mobile,
-      is_profile_update: user.is_profile_update,
     });
     return res.status(200).json({
       success: true,
@@ -89,6 +88,7 @@ const verifyOtpLogin = async (req, res) => {
           id: user.id,
           mobile: user.mobile,
           name: user.name,
+          is_profile_update: user.is_profile_update,
         },
       },
     });
