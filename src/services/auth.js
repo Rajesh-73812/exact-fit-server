@@ -245,19 +245,26 @@ const updateProfile = async (userId, userData, addressData) => {
     // Fetch updated user
     updatedUser = await User.findByPk(userId, { transaction: t });
 
-    // 2. Upsert Address
+    // 2. Update or Create Address
     if (Object.keys(addressData).length > 0) {
-      await Address.upsert(
-        { user_id: userId, ...addressData },
-        { transaction: t }
-      );
-    }
+      // Check if the user already has an address
+      let existingAddress = await Address.findOne({
+        where: { user_id: userId },
+        transaction: t,
+      });
 
-    // Fetch updated address
-    updatedAddress = await Address.findOne({
-      where: { user_id: userId },
-      transaction: t,
-    });
+      if (existingAddress) {
+        // If address exists, update it
+        await existingAddress.update(addressData, { transaction: t });
+        updatedAddress = existingAddress;
+      } else {
+        // If address does not exist, create a new one
+        updatedAddress = await Address.create(
+          { user_id: userId, ...addressData },
+          { transaction: t }
+        );
+      }
+    }
 
     await t.commit();
 
