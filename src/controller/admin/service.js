@@ -2,11 +2,10 @@ const Service = require("../../services/service");
 
 const upsertService = async (req, res) => {
   const created_by = req.user ? req.user.id : null;
-  console.log(created_by, "created_byyyyyyyyyyyyyyyyyyy");
-  console.log(req.body, "bodydddddddddyyyyyyyyyyyyyyyyy");
 
   const {
-    service_slug,
+    old_service_slug, // ← ADD THIS LINE (only sent from frontend during edit)
+    service_slug, // ← this is the NEW slug (from current title)
     title,
     position,
     description,
@@ -17,7 +16,15 @@ const upsertService = async (req, res) => {
   } = req.body;
 
   try {
-    const existingservice = await Service.ServiceExists(title, service_slug);
+    // ← FIX: Use old slug if editing, otherwise use new slug
+    const slugToSearch = old_service_slug || service_slug;
+
+    // ← FIX: Check duplicate but ignore current record if editing
+    const existingservice = await Service.ServiceExists(
+      title,
+      service_slug,
+      slugToSearch
+    );
     if (existingservice) {
       return res
         .status(400)
@@ -33,12 +40,15 @@ const upsertService = async (req, res) => {
       status,
       external_link,
       created_by: created_by,
+      service_slug: service_slug, // ← we will set this new slug
     };
 
+    // ← FIX: Pass the slug we used to search (old or new)
     const { service, created } = await Service.upsertService(
-      service_slug,
+      slugToSearch,
       serviceData
     );
+
     if (created) {
       return res.status(201).json({
         success: true,
@@ -54,16 +64,6 @@ const upsertService = async (req, res) => {
     }
   } catch (error) {
     console.error("Error in upsertservice controller:", error);
-    if (error.name === "SequelizeUniqueConstraintError") {
-      return res.status(409).json({
-        success: false,
-        message: "A service with this slug or title already exists.",
-      });
-    }
-
-    if (error.name === "SequelizeValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });

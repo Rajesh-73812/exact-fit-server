@@ -4,7 +4,8 @@ const upsertService = async (req, res) => {
   const created_by = req.user?.id ?? null;
 
   const {
-    sub_service_slug,
+    old_sub_service_slug, // ← NEW: sent only during edit
+    sub_service_slug, // ← NEW slug from current title
     service_id,
     title,
     position,
@@ -19,54 +20,56 @@ const upsertService = async (req, res) => {
   } = req.body;
 
   try {
-    // Duplicate check: title OR slug
-    const exists = await SubService.serviceExists(title, sub_service_slug);
+    // Use old slug if editing, otherwise use new slug
+    const slugToCheck = old_sub_service_slug || sub_service_slug;
+
+    // Check duplicate but ignore current record if editing
+    const exists = await SubService.serviceExists(
+      title,
+      sub_service_slug,
+      slugToCheck
+    );
     if (exists) {
-      return res
-        .status(400)
-        .json({ success: false, message: `${title} already exists!` });
+      return res.status(400).json({
+        success: false,
+        message: "A sub-service with this title or slug already exists!",
+      });
     }
 
     const serviceData = {
-      title,
+      title: title.trim(),
       sub_service_slug,
       service_id,
-      position,
-      description,
-      image_url,
-      image_alt,
+      position: position ? Number(position) : null,
+      description: description || null,
+      image_url: image_url || null,
+      image_alt: image_alt || null,
       status: status ?? "active",
-      external_link,
-      discount,
-      price,
-      hero_banner,
+      external_link: external_link || null,
+      discount: discount ? Number(discount) : null,
+      price: price ? Number(price) : null,
+      hero_banner: hero_banner || null,
       created_by,
     };
 
+    // Pass the slug we used to search (old or new)
     const { subService, created } = await SubService.upsertService(
-      sub_service_slug,
+      slugToCheck,
       serviceData
     );
 
     const action = created ? "created" : "updated";
     return res.status(created ? 201 : 200).json({
       success: true,
-      message: `Service "${subService.title}" ${action} successfully.`,
+      message: `Sub-service "${subService.title}" ${action} successfully.`,
       data: subService,
     });
   } catch (error) {
     console.error("upsertService error:", error);
-    if (error.name === "SequelizeUniqueConstraintError") {
-      return res
-        .status(409)
-        .json({ success: false, message: "Slug already exists." });
-    }
-    if (error.name === "SequelizeValidationError") {
-      return res.status(400).json({ success: false, message: error.message });
-    }
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -129,15 +132,16 @@ const updateServiceByStatus = async (req, res) => {
 };
 
 const deleteService = async (req, res) => {
-  const { service_slug } = req.params;
-  if (!service_slug) {
+  const { sub_service_slug } = req.params;
+  console.log(sub_service_slug, "slugggggggggggggggg");
+  if (!sub_service_slug) {
     return res
       .status(400)
       .json({ success: false, message: "service_slug is required." });
   }
 
   try {
-    const deleted = await SubService.deleteBySlug(service_slug);
+    const deleted = await SubService.deleteBySlug(sub_service_slug);
     if (!deleted) {
       return res
         .status(404)
