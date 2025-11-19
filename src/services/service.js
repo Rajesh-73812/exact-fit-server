@@ -1,12 +1,15 @@
 const { Op } = require("sequelize");
 const Service = require("../models/service");
 
-const ServiceExists = async (service_slug, from = null) => {
+const ServiceExists = async (service_slug, from = null, currentSlug = null) => {
   console.log(from, "frommmmmmmmm9999");
-  if (service_slug && from === null) {
-    const count = await Service.count({
-      where: { service_slug: service_slug },
-    });
+  if (from === null) {
+    // ← FIX: Exclude current record when editing
+    const where = { service_slug };
+    if (currentSlug && currentSlug !== service_slug) {
+      where.service_slug = { [Op.ne]: currentSlug };
+    }
+    const count = await Service.count({ where });
     return count > 0;
   }
 
@@ -63,32 +66,24 @@ const ServiceExists = async (service_slug, from = null) => {
   }
 };
 
-const upsertService = async (service_slug, serviceData) => {
+const upsertService = async (lookupSlug, serviceData) => {
+  // ← FIX: Search using old slug (when editing) or new slug (when creating)
   const existingService = await Service.findOne({
-    where: { service_slug: service_slug },
-    attributes: ["id", "title", "service_slug", "status"],
+    where: { service_slug: lookupSlug },
   });
 
   if (existingService) {
+    // Update — slug can change now
     await existingService.update(serviceData);
-
     return {
-      service: {
-        title: existingService.title,
-        service_slug: existingService.service_slug,
-        status: existingService.status,
-      },
+      service: existingService,
       created: false,
     };
   } else {
+    // Create new
     const service = await Service.create(serviceData);
-
     return {
-      service: {
-        title: service.title,
-        service_slug: service.service_slug,
-        status: service.status,
-      },
+      service,
       created: true,
     };
   }

@@ -1,21 +1,32 @@
 const { Op } = require("sequelize");
 const SubService = require("../models/sub-service");
 
-/* ---------- 1. Check if title OR slug already exists ---------- */
-const serviceExists = async (title, sub_service_slug) => {
-  const where = { [Op.or]: [] };
-  if (title) where[Op.or].push({ title });
-  if (sub_service_slug) where[Op.or].push({ sub_service_slug });
+/* ---------- 1. Check ONLY slug (not title) to prevent duplicate slug ---------- */
+const serviceExists = async (title, sub_service_slug, currentSlug = null) => {
+  // We only care about slug being unique — title can be same
+  if (!sub_service_slug) return false;
 
-  if (where[Op.or].length === 0) return false;
+  const where = { sub_service_slug };
+
+  // If editing and slug changed → exclude the current record
+  if (currentSlug && currentSlug !== sub_service_slug) {
+    const currentRecord = await SubService.findOne({
+      where: { sub_service_slug: currentSlug },
+      attributes: ["id"],
+    });
+    if (currentRecord) {
+      where.id = { [Op.ne]: currentRecord.id };
+    }
+  }
+
   const count = await SubService.count({ where });
   return count > 0;
 };
 
-/* ---------- 2. Upsert (create or update) ---------- */
-const upsertService = async (sub_service_slug, serviceData) => {
+/* ---------- 2. Upsert (create or update by old slug) ---------- */
+const upsertService = async (lookupSlug, serviceData) => {
   const existing = await SubService.findOne({
-    where: { sub_service_slug },
+    where: { sub_service_slug: lookupSlug },
   });
 
   if (existing) {
