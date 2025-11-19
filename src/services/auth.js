@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const Address = require("../models/address");
+const sequelize = require("../config/db");
 
 const twilio = require("twilio")(
   process.env.TWILIO_ACCOUNT_SID,
@@ -275,6 +276,10 @@ const updateProfile = async (userId, userData, addressData) => {
     };
   } catch (error) {
     await t.rollback();
+    if (error instanceof sequelize.Sequelize.ValidationError) {
+      const messages = error.errors.map((err) => err.message);
+      throw new Error(messages.join(", "));
+    }
     throw error;
   }
 };
