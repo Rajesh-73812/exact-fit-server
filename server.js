@@ -6,6 +6,12 @@ dotenv.config();
 const loadRoutes = require("./src/routes/index");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 require("./src/models/user");
 require("./src/models/associations");
@@ -83,6 +89,80 @@ if (process.env.NODE_ENV !== "test") {
 
 app.get("/", (req, res) => {
   res.send("Server is Running..............");
+});
+
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+// AWS S3 Presigned URL for Image Uploads
+app.post("/upload-image", async (req, res) => {
+  const timeStamp = Math.floor(Date.now() / 1000);
+  const folder = req.body.folder || "abc";
+  const fileName = req.body.fileName;
+  const fileType = req.body.fileType;
+
+  console.log(
+    timeStamp,
+    folder,
+    fileName,
+    fileType,
+    "before uploading........."
+  );
+  // recived filetype and filename
+  if (!fileName || !fileType) {
+    return res
+      .status(400)
+      .json({ message: "fileName and fileType are required" });
+  }
+
+  // define key path for s3 bucket
+  const key = `${folder}/${fileName}`;
+  const command = new PutObjectCommand({
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: key,
+    ContentType: fileType, // ContentType is mandatory to match with the file"s MIME type
+  });
+
+  try {
+    // Generate the presigned URL with a 5-minute expiration time
+    const url = await getSignedUrl(s3, command, { expiresIn: 300 }); // 300 means 5 second (60 * 5)
+    // Return the presigned URL and additional data to the client
+    res.json({
+      upuploadUrl: url,
+      bucket: process.env.S3_BUCKET_NAME,
+      filePath: key,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error generating upload URL" });
+  }
+});
+
+// for delete
+app.delete("/api/delete-image", async (req, res) => {
+  console.log(req.body, "ttttttttttttttttttttttttt");
+  const filePath = req.body.filePath; // Full path of the file in S3 (e.g., "uploads/myimage.jpg")
+
+  console.log(filePath, "kkkkkkkkkkkkkkkkkkkkkkkkkkkk");
+  if (!filePath)
+    return res.status(400).json({ message: "filePath is required" });
+
+  const deleteCommand = new DeleteObjectCommand({
+    Bucket: process.env.S3_BUCKET_NAME,
+    Key: filePath,
+  });
+
+  try {
+    const result = await s3.send(deleteCommand);
+    res.json({ message: "File deleted successfully", result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete image" });
+  }
 });
 
 module.exports = app;
