@@ -168,26 +168,28 @@ const getAllServices = async (options = {}) => {
   if (filters.category) {
     serviceWhere.category = filters.category;
   }
+
   if (typeof filters.is_active === "boolean") {
     serviceWhere.status = filters.is_active ? "active" : "inactive";
   }
 
-  // Search handling
+  // SEARCH CONDITIONS
   if (search && String(search).trim()) {
     const likePattern = `%${search.trim()}%`;
 
-    const searchConditions = [
+    serviceWhere[Op.or] = [
       { title: { [Op.like]: likePattern } },
       { description: { [Op.like]: likePattern } },
+
+      // OR SEARCH in SubService fields
+      { "$sub_services.title$": { [Op.like]: likePattern } },
+      { "$sub_services.description$": { [Op.like]: likePattern } },
     ];
 
-    // Always search in Service
-    serviceWhere[Op.or] = searchConditions;
-
-    // Also search in SubService (will be OR'd via include)
+    // subService where is optional — only used to filter rows inside include
     subServiceWhere[Op.or] = [
       { title: { [Op.like]: likePattern } },
-      // Add description if exists
+      { description: { [Op.like]: likePattern } },
     ];
   }
 
@@ -208,34 +210,32 @@ const getAllServices = async (options = {}) => {
             "createdAt",
           ],
           where: subServiceWhere,
-          required: false, // LEFT JOIN: Keep service even if no sub-service matches
+          required: false, // Keep parent even if sub-services don't match
         },
       ],
       limit,
       offset,
       order: [[sortBy, order]],
       distinct: true,
-      subQuery: false, // Important for correct pagination with includes
+      subQuery: false,
     });
 
     const pages = Math.max(Math.ceil(count / limit), 1);
 
-    const data = rows.map((r) => {
-      const plain = r.get({ plain: true });
-      const allSubServices = plain.sub_services || [];
+    const data = rows.map((service) => {
+      const plain = service.get({ plain: true });
 
-      // Filter sub-services client-side if search was applied
-      let filteredSubServices = allSubServices;
-      if (search && String(search).trim()) {
-        const pattern = new RegExp(search.trim(), "i");
-        filteredSubServices = allSubServices.filter(
-          (ss) => pattern.test(ss.title)
-          // Add more fields if needed
+      // Filter sub-services on backend (extra layer)
+      if (search) {
+        const reg = new RegExp(search.trim(), "i");
+        plain.sub_services = plain.sub_services.filter(
+          (ss) =>
+            reg.test(ss.title) || (ss.description && reg.test(ss.description))
         );
       }
 
-      plain.sub_services = filteredSubServices;
-      plain.subServiceCount = filteredSubServices.length;
+      plain.subServiceCount = plain.sub_services.length;
+
       return plain;
     });
 
@@ -257,6 +257,7 @@ const getAllServices = async (options = {}) => {
 };
 
 // for getting default address
+
 const getDefaultAddress = async (user_id) => {
   const address = await Address.findOne({
     where: { user_id },
