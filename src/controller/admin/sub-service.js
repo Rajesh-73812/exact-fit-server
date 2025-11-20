@@ -25,7 +25,6 @@ const upsertService = async (req, res) => {
 
     // Check duplicate but ignore current record if editing
     const exists = await SubService.serviceExists(
-      title,
       sub_service_slug,
       slugToCheck
     );

@@ -2,20 +2,20 @@ const { Op } = require("sequelize");
 const SubService = require("../models/sub-service");
 
 /* ---------- 1. Check ONLY slug (not title) to prevent duplicate slug ---------- */
-const serviceExists = async (title, sub_service_slug, currentSlug = null) => {
+const serviceExists = async (sub_service_slug, currentSlug = null) => {
   // We only care about slug being unique — title can be same
   if (!sub_service_slug) return false;
 
   const where = { sub_service_slug };
 
   // If editing and slug changed → exclude the current record
-  if (currentSlug && currentSlug !== sub_service_slug) {
-    const currentRecord = await SubService.findOne({
+  if (currentSlug) {
+    const existingRecord = await SubService.findOne({
       where: { sub_service_slug: currentSlug },
       attributes: ["id"],
     });
-    if (currentRecord) {
-      where.id = { [Op.ne]: currentRecord.id };
+    if (existingRecord) {
+      where.id = { [Op.ne]: existingRecord.id };
     }
   }
 

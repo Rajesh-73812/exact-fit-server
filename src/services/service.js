@@ -91,9 +91,12 @@ const upsertService = async (lookupSlug, serviceData) => {
 
 const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
   const where = {};
+
   if (search) {
-    where.title = { [Op.like]: `%${search}%` };
-    // where.service_slug = { [Op.like]: `%${search}%` };
+    where[Op.or] = [
+      { title: { [Op.iLike]: `%${search}%` } },
+      { service_slug: { [Op.iLike]: `%${search}%` } },
+    ];
   }
 
   if (position) {
@@ -101,7 +104,9 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
   }
 
   const offset = (page - 1) * limit;
-  const services = await Service.findAll({
+
+  // THIS IS THE KEY: Use findAndCountAll
+  const { rows, count } = await Service.findAndCountAll({
     where,
     attributes: [
       "id",
@@ -120,12 +125,22 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
     offset,
   });
 
-  const activeCount = await Service.count({ where: { status: "active" } });
-  const inactiveCount = await Service.count({ where: { status: "inactive" } });
-  services.activeCount = activeCount;
-  services.inactiveCount = inactiveCount;
+  // Count active/inactive (filtered by same search condition)
+  const activeCount = await Service.count({
+    where: { ...where, status: "active" },
+  });
 
-  return services;
+  const inactiveCount = await Service.count({
+    where: { ...where, status: "inactive" },
+  });
+
+  // Return object, not array
+  return {
+    rows, // ← actual data
+    count, // ← total matching records (for pagination)
+    activeCount,
+    inactiveCount,
+  };
 };
 
 module.exports = {

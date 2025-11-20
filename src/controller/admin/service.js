@@ -80,26 +80,37 @@ const getAllService = async (req, res) => {
 
   const { search, page, limit } = req.query;
   try {
-    const pageNum = page ? parseInt(page) : 1;
-    const LimitNum = limit ? parseInt(limit) : 10;
-    const service = await Service.getAllService({
-      search,
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+
+    const result = await Service.getAllService({
+      search: search || undefined,
       page: pageNum,
-      limit: LimitNum,
+      limit: limitNum,
     });
+
+    const { rows, count, activeCount = 0, inactiveCount = 0 } = result;
+
+    const totalPages = Math.ceil(count / limitNum);
 
     return res.status(200).json({
       success: true,
-      message: "service fetched sucessfully!",
-      data: service,
-      activeserviceCount: service.activeCount,
-      inactiveserviceCount: service.inactiveCount,
+      message: "Services fetched successfully!",
+      data: rows, // ← Send only the rows, not the whole result
+      pagination: {
+        total: count,
+        page: pageNum,
+        limit: limitNum,
+        totalPages,
+      },
+      activeCount,
+      inactiveCount,
     });
   } catch (error) {
-    console.error(error);
+    console.error("getAllService error:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal Server Error. Please try again later.",
+      message: "Internal Server Error",
     });
   }
 };
