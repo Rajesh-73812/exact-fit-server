@@ -54,6 +54,11 @@ const user = sequelize.define(
         },
       },
     },
+    is_profile_update: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
+    },
     id_proofs: {
       type: DataTypes.STRING,
       allowNull: true,

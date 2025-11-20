@@ -81,3 +81,13 @@ npm install eslint-plugin-boundaries --save-dev
 | 🔒 5 | Compare the entered password with the hashed password using bcrypt    |
 | 🪪 6 | If passwords match, generate a JWT token for the session              |
 | ✅ 7 | Login is successful, and the JWT token is returned for authentication |
+
+//mobile flow
+
+======================
+
+1. User enters +971XXXXXXXXX
+2. Click "Send OTP" → call /api/auth/request-otp
+3. Show 6-digit input + resend timer (60 sec)
+4. User enters OTP → call /api/auth/verify-otp
+5. On success → save token, go to home

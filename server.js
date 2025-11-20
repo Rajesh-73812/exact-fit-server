@@ -7,7 +7,7 @@ const loadRoutes = require("./src/routes/index");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
-require("./src/models/category");
+require("./src/models/user");
 require("./src/models/associations");
 
 app.use(express.json());
@@ -19,7 +19,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3002",
-  "https://exact-fit-admin.vercel.app"
+  "https://exact-fit-admin.vercel.app",
 ];
 
 app.use(
@@ -61,15 +61,15 @@ if (process.env.NODE_ENV !== "test") {
     });
 }
 
-if (process.env.NODE_ENV !== "test") {
-  async function checkTables() {
-    const [results] = await sequelize.query("SHOW TABLES");
-    console.log("All tables in the database:");
-    results.forEach((row) => console.log(Object.values(row)[0]));
-  }
+// if (process.env.NODE_ENV !== "test") {
+//   async function checkTables() {
+//     const [results] = await sequelize.query("SHOW TABLES");
+//     console.log("All tables in the database:");
+//     results.forEach((row) => console.log(Object.values(row)[0]));
+//   }
 
-  checkTables();
-}
+//   checkTables();
+// }
 
 (async () => {
   try {

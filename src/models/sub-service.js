@@ -2,8 +2,8 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 const slugify = require("slugify");
 
-const category = sequelize.define(
-  "Category",
+const subService = sequelize.define(
+  "sub_service",
   {
     id: {
       type: DataTypes.UUID,
@@ -22,11 +22,18 @@ const category = sequelize.define(
         isUUID: 4,
       },
     },
+    service_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      validate: {
+        isUUID: 4,
+      },
+    },
     title: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    category_slug: {
+    sub_service_slug: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
@@ -57,26 +64,39 @@ const category = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    discount: {
+      type: DataTypes.DECIMAL(5, 2),
+      allowNull: true,
+      defaultValue: 0.0,
+    },
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    hero_banner: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
-    tableName: "category",
+    tableName: "sub_service",
     timestamps: true,
     paranoid: true,
+    // models/sub_service.js
     hooks: {
-      // This hook runs before validation, ensuring the slug is present for uniqueness checks
-      beforeValidate: (category, options) => {
-        // Only generate slug if title is present and category_slug is not already set //options → an object containing metadata about the query
-        console.log(options.transaction, "comes from category options");
-        if (category.title) {
-          let baseSlug = slugify(category.title, {
+      beforeValidate: (subService, options) => {
+        // ← rename parameter
+        if (subService.title) {
+          const baseSlug = slugify(subService.title, {
             lower: true,
             strict: true,
-            locale: "en", //locale: "en" tells slugify to use English language character mapping when generating the slug.
+            locale: "en",
             trim: true,
           });
-          // For new records, or if title changed, generate/update the slug
-          if (!category.category_slug || category.changed("title")) {
-            category.category_slug = baseSlug;
+
+          // CORRECT field name
+          if (!subService.sub_service_slug || subService.changed("title")) {
+            subService.sub_service_slug = baseSlug;
           }
         }
       },
@@ -84,4 +104,4 @@ const category = sequelize.define(
   }
 );
 
-module.exports = category;
+module.exports = subService;
