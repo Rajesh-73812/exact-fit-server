@@ -2,18 +2,32 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn(
-      "users", // The table name
-      "is_profile_update", // The new column name
-      {
-        type: Sequelize.BOOLEAN, // Column type
-        defaultValue: false, // Default value is false
-        after: "role", // Place it after the "role" column
-      }
-    );
+    // Check if the column already exists
+    const table = await queryInterface.describeTable("users");
+
+    if (!table["is_profile_update"]) {
+      await queryInterface.addColumn("users", "is_profile_update", {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        after: "role",
+      });
+    } else {
+      console.log(
+        "⚠️  Column 'is_profile_update' already exists — skipping addColumn."
+      );
+    }
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn("users", "is_profile_update");
+    // Remove column only if it exists
+    const table = await queryInterface.describeTable("users");
+
+    if (table["is_profile_update"]) {
+      await queryInterface.removeColumn("users", "is_profile_update");
+    } else {
+      console.log(
+        "⚠️  Column 'is_profile_update' does not exist — skipping removeColumn."
+      );
+    }
   },
 };

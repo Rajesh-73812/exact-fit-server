@@ -9,6 +9,7 @@ const cors = require("cors");
 
 require("./src/models/user");
 require("./src/models/associations");
+require("./src/models/banner");
 
 app.use(express.json());
 app.use(bodyParser.json());
