@@ -103,7 +103,15 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
   const offset = (page - 1) * limit;
   const services = await Service.findAll({
     where,
-    attributes: ["id", "title", "service_slug", "status", "position"],
+    attributes: [
+      "id",
+      "title",
+      "service_slug",
+      "status",
+      "position",
+      "image_url",
+      "image_alt",
+    ],
     order: [
       ["position", "ASC"],
       ["updatedAt", "DESC"],

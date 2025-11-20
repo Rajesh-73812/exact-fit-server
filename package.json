@@ -26,6 +26,7 @@
   "homepage": "https://github.com/Rajesh-73812/exact-fit-server#readme",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.927.0",
+    "@aws-sdk/s3-request-presigner": "^3.936.0",
     "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",

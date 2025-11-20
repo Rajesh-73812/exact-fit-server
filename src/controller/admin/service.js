@@ -15,6 +15,8 @@ const upsertService = async (req, res) => {
     external_link,
   } = req.body;
 
+  console.log(req.body, "from service");
+
   try {
     // ← FIX: Use old slug if editing, otherwise use new slug
     const slugToSearch = old_service_slug || service_slug;
