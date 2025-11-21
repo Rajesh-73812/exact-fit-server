@@ -1,7 +1,6 @@
 const sequelize = require("../../config/db");
 const technicianService = require("../../services/technician.service");
 const addressService = require("../../services/address.service");
-const { uploadToS3, deleteFromS3 } = require("../../utils/fileUpload.aws");
 const { v4: uuidv4 } = require("uuid");
 const { Op } = require("sequelize");
 
@@ -27,10 +26,12 @@ const upsertTechnician = async (req, res) => {
       latitude,
       longitude,
       id_proof_type,
+      id_proofs,
       service_category,
       services_known,
       service_type,
       description,
+      profile_pic,
     } = req.body;
 
     if (!fullname || !email || !mobile) {
@@ -39,22 +40,6 @@ const upsertTechnician = async (req, res) => {
         message: "Fullname, email, and mobile are required.",
         code: "TECHNICIAN_REQUIRED_FIELDS_MISSING",
       });
-    }
-
-    let profile_pic = null;
-    let id_proofs = null;
-
-    if (req.files?.profile_pic) {
-      profile_pic = await uploadToS3(
-        req.files.profile_pic[0],
-        "technicians/profile_pics"
-      );
-    }
-    if (req.files?.id_proof) {
-      id_proofs = await uploadToS3(
-        req.files.id_proof[0],
-        "technicians/id_proofs"
-      );
     }
 
     // UPDATE
@@ -69,11 +54,6 @@ const upsertTechnician = async (req, res) => {
           .json({ success: false, message: "Technician not found." });
       }
 
-      if (profile_pic && existing.profile_pic)
-        await deleteFromS3(existing.profile_pic);
-      if (id_proofs && existing.id_proofs)
-        await deleteFromS3(existing.id_proofs);
-
       await technicianService.updateTechnician(
         id,
         {
@@ -86,7 +66,7 @@ const upsertTechnician = async (req, res) => {
           services_known,
           service_type,
           description,
-          ...(profile_pic && { profile_pic }),
+          profile_pic,
         },
         { transaction }
       );
@@ -447,15 +427,6 @@ const deleteTechnician = async (req, res) => {
         message: "Technician not found.",
         code: "TECHNICIAN_NOT_FOUND",
       });
-    }
-
-    // Delete profile pic from S3 if exists
-    if (technician.profile_pic) {
-      try {
-        await deleteFromS3(technician.profile_pic);
-      } catch (err) {
-        console.warn("S3 deletion failed:", err.message);
-      }
     }
 
     // Delete technician record
