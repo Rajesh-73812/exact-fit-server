@@ -1,5 +1,5 @@
-const bannerService = require("../../services/admin/banner.service");
+// const bannerService = require("../../services/admin/banner.service");
 
-const upsertBanner = async(req,res)=>{
+// const upsertBanner = async(req,res)=>{
 
-}
+// }
