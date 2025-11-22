@@ -17,6 +17,11 @@ const banner = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    slug: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
     image_url: {
       type: DataTypes.STRING,
       allowNull: false,

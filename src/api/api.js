@@ -20,6 +20,13 @@ const endPoints = {
     deleteSubServiceBySlug: `/${VERSION}/delete-sub-service-by-slug/:sub_service_slug`,
     statusUpdate: `/${VERSION}/update-sub-service-status/:sub_service_slug`,
   },
+  banner: {
+    upsert: `/${VERSION}/upsert-banner`,
+    getBannerBySlug: `/${VERSION}/get-banner-by-slug/:slug`,
+    getBannerById: `/${VERSION}/get-banner-by-id/:id`,
+    getAllBanners: `/${VERSION}/get-all-banners`,
+    deleteBanner: `/${VERSION}/delete-banner/:id`,
+  },
 
   // for user
   user: {

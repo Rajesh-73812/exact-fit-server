@@ -132,7 +132,7 @@ app.post("/upload-image", async (req, res) => {
     const url = await getSignedUrl(s3, command, { expiresIn: 300 }); // 300 means 5 second (60 * 5)
     // Return the presigned URL and additional data to the client
     res.json({
-      upuploadUrl: url,
+      uploadUrl: url,
       bucket: process.env.S3_BUCKET_NAME,
       filePath: key,
     });

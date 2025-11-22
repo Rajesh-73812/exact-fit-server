@@ -1,4 +1,4 @@
-const Banner = require("../models/banner.model");
+const Banner = require("../models/banner");
 
 const createBanner = async (data) => {
   const banner = await Banner.create(data);
@@ -13,6 +13,12 @@ const getAllBanners = async () => {
 const getBannerById = async (id) => {
   const banner = await Banner.findByPk(id);
   return banner;
+};
+
+const getBannerBySlug = async (slug) => {
+  return await Banner.findOne({
+    where: { slug },
+  });
 };
 
 const updateBanner = async (id, data) => {
@@ -33,6 +39,7 @@ module.exports = {
   createBanner,
   getAllBanners,
   getBannerById,
+  getBannerBySlug,
   updateBanner,
   deleteBanner,
 };
