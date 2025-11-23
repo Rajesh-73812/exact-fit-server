@@ -15,7 +15,7 @@ const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 require("./src/models/user");
 require("./src/models/associations");
-require("./src/models/banner");
+require("./src/models/propertyType");
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -101,7 +101,7 @@ const s3 = new S3Client({
 // AWS S3 Presigned URL for Image Uploads
 app.post("/upload-image", async (req, res) => {
   const timeStamp = Math.floor(Date.now() / 1000);
-  const folder = req.body.folder || "abc";
+  const folder = req.body.folder || "e-fit";
   const fileName = req.body.fileName;
   const fileType = req.body.fileType;
 
