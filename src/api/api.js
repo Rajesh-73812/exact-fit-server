@@ -20,6 +20,13 @@ const endPoints = {
     deleteSubServiceBySlug: `/${VERSION}/delete-sub-service-by-slug/:sub_service_slug`,
     statusUpdate: `/${VERSION}/update-sub-service-status/:sub_service_slug`,
   },
+  plan: {
+    upsertPlan: `/${VERSION}/upsert-plan`,
+    getAllPlan: `/${VERSION}/get-all-plan`,
+    deletePlanBySlug: `/${VERSION}/delete-plan/:slug`,
+    getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
+    statusUpdate: `/${VERSION}/update-plan-status/:slug`,
+  },
 
   // for user
   user: {

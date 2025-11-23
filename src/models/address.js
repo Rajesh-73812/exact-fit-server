@@ -40,7 +40,7 @@ const address = sequelize.define(
       allowNull: true,
     },
     category: {
-      type: DataTypes.ENUM("residential", "commercial"), //resedential, commercial
+      type: DataTypes.ENUM("residential", "commercial"), //residential, commercial
       allowNull: true,
     },
     save_as_address_type: {
