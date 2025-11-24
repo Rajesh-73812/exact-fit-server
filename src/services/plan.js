@@ -81,10 +81,25 @@ const getAllPlan = async ({ search, page = 1, limit = 10 }) => {
     totalPages,
   };
 };
+
+const getPlanBySlug = async (slug) => {
+  try {
+    const plan = await subscriptionPlan.findOne({ where: { slug } });
+    if (!plan) {
+      return null;
+    }
+    return plan;
+  } catch (error) {
+    console.error("Error fetching subscription plan:", error);
+    throw new Error("Could not fetch subscription plan");
+  }
+};
+
 module.exports = {
   planExists,
   upsertPlan,
   toggleStatus,
   deleteBySlug,
   getAllPlan,
+  getPlanBySlug,
 };
