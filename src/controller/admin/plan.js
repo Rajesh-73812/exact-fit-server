@@ -64,12 +64,18 @@ const getAllPlan = async (req, res) => {
 
     const { rows } = result;
 
-    return handleSuccessResponse(
-      res,
-      "Subscription plans fetched successfully",
-      200,
-      rows
-    );
+    return res.status(200).json({
+      success: true,
+      message: "Subscription plans fetched successfully",
+      data: rows,
+    });
+
+    // return handleSuccessResponse(
+    //   res,
+    //   "Subscription plans fetched successfully",
+    //   200,
+    //   rows
+    // );
   } catch (error) {
     return handleErrorResponse(res, error, 500);
   }
