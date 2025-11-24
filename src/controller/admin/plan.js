@@ -133,7 +133,12 @@ const getPlanBySlug = async (req, res) => {
       return handleWarningResponse(res, plan, 404, "plan not found");
     }
 
-    return handleSuccessResponse(res, "plan fetched sucessfully", 200, plan);
+    return res.status(200).json({
+      success: true,
+      message: "plan fetched sucessfully",
+      data: plan,
+    });
+    // return handleSuccessResponse(res, "plan fetched sucessfully", 200, plan);
   } catch (error) {
     return handleErrorResponse(res, error, 500);
   }
