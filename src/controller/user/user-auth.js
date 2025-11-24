@@ -1,4 +1,5 @@
 const userService = require("../../services/auth");
+const addressService = require("../../services/address.service");
 const generateToken = require("../../utils/getToken");
 
 const requestOtpLogin = async (req, res) => {
@@ -237,10 +238,66 @@ const getUserDetails = async (req, res) => {
   }
 };
 
+const upsertAddress = async (req, res) => {
+  const {
+    emirate,
+    building,
+    area,
+    appartment,
+    addtional_address,
+    category,
+    save_as_address_type,
+    location,
+    latitude,
+    longitude,
+    id: addressId,
+  } = req.body;
+
+  const { id: created_by } = req.user || {};
+
+  try {
+    const addressData = {
+      emirate,
+      building,
+      area,
+      appartment,
+      addtional_address,
+      category,
+      save_as_address_type,
+      location,
+      latitude,
+      longitude,
+      created_by,
+    };
+
+    const address = await addressService.upsertAddress(
+      addressData,
+      created_by,
+      addressId
+    );
+
+    // Respond with success
+    return res.status(200).json({
+      success: true,
+      message: addressId
+        ? "Address updated successfully"
+        : "Address created successfully",
+      address,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Something went wrong",
+    });
+  }
+};
+
 module.exports = {
   requestOtpLogin,
   verifyOtpLogin,
   resendOtp,
   updateUserProfile,
   getUserDetails,
+  upsertAddress,
 };
