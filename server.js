@@ -134,5 +134,4 @@ app.delete("/api/delete-image", async (req, res) => {
   }
 });
 
-// Export the Express app for Vercel
-module.exports = app; // <-- This line is essential
+module.exports = app;
