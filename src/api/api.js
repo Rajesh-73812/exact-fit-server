@@ -50,6 +50,10 @@ const endPoints = {
     getServicesBySlug: `/${VERSION}/get-services-by-slug/:slug`,
     getSubServicesBySlug: `/${VERSION}/get-sub-services-by-slug/:slug`,
   },
+  "user-plan": {
+    getAllPlan: `/${VERSION}/get-all-plan`,
+    getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
+  },
 };
 
 module.exports = {
