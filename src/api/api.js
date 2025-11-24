@@ -34,6 +34,13 @@ const endPoints = {
     getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
     statusUpdate: `/${VERSION}/update-plan-status/:slug`,
   },
+  "property-type": {
+    upsertProperty: `/${VERSION}/upsert-property`,
+    getAllProperty: `/${VERSION}/get-all-property`,
+    getPropertyBySlug: `/${VERSION}/get-property-by-slug/:idOrSlug`,
+    deleteProperty: `/${VERSION}/delete-property/:idOrSlug`,
+    updateStatusProperty: `/${VERSION}/update-property/:idOrSlug`,
+  },
 
   // for user
   user: {
@@ -42,6 +49,7 @@ const endPoints = {
     resendOTP: `/${VERSION}/resend-otp`,
     profileUpdate: `/${VERSION}/update-profile`,
     userDetails: `/${VERSION}/user-details`,
+    upsertAddress: `/${VERSION}/upsert-address`,
   },
   dashboard: {
     getStats: `/${VERSION}/dashboard-stats`,
@@ -53,6 +61,9 @@ const endPoints = {
   "user-plan": {
     getAllPlan: `/${VERSION}/get-all-plan`,
     getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
+  },
+  "user-subscription": {
+    createSubscription: `/${VERSION}/create-subscription-plan`,
   },
 };
 

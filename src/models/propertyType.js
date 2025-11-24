@@ -27,7 +27,7 @@ const PropertyType = sequelize.define(
     },
     category: {
       type: DataTypes.ENUM("residential", "commercial"),
-      allowNull: false,
+      allowNull: true,
     },
     description: {
       type: DataTypes.TEXT,

@@ -292,7 +292,7 @@ const getUserById = async (userId) => {
         as: "addresses",
       },
     ],
-    raw: true,
+    // raw: true,
   });
 
   if (!user) {
