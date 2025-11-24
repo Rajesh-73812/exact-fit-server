@@ -21,6 +21,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
+
 const allowedOrigins = [
   "http://localhost",
   "http://localhost:3000",
@@ -38,26 +39,18 @@ app.use(
   })
 );
 
-// Ensure the models are synced with the database
 if (process.env.NODE_ENV !== "test") {
   sequelize
     .authenticate()
     .then(async () => {
       console.log("Database connection established successfully.");
-
-      // Sync the models to the database
       try {
-        await sequelize.sync(); // Sync the models to create the tables
+        await sequelize.sync();
         console.log("Tables created successfully.");
       } catch (err) {
         console.error("Error syncing the models:", err);
         process.exit(1);
       }
-
-      // Start the server after successful DB connection and sync
-      app.listen(process.env.PORT, () => {
-        console.log(`Server listening at port: ${process.env.PORT}`);
-      });
     })
     .catch((err) => {
       console.error(
@@ -68,16 +61,7 @@ if (process.env.NODE_ENV !== "test") {
     });
 }
 
-// if (process.env.NODE_ENV !== "test") {
-//   async function checkTables() {
-//     const [results] = await sequelize.query("SHOW TABLES");
-//     console.log("All tables in the database:");
-//     results.forEach((row) => console.log(Object.values(row)[0]));
-//   }
-
-//   checkTables();
-// }
-
+// Initialize routes
 (async () => {
   try {
     await loadRoutes(app);
@@ -98,56 +82,41 @@ const s3 = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
+
 // AWS S3 Presigned URL for Image Uploads
 app.post("/upload-image", async (req, res) => {
-  const timeStamp = Math.floor(Date.now() / 1000);
+  // const timeStamp = Math.floor(Date.now() / 1000);
   const folder = req.body.folder || "e-fit";
   const fileName = req.body.fileName;
-  const fileType = req.body.fileType;
 
-  console.log(
-    timeStamp,
-    folder,
-    fileName,
-    fileType,
-    "before uploading........."
-  );
-  // recived filetype and filename
-  if (!fileName || !fileType) {
-    return res
-      .status(400)
-      .json({ message: "fileName and fileType are required" });
+  if (!fileName) {
+    return res.status(400).json({ message: "fileName is required" });
   }
 
-  // define key path for s3 bucket
-  const key = `${folder}/${fileName}`;
+  const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${fileName}`;
+  const key = `${folder}/${uniqueFileName}`;
+
   const command = new PutObjectCommand({
     Bucket: process.env.S3_BUCKET_NAME,
     Key: key,
-    ContentType: fileType, // ContentType is mandatory to match with the file"s MIME type
   });
 
   try {
-    // Generate the presigned URL with a 5-minute expiration time
-    const url = await getSignedUrl(s3, command, { expiresIn: 300 }); // 300 means 5 second (60 * 5)
-    // Return the presigned URL and additional data to the client
+    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
     res.json({
-      upuploadUrl: url,
-      bucket: process.env.S3_BUCKET_NAME,
+      uploadUrl,
       filePath: key,
+      publicUrl: `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Presigned URL Error:", error);
     return res.status(500).json({ message: "Error generating upload URL" });
   }
 });
 
-// for delete
 app.delete("/api/delete-image", async (req, res) => {
-  console.log(req.body, "ttttttttttttttttttttttttt");
-  const filePath = req.body.filePath; // Full path of the file in S3 (e.g., "uploads/myimage.jpg")
+  const filePath = req.body.filePath;
 
-  console.log(filePath, "kkkkkkkkkkkkkkkkkkkkkkkkkkkk");
   if (!filePath)
     return res.status(400).json({ message: "filePath is required" });
 
