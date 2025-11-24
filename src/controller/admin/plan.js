@@ -128,7 +128,7 @@ const getPlanBySlug = async (req, res) => {
   }
 
   try {
-    const plan = await planService.planExists(slug, "by-slug");
+    const plan = await planService.getPlanBySlug(slug);
     if (!plan) {
       return handleWarningResponse(res, plan, 404, "plan not found");
     }
