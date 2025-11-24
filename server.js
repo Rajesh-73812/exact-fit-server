@@ -30,6 +30,12 @@ const allowedOrigins = [
   "https://exact-fit-admin.vercel.app",
 ];
 
+const PORT = process.env.PORT || 4446;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
 app.use(
   cors({
     origin: allowedOrigins,

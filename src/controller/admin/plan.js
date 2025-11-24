@@ -83,16 +83,20 @@ const getAllPlan = async (req, res) => {
 
 const updatePlanStaus = async (req, res) => {
   const { slug } = req.params;
+
   if (!slug) {
     return handleWarningResponse(res, slug, 400, "Plan slug is required");
   }
 
   try {
-    const plan = await planService.planExists(slug, "update-status");
+    // Call the service method to toggle the plan status
+    const plan = await planService.toggleStatus(slug);
+
     if (!plan) {
-      return handleWarningResponse(res, plan, 404, "plan not found");
+      return handleWarningResponse(res, plan, 404, "Plan not found");
     }
 
+    // Return a success response with the updated plan
     return handleSuccessResponse(
       res,
       "Plan status updated successfully",
