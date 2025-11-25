@@ -1,4 +1,5 @@
 const userService = require("../../services/auth");
+const addressService = require("../../services/address.service");
 const generateToken = require("../../utils/getToken");
 
 const requestOtpLogin = async (req, res) => {
@@ -237,10 +238,104 @@ const getUserDetails = async (req, res) => {
   }
 };
 
+const upsertAddress = async (req, res) => {
+  const {
+    emirate,
+    building,
+    area,
+    appartment,
+    addtional_address,
+    category,
+    save_as_address_type,
+    location,
+    latitude,
+    longitude,
+    id: addressId,
+  } = req.body;
+
+  const { id: created_by } = req.user || {};
+
+  try {
+    const addressData = {
+      emirate,
+      building,
+      area,
+      appartment,
+      addtional_address,
+      category,
+      save_as_address_type,
+      location,
+      latitude,
+      longitude,
+      created_by,
+    };
+
+    const address = await addressService.upsertAddress(
+      addressData,
+      created_by,
+      addressId
+    );
+
+    // Respond with success
+    return res.status(200).json({
+      success: true,
+      message: addressId
+        ? "Address updated successfully"
+        : "Address created successfully",
+      address,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Something went wrong",
+    });
+  }
+};
+
+const setDefaultAddress = async (req, res) => {
+  const userId = req.user?.id || null;
+  const { addressId } = req.params;
+
+  if (userId) {
+    return res.status(400).json({
+      success: false,
+      message: "User not authenticated",
+    });
+  }
+
+  try {
+    const result = await addressService.setDefaultAddress(addressId, userId);
+
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+        data: result.data,
+      });
+    }
+
+    return res.status(400).json({
+      // if result is not successful
+      success: false,
+      message: result.message,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to set default address",
+      error: error || error.message,
+    });
+  }
+};
+
 module.exports = {
   requestOtpLogin,
   verifyOtpLogin,
   resendOtp,
   updateUserProfile,
   getUserDetails,
+  upsertAddress,
+  setDefaultAddress,
 };

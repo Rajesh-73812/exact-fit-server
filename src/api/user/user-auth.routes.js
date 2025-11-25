@@ -17,4 +17,17 @@ router.get(
   middleware.authMiddleware,
   userAuthController.getUserDetails
 );
+
+router.post(
+  endPoints.user.upsertAddress,
+  middleware.authMiddleware,
+  userAuthController.upsertAddress
+);
+
+router.patch(
+  endPoints.user.setDefaultAddress,
+  middleware.authMiddleware,
+  userAuthController.setDefaultAddress
+);
+
 module.exports = router;

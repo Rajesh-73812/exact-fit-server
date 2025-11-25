@@ -13,10 +13,10 @@ const {
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
-require("./src/models/user");
+// require("./src/models/user");
 require("./src/models/associations");
-require("./src/models/propertyType");
-require("./src/models/subscriptionPlan");
+// require("./src/models/propertyType");
+require("./src/models/propertySubscription");
 
 app.use(express.json());
 app.use(bodyParser.json());
