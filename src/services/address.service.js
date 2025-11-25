@@ -16,10 +16,14 @@ const updateAddress = async (id, data, { transaction } = {}) => {
   return address;
 };
 
-const deleteAddress = async (id) => {
-  const address = await Address.findByPk(id);
+const deleteAddress = async (userId, addressId) => {
+  const address = await Address.findOne({
+    where: { id: addressId, user_id: userId },
+  });
+
   if (!address) return null;
   await address.destroy();
+
   return address;
 };
 
@@ -35,6 +39,7 @@ const getAllAddress = async (user_id) => {
 };
 
 const setDefaultAddress = async (addressId, userId) => {
+  console.log(addressId, userId, "from cont");
   const t = await sequelize.transaction();
 
   try {
@@ -43,6 +48,7 @@ const setDefaultAddress = async (addressId, userId) => {
       transaction: t,
     });
 
+    console.log(address, "add");
     if (!address) {
       await t.rollback();
       return { success: false, message: "Address not found" };
@@ -114,9 +120,7 @@ const upsertAddress = async (data, userId, addressId = null) => {
       where: { user_id: userId, is_default: true },
     });
 
-    if (existingDefaultAddress) {
-      await existingDefaultAddress.update({ is_default: false });
-    }
+    const isDefault = existingDefaultAddress ? false : true; //If the user already has a default address, do not mark the new address as default
 
     const newAddress = await Address.create(
       {
@@ -131,7 +135,7 @@ const upsertAddress = async (data, userId, addressId = null) => {
         location,
         latitude,
         longitude,
-        is_default: true,
+        is_default: isDefault,
       },
       { transaction: t }
     );

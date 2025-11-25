@@ -34,7 +34,6 @@ PropertySubscription.belongsTo(PropertyType, {
   foreignKey: "property_type_id",
   as: "propertyType",
 });
-
 module.exports = {
   sequelize,
   User,

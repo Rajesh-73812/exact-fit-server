@@ -1,6 +1,7 @@
 // src/services/propertyType.js
 
 const PropertyType = require("../models/propertyType");
+const subscriptionPlan = require("../models/subscriptionPlan");
 const PropertySubscription = require("../models/propertySubscription");
 const { Op } = require("sequelize");
 const sequelize = require("../config/db");
@@ -130,10 +131,63 @@ const deleteProperty = async (slug) => {
   return propertyType;
 };
 
+// for user
+
+const getAllPropertyByPlan = async (planId) => {
+  const subscriptionExists = await subscriptionPlan.findByPk(planId);
+  if (!subscriptionExists) {
+    console.log("Subscription plan not found!");
+    return { success: false, message: "subscription not found" };
+  }
+
+  console.log(`Subscription plan found: ${subscriptionExists.name}`);
+
+  const propertySubscriptions = await PropertySubscription.findAll({
+    where: { subscription_plan_id: planId },
+    include: [
+      {
+        model: PropertyType,
+        as: "propertyType",
+        attributes: ["id", "name"],
+      },
+    ],
+  });
+
+  if (!propertySubscriptions || propertySubscriptions.length === 0) {
+    console.log("No property subscriptions found for the given plan ID");
+    return { success: false, message: "No properties found for this plan." };
+  }
+
+  console.log(`Found ${propertySubscriptions.length} property subscriptions.`);
+
+  const properties = propertySubscriptions.map((propertysub) => {
+    console.log("Property Subscription:", propertysub);
+
+    if (propertysub.propertyType) {
+      console.log("Property Type Name:", propertysub.propertyType.name);
+    } else {
+      console.log("No property type found for this subscription");
+    }
+
+    return {
+      propertyName: propertysub.propertyType
+        ? propertysub.propertyType.name
+        : null,
+      price: propertysub.price,
+      propertyId: propertysub.propertyType ? propertysub.propertyType.id : null,
+    };
+  });
+
+  console.log("Mapped Properties:", properties);
+
+  return properties;
+};
+
 module.exports = {
   upsertPropertyWithSubscription,
   getPropertyBySlug,
   getAllProperties,
   updateStatus,
   deleteProperty,
+  getAllPropertyByPlan,
 };
