@@ -19,26 +19,10 @@ const UserSubscriptionCustom = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
-
-    service_id: {
-      type: DataTypes.UUID,
-      allowNull: true,
-    },
     subservice_id: {
       type: DataTypes.UUID,
       allowNull: true,
     },
-
-    // snapshot fields (store copy of title & description so history won't break when service changes)
-    title: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-
     // quantity + price (price per unit in smallest currency unit)
     quantity: {
       type: DataTypes.INTEGER,
