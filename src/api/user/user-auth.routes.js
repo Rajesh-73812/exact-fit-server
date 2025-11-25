@@ -24,4 +24,10 @@ router.post(
   userAuthController.upsertAddress
 );
 
+router.patch(
+  endPoints.user.setDefaultAddress,
+  middleware.authMiddleware,
+  userAuthController.setDefaultAddress
+);
+
 module.exports = router;
