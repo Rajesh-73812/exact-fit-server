@@ -64,7 +64,7 @@ const endPoints = {
     getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
   },
   property: {
-    getAllProperty: `/${VERSION}/get-all-property`,
+    getAllProperty: `/${VERSION}/get-all-property/:planId`,
   },
   "user-subscription": {
     createSubscription: `/${VERSION}/create-subscription-plan`,

@@ -3,6 +3,8 @@ const Address = require("./address");
 const sequelize = require("../config/db");
 const Service = require("../models/service");
 const SubService = require("../models/sub-service");
+const PropertySubscription = require("../models/propertySubscription");
+const PropertyType = require("../models/propertyType");
 
 // In models/index.js or after model definitions
 User.hasMany(Address, {
@@ -24,6 +26,14 @@ SubService.belongsTo(Service, {
   onDelete: "CASCADE",
 });
 
+PropertyType.hasMany(PropertySubscription, {
+  foreignKey: "property_type_id",
+  as: "propertySubscriptions",
+});
+PropertySubscription.belongsTo(PropertyType, {
+  foreignKey: "property_type_id",
+  as: "propertyType",
+});
 module.exports = {
   sequelize,
   User,
