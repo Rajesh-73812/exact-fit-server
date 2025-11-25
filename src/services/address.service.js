@@ -72,8 +72,19 @@ const setDefaultAddress = async (addressId, user_id) => {
   }
 };
 
-const upsertAddress = async (data, userId) => {
-  const { id: addressId, ...addressFields } = data;
+const upsertAddress = async (data, userId, addressId = null) => {
+  const {
+    emirate,
+    building,
+    area,
+    appartment,
+    addtional_address,
+    category,
+    save_as_address_type,
+    location,
+    latitude,
+    longitude,
+  } = data;
 
   if (addressId) {
     const existingAddress = await Address.findOne({
@@ -84,11 +95,33 @@ const upsertAddress = async (data, userId) => {
       throw new Error("Address not found for this user");
     }
 
-    return await existingAddress.update(addressFields);
+    return await existingAddress.update({
+      emirate,
+      building,
+      area,
+      appartment,
+      addtional_address,
+      category,
+      save_as_address_type,
+      location,
+      latitude,
+      longitude,
+    });
   }
+
   return await Address.create({
     user_id: userId,
-    ...addressFields,
+    emirate,
+    building,
+    area,
+    appartment,
+    addtional_address,
+    category,
+    save_as_address_type,
+    location,
+    latitude,
+    longitude,
+    is_default: true,
   });
 };
 
