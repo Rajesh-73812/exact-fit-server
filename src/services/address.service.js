@@ -16,10 +16,14 @@ const updateAddress = async (id, data, { transaction } = {}) => {
   return address;
 };
 
-const deleteAddress = async (id) => {
-  const address = await Address.findByPk(id);
+const deleteAddress = async (userId, addressId) => {
+  const address = await Address.findOne({
+    where: { id: addressId, user_id: userId },
+  });
+
   if (!address) return null;
   await address.destroy();
+
   return address;
 };
 

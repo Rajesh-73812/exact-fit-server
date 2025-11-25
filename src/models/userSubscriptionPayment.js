@@ -14,6 +14,7 @@ const UserSubscriptionPayment = sequelize.define(
       allowNull: false,
     },
     user_subscription_id: {
+      // it comes from usersubscription or usersubscriptioncustom
       type: DataTypes.UUID,
       allowNull: false,
     },

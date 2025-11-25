@@ -261,7 +261,7 @@ const updateProfile = async (userId, userData, addressData) => {
       } else {
         // If address does not exist, create a new one
         updatedAddress = await Address.create(
-          { user_id: userId, ...addressData },
+          { user_id: userId, ...addressData, is_default: true },
           { transaction: t }
         );
       }

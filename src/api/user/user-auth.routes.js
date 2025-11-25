@@ -30,4 +30,9 @@ router.patch(
   userAuthController.setDefaultAddress
 );
 
+router.delete(
+  endPoints.user.deleteAddress,
+  middleware.authMiddleware,
+  userAuthController.deleteAddress
+);
 module.exports = router;
