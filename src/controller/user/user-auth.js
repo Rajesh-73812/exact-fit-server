@@ -293,6 +293,43 @@ const upsertAddress = async (req, res) => {
   }
 };
 
+const setDefaultAddress = async (req, res) => {
+  const userId = req.user?.id || null;
+  const { addressId } = req.params;
+
+  if (userId) {
+    return res.status(400).json({
+      success: false,
+      message: "User not authenticated",
+    });
+  }
+
+  try {
+    const result = await addressService.setDefaultAddress(addressId, userId);
+
+    if (result.success) {
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+        data: result.data,
+      });
+    }
+
+    return res.status(400).json({
+      // if result is not successful
+      success: false,
+      message: result.message,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to set default address",
+      error: error || error.message,
+    });
+  }
+};
+
 module.exports = {
   requestOtpLogin,
   verifyOtpLogin,
@@ -300,4 +337,5 @@ module.exports = {
   updateUserProfile,
   getUserDetails,
   upsertAddress,
+  setDefaultAddress,
 };

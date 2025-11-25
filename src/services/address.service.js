@@ -34,12 +34,12 @@ const getAllAddress = async (user_id) => {
   return addresses;
 };
 
-const setDefaultAddress = async (addressId, user_id) => {
+const setDefaultAddress = async (addressId, userId) => {
   const t = await sequelize.transaction();
 
   try {
     const address = await Address.findOne({
-      where: { id: addressId, user_id },
+      where: { id: addressId, user_id: userId },
       transaction: t,
     });
 
@@ -48,16 +48,14 @@ const setDefaultAddress = async (addressId, user_id) => {
       return { success: false, message: "Address not found" };
     }
 
-    //Set all user addresses to false
-
     await Address.update(
       { is_default: false },
-      { where: { user_id }, transaction: t }
+      { where: { user_id: userId }, transaction: t }
     );
 
     await Address.update(
       { is_default: true },
-      { where: { id: addressId, user_id }, transaction: t }
+      { where: { id: addressId, user_id: userId }, transaction: t }
     );
     await t.commit();
     return {
@@ -109,20 +107,42 @@ const upsertAddress = async (data, userId, addressId = null) => {
     });
   }
 
-  return await Address.create({
-    user_id: userId,
-    emirate,
-    building,
-    area,
-    appartment,
-    addtional_address,
-    category,
-    save_as_address_type,
-    location,
-    latitude,
-    longitude,
-    is_default: true,
-  });
+  const t = await sequelize.transaction();
+
+  try {
+    const existingDefaultAddress = await Address.findOne({
+      where: { user_id: userId, is_default: true },
+    });
+
+    if (existingDefaultAddress) {
+      await existingDefaultAddress.update({ is_default: false });
+    }
+
+    const newAddress = await Address.create(
+      {
+        user_id: userId,
+        emirate,
+        building,
+        area,
+        appartment,
+        addtional_address,
+        category,
+        save_as_address_type,
+        location,
+        latitude,
+        longitude,
+        is_default: true,
+      },
+      { transaction: t }
+    );
+
+    await t.commit();
+    return newAddress;
+  } catch (error) {
+    await t.rollback();
+    console.error("Error while upserting address:", error);
+    throw new Error("Failed to create or update address");
+  }
 };
 
 module.exports = {

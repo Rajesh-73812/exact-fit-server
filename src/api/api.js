@@ -50,6 +50,7 @@ const endPoints = {
     profileUpdate: `/${VERSION}/update-profile`,
     userDetails: `/${VERSION}/user-details`,
     upsertAddress: `/${VERSION}/upsert-address`,
+    setDefaultAddress: `/${VERSION}/set-default-address/:addressId`,
   },
   dashboard: {
     getStats: `/${VERSION}/dashboard-stats`,
@@ -61,6 +62,9 @@ const endPoints = {
   "user-plan": {
     getAllPlan: `/${VERSION}/get-all-plan`,
     getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
+  },
+  property: {
+    getAllProperty: `/${VERSION}/get-all-property`,
   },
   "user-subscription": {
     createSubscription: `/${VERSION}/create-subscription-plan`,

@@ -13,6 +13,10 @@ const UserSubscription = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
+    address_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
     plan_id: {
       type: DataTypes.UUID,
       allowNull: false,
