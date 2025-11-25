@@ -116,9 +116,7 @@ const upsertAddress = async (data, userId, addressId = null) => {
       where: { user_id: userId, is_default: true },
     });
 
-    if (existingDefaultAddress) {
-      await existingDefaultAddress.update({ is_default: false });
-    }
+    const isDefault = existingDefaultAddress ? false : true; //If the user already has a default address, do not mark the new address as default
 
     const newAddress = await Address.create(
       {
@@ -133,7 +131,7 @@ const upsertAddress = async (data, userId, addressId = null) => {
         location,
         latitude,
         longitude,
-        is_default: true,
+        is_default: isDefault,
       },
       { transaction: t }
     );
