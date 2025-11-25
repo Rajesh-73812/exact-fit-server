@@ -38,6 +38,14 @@ const createSubScriptionPlan = async (req, res) => {
   }
 };
 
+const createCustomSubScriptionPlan = async (req, res) => {
+  // const { plan_id, service_id, subservice_id, address_id, } = req.body;
+  // const user_id = req.user.id || {};
+  // try {
+  // } catch (error) {
+  // }
+};
 module.exports = {
   createSubScriptionPlan,
+  createCustomSubScriptionPlan,
 };

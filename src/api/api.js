@@ -51,6 +51,7 @@ const endPoints = {
     userDetails: `/${VERSION}/user-details`,
     upsertAddress: `/${VERSION}/upsert-address`,
     setDefaultAddress: `/${VERSION}/set-default-address/:addressId`,
+    deleteAddress: `/${VERSION}/delete-address/:addressId`,
   },
   dashboard: {
     getStats: `/${VERSION}/dashboard-stats`,
@@ -68,6 +69,7 @@ const endPoints = {
   },
   "user-subscription": {
     createSubscription: `/${VERSION}/create-subscription-plan`,
+    createCustomSubscription: `/${VERSION}/create-custom-subscription-plan`,
   },
 };
 
