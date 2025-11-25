@@ -35,6 +35,7 @@ const getAllAddress = async (user_id) => {
 };
 
 const setDefaultAddress = async (addressId, userId) => {
+  console.log(addressId, userId, "from cont");
   const t = await sequelize.transaction();
 
   try {
@@ -43,6 +44,7 @@ const setDefaultAddress = async (addressId, userId) => {
       transaction: t,
     });
 
+    console.log(address, "add");
     if (!address) {
       await t.rollback();
       return { success: false, message: "Address not found" };
