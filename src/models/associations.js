@@ -40,4 +40,6 @@ module.exports = {
   Address,
   Service,
   SubService,
+  PropertyType,
+  PropertySubscription,
 };

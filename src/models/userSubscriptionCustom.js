@@ -52,9 +52,10 @@ const UserSubscriptionCustom = sequelize.define(
       comment: "unit price in smallest currency unit",
     },
 
-    address: {
-      type: DataTypes.UUID,
+    total_amount: {
+      type: DataTypes.BIGINT,
       allowNull: true,
+      comment: "total amount = quantity * unit_price",
     },
 
     // free-form metadata for future extension (json)
