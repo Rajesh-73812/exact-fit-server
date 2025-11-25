@@ -4,6 +4,7 @@ const createSubScriptionPlan = async (req, res) => {
   const {
     plan_id,
     property_type_id,
+    address_id,
     start_date,
     end_date,
     price_total,
@@ -16,6 +17,7 @@ const createSubScriptionPlan = async (req, res) => {
       user_id: created_by,
       plan_id,
       property_type_id,
+      address_id,
       start_date,
       end_date,
       price_total,
