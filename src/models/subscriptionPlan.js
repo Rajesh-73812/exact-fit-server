@@ -26,11 +26,6 @@ const SubscriptionPlan = sequelize.define(
       unique: true,
       allowNull: false,
     },
-    // type: {
-    //   type: DataTypes.ENUM("fixed", "custom"),
-    //   allowNull: false,
-    //   defaultValue: "fixed",
-    // },
     base_price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,

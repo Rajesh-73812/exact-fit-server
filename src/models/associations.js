@@ -54,4 +54,6 @@ module.exports = {
   SubService,
   PropertyType,
   PropertySubscription,
+  UserSubscriptionCustom,
+  UserSubscription,
 };
