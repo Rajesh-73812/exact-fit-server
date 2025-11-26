@@ -72,6 +72,9 @@ const endPoints = {
     createCustomSubscription: `/${VERSION}/create-custom-subscription-plan`,
     allSubscription: `/${VERSION}/get-subscription`,
   },
+  booking: {
+    upsertEnquiry: `/${VERSION}/upsert-enquiry`,
+  },
 };
 
 module.exports = {
