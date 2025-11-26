@@ -39,7 +39,7 @@ const endPoints = {
     getAllProperty: `/${VERSION}/get-all-property`,
     getPropertyBySlug: `/${VERSION}/get-property-by-slug/:idOrSlug`,
     deleteProperty: `/${VERSION}/delete-property/:idOrSlug`,
-    updateStatusProperty: `/${VERSION}/update-property/:idOrSlug`,
+    updateStatusProperty: `/${VERSION}/update-property/:id`,
   },
 
   // for user

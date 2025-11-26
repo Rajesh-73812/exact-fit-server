@@ -1,5 +1,7 @@
 const User = require("../models/user");
 const Address = require("../models/address");
+const UserSubscription = require("../models/userSubscription");
+const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const sequelize = require("../config/db");
 
 const twilio = require("twilio")(
@@ -290,6 +292,18 @@ const getUserById = async (userId) => {
       {
         model: Address,
         as: "addresses",
+      },
+      {
+        model: UserSubscription,
+        as: "subscriptions",
+        required: false,
+        include: [
+          {
+            model: UserSubscriptionCustom,
+            as: "custom_items",
+            required: false,
+          },
+        ],
       },
     ],
     // raw: true,

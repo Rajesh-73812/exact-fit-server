@@ -86,11 +86,21 @@ const upsertPropertyWithSubscription = async (
   }
 };
 
-const getPropertyBySlug = async (slug) => {
+const getPropertyBySlugOrId = async (id) => {
+  const whereClause = {
+    deletedAt: { [Op.is]: null }, // Ensure we only fetch non-deleted entries
+  };
+
+  // Use the id if it is provided
+  if (id) {
+    whereClause.id = id;
+  }
+
   const propertyType = await PropertyType.findOne({
-    where: { slug, deletedAt: { [Op.is]: null } },
+    where: whereClause,
     attributes: ["id", "name", "slug", "category", "description", "is_active"],
   });
+
   return propertyType;
 };
 
@@ -102,9 +112,9 @@ const getAllProperties = async () => {
   return properties;
 };
 
-const updateStatus = async (slug) => {
+const updateStatus = async (id) => {
   const propertyType = await PropertyType.findOne({
-    where: { slug, deletedAt: { [Op.is]: null } },
+    where: { id, deletedAt: { [Op.is]: null } },
   });
 
   if (!propertyType) {
@@ -185,7 +195,7 @@ const getAllPropertyByPlan = async (planId) => {
 
 module.exports = {
   upsertPropertyWithSubscription,
-  getPropertyBySlug,
+  getPropertyBySlugOrId,
   getAllProperties,
   updateStatus,
   deleteProperty,

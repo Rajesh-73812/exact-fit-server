@@ -53,15 +53,21 @@ const upsertProperty = async (req, res) => {
   }
 };
 
-// Get Property by Slug
-const getPropertyBySlug = async (req, res) => {
-  const { slug } = req.params;
-
+const getPropertyBySlugOrId = async (req, res) => {
+  const { id } = req.params;
   try {
-    const propertyType = await propertyTypeService.getPropertyBySlug(slug);
+    // Ensure that only one of id or slug is provided
+    if (!id) {
+      return handleWarningResponse(res, null, 400, "You must provide 'id'");
+    }
+
+    // Call the service to get the property by either id or slug
+    const propertyType = await propertyTypeService.getPropertyBySlugOrId(id);
+
     if (!propertyType) {
       return handleWarningResponse(res, null, 404, "Property Type not found.");
     }
+
     return handleSuccessResponse(
       res,
       "Property Type fetched successfully.",
@@ -69,7 +75,7 @@ const getPropertyBySlug = async (req, res) => {
       propertyType
     );
   } catch (error) {
-    console.error("Error in getPropertyBySlug controller:", error);
+    console.error("Error in getPropertyBySlugOrId controller:", error);
     return handleErrorResponse(res, error, 500);
   }
 };
@@ -78,12 +84,11 @@ const getPropertyBySlug = async (req, res) => {
 const getAllProperty = async (req, res) => {
   try {
     const properties = await propertyTypeService.getAllProperties();
-    return handleSuccessResponse(
-      res,
-      "Properties fetched successfully.",
-      200,
-      properties
-    );
+    return res.status(200).json({
+      success: true,
+      message: "Property Fetched sucessfully",
+      data: properties,
+    });
   } catch (error) {
     console.error("Error in getAllProperty controller:", error);
     return handleErrorResponse(res, error, 500);
@@ -92,10 +97,10 @@ const getAllProperty = async (req, res) => {
 
 // Update the status of a Property Type (active/inactive)
 const updateStatusProperty = async (req, res) => {
-  const { slug } = req.params;
+  const { id } = req.params;
 
   try {
-    const updatedProperty = await propertyTypeService.updateStatus(slug);
+    const updatedProperty = await propertyTypeService.updateStatus(id);
     if (!updatedProperty) {
       return handleWarningResponse(res, null, 404, "Property Type not found.");
     }
@@ -134,7 +139,7 @@ const deleteProperty = async (req, res) => {
 
 module.exports = {
   upsertProperty,
-  getPropertyBySlug,
+  getPropertyBySlugOrId,
   getAllProperty,
   updateStatusProperty,
   deleteProperty,
