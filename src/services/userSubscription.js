@@ -87,28 +87,61 @@ const createCustomSubScriptionPlan = async ({
   start_date,
   payment_option,
   end_date,
+  total_price,
+  service_id,
   services,
 }) => {
   const t = await sequelize.transaction();
 
   try {
+    const user = await User.findOne({ where: { id: user_id } });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const address = address_id
+      ? await Address.findOne({ where: { id: address_id, user_id: user_id } })
+      : null;
+
     const userSubscription = await UserSubscription.create(
       {
         user_id,
         address_id,
         start_date,
         end_date,
-        price_total: 0, // intially 0 after calculating total price will update
+        price_total: total_price,
+        service_id,
         payment_option,
         payment_status: "pending",
         plan_snapshot: {
           user_id,
+          user_name: user.fullname,
+          email: user.email,
+          mobile: user.mobile,
+          plan_id: service_id, // Assuming the service_id refers to the plan here
+          plan_name: "Custom Plan", // Placeholder for plan name
+          start_date,
+          end_date,
+          price_total: total_price,
+          address_id: address ? address.id : null,
+          address: address
+            ? {
+                emirate: address.emirate,
+                building: address.building,
+                area: address.area,
+                appartment: address.appartment,
+                additional_address: address.additional_address,
+                category: address.category,
+                save_as_address_type: address.save_as_address_type,
+                location: address.location,
+                latitude: address.latitude,
+                longitude: address.longitude,
+              }
+            : null,
         },
       },
       { transaction: t }
     );
-
-    let totalSubscriptionPrice = 0; // Track the total price for the subscription
 
     for (const service of services) {
       const { service_id, subservice_id, quantity, unit_price } = service;
@@ -122,23 +155,18 @@ const createCustomSubScriptionPlan = async ({
           quantity,
           unit_price,
           total_amount: total_price,
-          snapshot: JSON.stringify({
+          snapshot: {
             service_id,
             subservice_id,
             quantity,
             unit_price,
             total_price,
-          }),
+          },
         },
         { transaction: t }
       );
-      totalSubscriptionPrice += total_price;
     }
 
-    await userSubscription.update(
-      { price_total: totalSubscriptionPrice },
-      { transaction: t }
-    );
     await t.commit();
 
     return userSubscription;
@@ -158,7 +186,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
 
   const { count, rows } = await UserSubscription.findAndCountAll({
     where,
-    order: [["createdAt", "SESC"]],
+    order: [["createdAt", "DESC"]],
     limit,
     offset,
     include: [
@@ -220,6 +248,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
     subscriptions,
   };
 };
+
 module.exports = {
   createSubscription,
   createCustomSubScriptionPlan,
