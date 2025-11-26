@@ -17,10 +17,6 @@ const UserSubscription = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
-    plan_id: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
     property_type_id: {
       type: DataTypes.UUID,
       allowNull: true,
