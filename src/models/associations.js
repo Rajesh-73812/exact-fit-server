@@ -5,6 +5,8 @@ const Service = require("../models/service");
 const SubService = require("../models/sub-service");
 const PropertySubscription = require("../models/propertySubscription");
 const PropertyType = require("../models/propertyType");
+const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
+const UserSubscription = require("../models/userSubscription");
 
 // In models/index.js or after model definitions
 User.hasMany(Address, {
@@ -34,6 +36,16 @@ PropertySubscription.belongsTo(PropertyType, {
   foreignKey: "property_type_id",
   as: "propertyType",
 });
+
+UserSubscription.hasMany(UserSubscriptionCustom, {
+  foreignKey: "user_subscription_id",
+  as: "custom_items",
+});
+UserSubscriptionCustom.belongsTo(UserSubscription, {
+  foreignKey: "user_subscription_id",
+  as: "user_subscription",
+});
+
 module.exports = {
   sequelize,
   User,
@@ -42,4 +54,6 @@ module.exports = {
   SubService,
   PropertyType,
   PropertySubscription,
+  UserSubscriptionCustom,
+  UserSubscription,
 };
