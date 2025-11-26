@@ -11,7 +11,7 @@ router.post(
 router.get(
   endPoints["property-type"].getPropertyBySlug,
   middleware.authMiddleware,
-  propertyController.getPropertyBySlug
+  propertyController.getPropertyBySlugOrId
 );
 router.get(
   endPoints["property-type"].getAllProperty,

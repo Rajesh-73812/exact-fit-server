@@ -46,6 +46,8 @@ UserSubscriptionCustom.belongsTo(UserSubscription, {
   as: "user_subscription",
 });
 
+User.hasMany(UserSubscription, { foreignKey: "user_id", as: "subscriptions" });
+UserSubscription.belongsTo(User, { foreignKey: "user_id", as: "user" });
 module.exports = {
   sequelize,
   User,
