@@ -16,4 +16,12 @@ router.post(
   middleware.authMiddleware,
   userSubScriptionController.createCustomSubScriptionPlan
 );
+
+//shown subscription which subscription taken by user
+router.get(
+  endPoints["user-subscription"].allSubscription,
+  middleware.authMiddleware,
+  userSubScriptionController.getAllSubscription
+);
+
 module.exports = router;

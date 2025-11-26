@@ -70,6 +70,7 @@ const endPoints = {
   "user-subscription": {
     createSubscription: `/${VERSION}/create-subscription-plan`,
     createCustomSubscription: `/${VERSION}/create-custom-subscription-plan`,
+    allSubscription: `/${VERSION}/get-subscription`,
   },
 };
 
