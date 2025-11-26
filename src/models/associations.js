@@ -7,6 +7,7 @@ const PropertySubscription = require("../models/propertySubscription");
 const PropertyType = require("../models/propertyType");
 const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const UserSubscription = require("../models/userSubscription");
+const SubscriptionPlan = require("../models/subscriptionPlan");
 
 // In models/index.js or after model definitions
 User.hasMany(Address, {
@@ -44,6 +45,18 @@ UserSubscription.hasMany(UserSubscriptionCustom, {
 UserSubscriptionCustom.belongsTo(UserSubscription, {
   foreignKey: "user_subscription_id",
   as: "user_subscription",
+});
+
+User.hasMany(UserSubscription, { foreignKey: "user_id", as: "subscriptions" });
+UserSubscription.belongsTo(User, { foreignKey: "user_id", as: "user" });
+
+SubscriptionPlan.hasMany(UserSubscription, {
+  foreignKey: "plan_id",
+  as: "user_subscriptions",
+});
+UserSubscription.belongsTo(SubscriptionPlan, {
+  foreignKey: "plan_id",
+  as: "subscription_plan",
 });
 
 module.exports = {
