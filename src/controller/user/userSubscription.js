@@ -39,8 +39,15 @@ const createSubScriptionPlan = async (req, res) => {
 };
 
 const createCustomSubScriptionPlan = async (req, res) => {
-  const { address_id, start_date, payment_option, end_date, services } =
-    req.body;
+  const {
+    address_id,
+    start_date,
+    payment_option,
+    end_date,
+    total_price,
+    service_id,
+    services,
+  } = req.body;
   const user_id = req.user.id || {};
   try {
     if (
@@ -52,7 +59,7 @@ const createCustomSubScriptionPlan = async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          "Invalid subscription data. Please provide valid user_id, address_id, plan_id, and services.",
+          "Invalid subscription data. Please provide valid user_id, address_id, and services.",
       });
     }
 
@@ -62,6 +69,8 @@ const createCustomSubScriptionPlan = async (req, res) => {
       start_date,
       payment_option,
       end_date,
+      total_price,
+      service_id,
       services,
     });
 
