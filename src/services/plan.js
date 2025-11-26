@@ -63,6 +63,7 @@ const getAllPlan = async ({ search, page = 1, limit = 10 }) => {
   const { count, rows } = await subscriptionPlan.findAndCountAll({
     where,
     attributes: [
+      "id",
       "name",
       "slug",
       "base_price",

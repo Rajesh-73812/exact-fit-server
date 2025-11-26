@@ -1,5 +1,8 @@
 const User = require("../models/user");
 const Address = require("../models/address");
+const UserSubscription = require("../models/userSubscription");
+const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
+const SubscriptionPlan = require("../models/subscriptionPlan");
 const sequelize = require("../config/db");
 
 const twilio = require("twilio")(
@@ -290,16 +293,55 @@ const getUserById = async (userId) => {
       {
         model: Address,
         as: "addresses",
+        attributes: {
+          exclude: ["createdAt", "updatedAt", "deletedAt"],
+        },
+      },
+      {
+        model: UserSubscription,
+        as: "subscriptions",
+        attributes: {
+          exclude: ["createdAt", "updatedAt", "deletedAt", "plan_snapshot"],
+        },
+        required: false,
+        include: [
+          {
+            model: UserSubscriptionCustom,
+            as: "custom_items",
+            attributes: {
+              exclude: ["createdAt", "updatedAt", "deletedAt", "plan_snapshot"],
+            },
+            required: false,
+          },
+          {
+            model: SubscriptionPlan,
+            as: "subscription_plan",
+            attributes: ["name"],
+          },
+        ],
       },
     ],
-    // raw: true,
   });
 
   if (!user) {
-    return null; // User not found
+    return null;
   }
 
-  return user;
+  let userJson = user.get({ plain: true });
+  if (userJson.subscriptions && userJson.subscriptions.length > 0) {
+    userJson.subscriptions = userJson.subscriptions.map((subscription) => {
+      const { subscription_plan, ...rest } = subscription;
+
+      return {
+        ...rest,
+        subscription_plan_name: subscription_plan
+          ? subscription_plan.name
+          : null,
+      };
+    });
+  }
+
+  return userJson;
 };
 
 module.exports = {
