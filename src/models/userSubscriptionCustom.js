@@ -14,11 +14,6 @@ const UserSubscriptionCustom = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
-
-    user_id: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
     subservice_id: {
       type: DataTypes.UUID,
       allowNull: true,
