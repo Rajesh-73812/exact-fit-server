@@ -56,6 +56,7 @@ const SubscriptionPlan = sequelize.define(
       allowNull: false,
     },
   },
+  ///////
   {
     tableName: "subscription_plans",
     timestamps: true,
