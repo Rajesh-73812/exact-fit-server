@@ -35,23 +35,16 @@ const upsertPlan = async (lookupSlug, planData) => {
 };
 
 const toggleStatus = async (slug) => {
-  // Find the plan by slug
   const plan = await subscriptionPlan.findOne({
-    where: { slug, deletedAt: { [Op.is]: null } }, // Ensure you check for non-deleted plans
+    where: { slug, deletedAt: { [Op.is]: null } },
   });
 
-  console.log(plan, "plannnn");
-
-  // If the plan doesn't exist, return null
   if (!plan) return null;
 
-  // Toggle the is_active status: if 1 (active), set to 0 (inactive), and vice versa
-  plan.is_active = plan.is_active === 1 ? 0 : 1;
-
-  // Save the updated plan
+  plan.is_active = !plan.is_active;
   await plan.save();
 
-  return plan; // Return the updated plan object
+  return plan;
 };
 
 const deleteBySlug = async (slug) => {
@@ -77,6 +70,7 @@ const getAllPlan = async ({ search, page = 1, limit = 10 }) => {
       "scheduled_visits_count",
       "duration_in_days",
       "stars",
+      "is_active",
     ],
     order: [["createdAt", "DESC"]],
     limit,

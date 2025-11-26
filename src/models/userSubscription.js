@@ -21,6 +21,10 @@ const UserSubscription = sequelize.define(
       type: DataTypes.UUID,
       allowNull: true,
     },
+    service_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
     start_date: {
       type: DataTypes.DATEONLY,
       allowNull: false,
