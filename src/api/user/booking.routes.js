@@ -9,6 +9,11 @@ router.post(
   bookingController.upsertEnquiry
 );
 
+router.post(
+  endPoints.booking.upsertEmergency,
+  middleware.authMiddleware,
+  bookingController.upsertEmergency
+);
 router.get(
   endPoints.booking.getAllEnquiry,
   middleware.authMiddleware,
