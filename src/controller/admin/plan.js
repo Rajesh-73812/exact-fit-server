@@ -9,46 +9,99 @@ const upsertPlan = async (req, res) => {
   const { id: created_by } = req.user || {};
   const {
     name,
+    slug, // ← New slug
+    old_slug, // ← Only sent when editing
+    category,
     description,
-    slug,
-    old_plan_slug,
     base_price,
     duration_in_days,
     stars,
     scheduled_visits_count,
+    is_active = true, // ← Default value
   } = req.body;
-  console.log(req.body, "from service");
-  try {
-    const slugToSearch = old_plan_slug || slug;
-    const existSlug = await planService.planExists(slug, slugToSearch);
 
-    if (existSlug) {
-      return res
-        .status(400)
-        .json({ success: false, message: `${name} already exists!` });
+  console.log("UPSERT PAYLOAD:", { name, slug, old_slug, category, is_active });
+
+  try {
+    // EDIT MODE: old_slug exists
+    if (old_slug) {
+      const existingPlan = await planService.planService.findBySlug(old_slug);
+
+      if (!existingPlan) {
+        return res.status(404).json({
+          success: false,
+          message: "Plan not found for update",
+        });
+      }
+
+      // Check if new slug is taken by another plan
+      const slugTaken = await planService.planService.isSlugTaken(
+        slug,
+        old_slug
+      );
+      if (slugTaken) {
+        return res.status(400).json({
+          success: false,
+          message: `Slug "${slug}" is already used by another plan!`,
+        });
+      }
+
+      // UPDATE
+      await planService.planService.update(existingPlan, {
+        name: name.trim(),
+        slug,
+        category,
+        description: description || null,
+        base_price,
+        duration_in_days,
+        stars,
+        scheduled_visits_count,
+        is_active,
+      });
+
+      const updatedPlan = await existingPlan.reload();
+
+      return res.json({
+        success: true,
+        message: "Plan updated successfully",
+        data: updatedPlan,
+      });
     }
 
-    const planData = {
-      name,
-      description,
+    // CREATE MODE
+    const slugTaken = await planService.planService.isSlugTaken(slug);
+    if (slugTaken) {
+      return res.status(400).json({
+        success: false,
+        message: `Plan with slug "${slug}" already exists!`,
+      });
+    }
+
+    const newPlan = await planService.planService.create({
+      name: name.trim(),
+      slug,
+      category,
+      description: description || null,
       base_price,
       duration_in_days,
       stars,
       scheduled_visits_count,
-      created_by: created_by,
-      slug: slug,
-    };
+      is_active,
+      created_by,
+    });
 
-    const { plan, created } = await planService.upsertPlan(
-      slugToSearch,
-      planData
-    );
-    const message = created
-      ? `Subscription plan "${plan.name}" created successfully`
-      : `Subscription plan "${plan.name}" updated successfully`;
-    return handleSuccessResponse(res, message, created ? 201 : 200, plan);
+    return res.status(201).json({
+      success: true,
+      message: "Plan created successfully",
+      data: newPlan,
+    });
   } catch (error) {
-    return handleErrorResponse(res, error, 500);
+    console.error("Upsert plan error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
   }
 };
 

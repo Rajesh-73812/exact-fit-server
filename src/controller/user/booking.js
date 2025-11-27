@@ -2,13 +2,11 @@ const bookingService = require("../../services/booking");
 
 const upsertEnquiry = async (req, res) => {
   const {
-    id,
     fullname,
     email,
     mobile,
     address_id,
     scope_of_work,
-    specific_work_type,
     existing_drawing,
     plan_images,
     estimated_budget_range,
@@ -26,22 +24,20 @@ const upsertEnquiry = async (req, res) => {
     }
 
     const result = await bookingService.upsertEnquiry(user_id, {
-      id,
       fullname,
       email,
       mobile,
       address_id,
       scope_of_work,
-      specific_work_type,
       existing_drawing,
       plan_images,
       estimated_budget_range,
       description,
     });
 
-    return res.status(id ? 200 : 201).json({
+    return res.status(201).json({
       success: true,
-      message: "Enquiry upserted successfully.",
+      message: "Enquiry Created successfully.",
       data: result,
     });
   } catch (error) {
@@ -56,7 +52,6 @@ const upsertEnquiry = async (req, res) => {
 const upsertEmergency = async (req, res) => {
   const user_id = req.user.id;
   const {
-    id,
     fullname,
     email,
     mobile,
@@ -68,7 +63,6 @@ const upsertEmergency = async (req, res) => {
 
   try {
     const result = await bookingService.upsertEmergency(user_id, {
-      id,
       fullname,
       email,
       mobile,
@@ -78,9 +72,9 @@ const upsertEmergency = async (req, res) => {
       description,
     });
 
-    return res.status(id ? 200 : 201).json({
+    return res.status(201).json({
       success: true,
-      message: "Emergency upserted successfully.",
+      message: "Emergency Created successfully.",
       data: result,
     });
   } catch (error) {
