@@ -5,6 +5,7 @@ const upsertEnquiry = async (req, res) => {
     id,
     fullname,
     email,
+    mobile,
     address_id,
     scope_of_work,
     specific_work_type,
@@ -28,6 +29,7 @@ const upsertEnquiry = async (req, res) => {
       id,
       fullname,
       email,
+      mobile,
       address_id,
       scope_of_work,
       specific_work_type,
@@ -47,6 +49,45 @@ const upsertEnquiry = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to process the enquiry.",
+    });
+  }
+};
+
+const upsertEmergency = async (req, res) => {
+  const user_id = req.user.id;
+  const {
+    id,
+    fullname,
+    email,
+    mobile,
+    service_id,
+    sub_service_id,
+    address_id,
+    description,
+  } = req.body;
+
+  try {
+    const result = await bookingService.upsertEmergency(user_id, {
+      id,
+      fullname,
+      email,
+      mobile,
+      service_id,
+      sub_service_id,
+      address_id,
+      description,
+    });
+
+    return res.status(id ? 200 : 201).json({
+      success: true,
+      message: "Emergency upserted successfully.",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error in upsertEmergency controller:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to process the Emergency.",
     });
   }
 };
@@ -113,6 +154,7 @@ const getAllEmergency = async (req, res) => {
 
 module.exports = {
   upsertEnquiry,
+  upsertEmergency,
   getAllEnquiry,
   getAllEmergency,
 };
