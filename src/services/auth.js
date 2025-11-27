@@ -304,6 +304,8 @@ const getUserById = async (userId) => {
           exclude: ["createdAt", "updatedAt", "deletedAt", "plan_snapshot"],
         },
         required: false,
+        order: [["createdAt", "DESC"]],
+        limit: 1,
         include: [
           {
             model: UserSubscriptionCustom,
@@ -312,6 +314,8 @@ const getUserById = async (userId) => {
               exclude: ["createdAt", "updatedAt", "deletedAt", "plan_snapshot"],
             },
             required: false,
+            order: [["createdAt", "DESC"]],
+            limit: 1,
           },
           {
             model: SubscriptionPlan,
