@@ -54,15 +54,15 @@ const upsertProperty = async (req, res) => {
 };
 
 const getPropertyBySlugOrId = async (req, res) => {
-  const { id } = req.params;
+  const { slug } = req.params;
   try {
     // Ensure that only one of id or slug is provided
-    if (!id) {
-      return handleWarningResponse(res, null, 400, "You must provide 'id'");
+    if (!slug) {
+      return handleWarningResponse(res, null, 400, "You must provide 'slug'");
     }
 
     // Call the service to get the property by either id or slug
-    const propertyType = await propertyTypeService.getPropertyBySlugOrId(id);
+    const propertyType = await propertyTypeService.getPropertyBySlugOrId(slug);
 
     if (!propertyType) {
       return handleWarningResponse(res, null, 404, "Property Type not found.");
@@ -97,10 +97,10 @@ const getAllProperty = async (req, res) => {
 
 // Update the status of a Property Type (active/inactive)
 const updateStatusProperty = async (req, res) => {
-  const { id } = req.params;
+  const { slug } = req.params;
 
   try {
-    const updatedProperty = await propertyTypeService.updateStatus(id);
+    const updatedProperty = await propertyTypeService.updateStatus(slug);
     if (!updatedProperty) {
       return handleWarningResponse(res, null, 404, "Property Type not found.");
     }

@@ -39,7 +39,7 @@ const Booking = sequelize.define(
 
     service_id: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true,
       index: true,
     },
 

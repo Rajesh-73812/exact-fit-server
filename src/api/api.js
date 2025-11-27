@@ -37,9 +37,9 @@ const endPoints = {
   "property-type": {
     upsertProperty: `/${VERSION}/upsert-property`,
     getAllProperty: `/${VERSION}/get-all-property`,
-    getPropertyBySlug: `/${VERSION}/get-property-by-slug/:idOrSlug`,
+    getPropertyBySlug: `/${VERSION}/get-property-by-slug/:slug`,
     deleteProperty: `/${VERSION}/delete-property/:idOrSlug`,
-    updateStatusProperty: `/${VERSION}/update-property/:id`,
+    updateStatusProperty: `/${VERSION}/update-property/:slug`,
   },
 
   // for user
@@ -74,6 +74,8 @@ const endPoints = {
   },
   booking: {
     upsertEnquiry: `/${VERSION}/upsert-enquiry`,
+    getAllEnquiry: `/${VERSION}/get-all-enquiry`,
+    getAllEmergency: `/${VERSION}/get-all-emergency`,
   },
 };
 

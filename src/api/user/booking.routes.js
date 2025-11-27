@@ -9,4 +9,15 @@ router.post(
   bookingController.upsertEnquiry
 );
 
+router.get(
+  endPoints.booking.getAllEnquiry,
+  middleware.authMiddleware,
+  bookingController.getAllEnquiry
+);
+router.get(
+  endPoints.booking.getAllEmergency,
+  middleware.authMiddleware,
+  bookingController.getAllEmergency
+);
+
 module.exports = router;
