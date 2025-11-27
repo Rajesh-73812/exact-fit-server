@@ -32,6 +32,11 @@ const Booking = sequelize.define(
       allowNull: false,
     },
 
+    booking_type: {
+      type: DataTypes.ENUM("emergency", "enquiry"),
+      allowNull: true,
+    },
+
     service_id: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -49,27 +54,19 @@ const Booking = sequelize.define(
       comment: "Selected from saved addresses list",
     },
 
+    technician_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+
     scope_of_work: {
       type: DataTypes.TEXT,
-      allowNull: true,
-    },
-
-    full_fit_out: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      comment: "Design + Execution details",
-    },
-
-    work_type: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      comment: "Renovation / Refabrication",
+      allowNull: true, // full-fit-out / renovation / refabrication details
     },
 
     specific_work_type: {
-      type: DataTypes.JSON,
+      type: DataTypes.STRING,
       allowNull: true,
-      comment: "Stores multiple specific works like Flooring, Ceiling etc",
     },
 
     existing_drawing: {
@@ -80,6 +77,7 @@ const Booking = sequelize.define(
     },
 
     plan_images: {
+      // mandatory field if existing_drawing is true
       type: DataTypes.JSON,
       allowNull: true,
       comment: "Array of CAD / PDF / Images (multiple)",
@@ -92,6 +90,17 @@ const Booking = sequelize.define(
 
     description: {
       type: DataTypes.TEXT,
+      allowNull: true,
+    },
+
+    status: {
+      type: DataTypes.ENUM("pending", "active", "cancelled", "completed"),
+      allowNull: false,
+      defaultValue: "pending",
+    },
+
+    booking_snapshot: {
+      type: DataTypes.JSON,
       allowNull: true,
     },
   },
