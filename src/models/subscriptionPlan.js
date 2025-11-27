@@ -26,6 +26,11 @@ const SubscriptionPlan = sequelize.define(
       unique: true,
       allowNull: false,
     },
+    category: {
+      type: DataTypes.ENUM("residential", "commercial"),
+      allowNull: false,
+      defaultValue: "residential",
+    },
     base_price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
@@ -44,7 +49,7 @@ const SubscriptionPlan = sequelize.define(
     scheduled_visits_count: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 1,
+      defaultValue: 3,
       comment: "Number of scheduled visits per duration (plan-level default)",
     },
     is_active: {
@@ -56,7 +61,6 @@ const SubscriptionPlan = sequelize.define(
       allowNull: false,
     },
   },
-  ///////
   {
     tableName: "subscription_plans",
     timestamps: true,
