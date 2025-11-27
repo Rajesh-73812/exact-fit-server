@@ -74,6 +74,7 @@ const endPoints = {
   },
   booking: {
     upsertEnquiry: `/${VERSION}/upsert-enquiry`,
+    upsertEmergency: `/${VERSION}/upsert-emergency`,
     getAllEnquiry: `/${VERSION}/get-all-enquiry`,
     getAllEmergency: `/${VERSION}/get-all-emergency`,
   },
