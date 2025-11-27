@@ -86,22 +86,33 @@ const upsertPropertyWithSubscription = async (
   }
 };
 
-const getPropertyBySlugOrId = async (id) => {
+const getPropertyBySlugOrId = async (slug) => {
   const whereClause = {
-    deletedAt: { [Op.is]: null }, // Ensure we only fetch non-deleted entries
+    deletedAt: { [Op.is]: null },
   };
 
-  // Use the id if it is provided
-  if (id) {
-    whereClause.id = id;
+  if (slug) {
+    whereClause.slug = slug;
   }
 
   const propertyType = await PropertyType.findOne({
     where: whereClause,
     attributes: ["id", "name", "slug", "category", "description", "is_active"],
+    include: [
+      {
+        model: PropertySubscription,
+        as: "propertySubscriptions",
+        attributes: ["property_type_id", "subscription_plan_id", "price"],
+      },
+    ],
   });
 
-  return propertyType;
+  // Flatten the Sequelize instance
+  if (propertyType) {
+    return propertyType.get({ plain: true }); // Convert to plain object
+  }
+
+  return null;
 };
 
 const getAllProperties = async () => {
@@ -112,9 +123,9 @@ const getAllProperties = async () => {
   return properties;
 };
 
-const updateStatus = async (id) => {
+const updateStatus = async (slug) => {
   const propertyType = await PropertyType.findOne({
-    where: { id, deletedAt: { [Op.is]: null } },
+    where: { slug, deletedAt: { [Op.is]: null } },
   });
 
   if (!propertyType) {
@@ -123,7 +134,6 @@ const updateStatus = async (id) => {
 
   propertyType.is_active = !propertyType.is_active;
   await propertyType.save();
-
   return propertyType;
 };
 
@@ -137,7 +147,6 @@ const deleteProperty = async (slug) => {
   }
 
   await propertyType.destroy();
-
   return propertyType;
 };
 

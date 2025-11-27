@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const Address = require("../models/address");
 const Booking = require("../models/booking");
 
@@ -13,9 +14,8 @@ const upsertEnquiry = async (user_id, bookingData) => {
       fullname: bookingData.fullname,
       email: bookingData.email,
       mobile: bookingData.mobile,
+      booking_type: "enquiry",
       scope_of_work: bookingData.scope_of_work,
-      full_fit_out: bookingData.full_fit_out,
-      work_type: bookingData.work_type,
       specific_work_type: bookingData.specific_work_type,
       existing_drawing: bookingData.existing_drawing,
       estimated_budget_range: bookingData.estimated_budget_range,
@@ -45,10 +45,6 @@ const upsertEnquiry = async (user_id, bookingData) => {
       existingBooking.email = bookingData.email || existingBooking.email;
       existingBooking.scope_of_work =
         bookingData.scope_of_work || existingBooking.scope_of_work;
-      existingBooking.full_fit_out =
-        bookingData.full_fit_out || existingBooking.full_fit_out;
-      existingBooking.work_type =
-        bookingData.work_type || existingBooking.work_type;
       existingBooking.specific_work_type =
         bookingData.specific_work_type || existingBooking.specific_work_type;
       existingBooking.existing_drawing =
@@ -68,10 +64,10 @@ const upsertEnquiry = async (user_id, bookingData) => {
         user_id,
         fullname: bookingData.fullname,
         email: bookingData.email,
+        mobile: bookingData.mobile,
+        booking_type: "enquiry",
         address_id: bookingData.address_id,
         scope_of_work: bookingData.scope_of_work,
-        full_fit_out: bookingData.full_fit_out,
-        work_type: bookingData.work_type,
         specific_work_type: bookingData.specific_work_type,
         existing_drawing: bookingData.existing_drawing,
         plan_images: bookingData.plan_images,
@@ -88,6 +84,86 @@ const upsertEnquiry = async (user_id, bookingData) => {
   }
 };
 
+const getAllEmergency = async (
+  user_id,
+  page = 1,
+  pageSize = 10,
+  search = ""
+) => {
+  try {
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize;
+    const whereClause = {
+      user_id: user_id,
+      booking_type: "emergency",
+    };
+
+    if (search) {
+      whereClause[Op.or] = [
+        { fullname: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+        { mobile: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const emergencies = await Booking.findAndCountAll({
+      where: whereClause,
+      offset: offset,
+      limit: limit,
+      order: [["createdAt", "DESC"]],
+    });
+
+    return {
+      rows: emergencies.rows,
+      totalCount: emergencies.count,
+      totalPages: Math.ceil(emergencies.count / pageSize),
+      currentPage: page,
+    };
+  } catch (error) {
+    console.error("Error fetching emergencies: ", error);
+    throw new Error("Error fetching emergencies");
+  }
+};
+const getAllEnquiry = async (user_id, page = 1, pageSize = 10, search = "") => {
+  try {
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize;
+    const whereClause = {
+      user_id: user_id,
+      booking_type: "enquiry",
+    };
+
+    if (search) {
+      whereClause[Op.or] = [
+        { fullname: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+        { mobile: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const enquiries = await Booking.findAndCountAll({
+      where: whereClause,
+      offset: offset,
+      limit: limit,
+      order: [["createdAt", "DESC"]],
+    });
+
+    return {
+      rows: enquiries.rows,
+      totalCount: enquiries.count,
+      totalPages: Math.ceil(enquiries.count / pageSize),
+      currentPage: page,
+    };
+  } catch (error) {
+    console.error("Error fetching enquiries: ", error);
+    throw new Error("Error fetching enquiries");
+  }
+};
+
 module.exports = {
   upsertEnquiry,
+  getAllEmergency,
+  getAllEnquiry,
 };
