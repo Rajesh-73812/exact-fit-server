@@ -42,7 +42,7 @@ module.exports = {
     // If using PostgreSQL, drop ENUM type to avoid leftover type
     if (queryInterface.sequelize.options.dialect === "postgres") {
       await queryInterface.sequelize.query(
-        "DROP TYPE IF EXISTS \"enum_subscription_plans_category\";"
+        'DROP TYPE IF EXISTS "enum_subscription_plans_category";'
       );
     }
   },

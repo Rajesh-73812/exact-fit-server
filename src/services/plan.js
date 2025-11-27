@@ -1,37 +1,36 @@
+// services/planService.js
 const { Op } = require("sequelize");
 const subscriptionPlan = require("../models/subscriptionPlan");
 
-const planExists = async (slug, currentSlug = null) => {
-  if (!slug) return false;
-  const where = { slug };
+const planService = {
+  async isSlugTaken(newSlug, excludeSlug = null) {
+    const where = { slug: newSlug };
 
-  if (currentSlug) {
-    const existingRecord = await subscriptionPlan.findOne({
-      where: { slug: currentSlug },
-      attributes: ["id"],
-    });
-
-    if (existingRecord) {
-      where.id = { [Op.ne]: existingRecord.id };
+    if (excludeSlug) {
+      const currentPlan = await subscriptionPlan.findOne({
+        where: { slug: excludeSlug },
+        attributes: ["id"],
+      });
+      if (currentPlan) {
+        where.id = { [Op.ne]: currentPlan.id };
+      }
     }
-  }
 
-  const count = await subscriptionPlan.count({ where });
-  return count > 0;
-};
+    const count = await subscriptionPlan.count({ where });
+    return count > 0;
+  },
 
-const upsertPlan = async (lookupSlug, planData) => {
-  const existing = await subscriptionPlan.findOne({
-    where: { slug: lookupSlug },
-  });
+  async findBySlug(slug) {
+    return await subscriptionPlan.findOne({ where: { slug } });
+  },
 
-  if (existing) {
-    await existing.update(planData);
-    return { plan: existing, created: false };
-  }
+  async create(planData) {
+    return await subscriptionPlan.create(planData);
+  },
 
-  const plan = await subscriptionPlan.create(planData);
-  return { plan, created: true };
+  async update(planInstance, planData) {
+    return await planInstance.update(planData);
+  },
 };
 
 const toggleStatus = async (slug) => {
@@ -72,6 +71,7 @@ const getAllPlan = async ({ search, page = 1, limit = 10 }) => {
       "duration_in_days",
       "stars",
       "is_active",
+      "category",
     ],
     order: [["createdAt", "DESC"]],
     limit,
@@ -102,8 +102,7 @@ const getPlanBySlug = async (slug) => {
 };
 
 module.exports = {
-  planExists,
-  upsertPlan,
+  planService,
   toggleStatus,
   deleteBySlug,
   getAllPlan,
