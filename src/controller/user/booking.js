@@ -7,8 +7,6 @@ const upsertEnquiry = async (req, res) => {
     email,
     address_id,
     scope_of_work,
-    full_fit_out,
-    work_type,
     specific_work_type,
     existing_drawing,
     plan_images,
@@ -32,8 +30,6 @@ const upsertEnquiry = async (req, res) => {
       email,
       address_id,
       scope_of_work,
-      full_fit_out,
-      work_type,
       specific_work_type,
       existing_drawing,
       plan_images,
@@ -55,6 +51,68 @@ const upsertEnquiry = async (req, res) => {
   }
 };
 
+const getAllEnquiry = async (req, res) => {
+  const user_id = req.user.id;
+  const { page = 1, pageSize = 10, search = "" } = req.query;
+  try {
+    const result = await bookingService.getAllEnquiry(
+      user_id,
+      page,
+      pageSize,
+      search
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Enquiries fetched successfully",
+      data: result.rows,
+      pagination: {
+        totalCount: result.totalCount,
+        totalPages: result.totalPages,
+        currentPage: result.currentPage,
+        pageSize: pageSize,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+const getAllEmergency = async (req, res) => {
+  const user_id = req.user.id;
+  const { page = 1, pageSize = 10, search = "" } = req.query;
+  try {
+    const result = await bookingService.getAllEmergency(
+      user_id,
+      page,
+      pageSize,
+      search
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Emergencies fetched successfully",
+      data: result.rows,
+      pagination: {
+        totalCount: result.totalCount,
+        totalPages: result.totalPages,
+        currentPage: result.currentPage,
+        pageSize: pageSize,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   upsertEnquiry,
+  getAllEnquiry,
+  getAllEmergency,
 };
