@@ -6,11 +6,13 @@ const middleware = require("../../middlewares/authMiddleware");
 router.get(
   endPoints["user-plan"].getAllPlan,
   middleware.authMiddleware,
-  planController.getAllPlan
+  planController.getAllPlanFetchByUser
 );
+
 router.get(
   endPoints["user-plan"].getPlanByBySlug,
   middleware.authMiddleware,
   planController.getPlanBySlug
 );
+
 module.exports = router;

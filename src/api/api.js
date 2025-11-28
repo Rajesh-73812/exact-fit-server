@@ -52,6 +52,7 @@ const endPoints = {
     upsertAddress: `/${VERSION}/upsert-address`,
     setDefaultAddress: `/${VERSION}/set-default-address/:addressId`,
     deleteAddress: `/${VERSION}/delete-address/:addressId`,
+    deActivateAccount: `/${VERSION}/account-deactivate`,
   },
   dashboard: {
     getStats: `/${VERSION}/dashboard-stats`,
