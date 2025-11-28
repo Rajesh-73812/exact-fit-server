@@ -357,6 +357,23 @@ const deleteAddress = async (req, res) => {
   }
 };
 
+const deActivateAccount = async (req, res) => {
+  const user_id = req.user?.id;
+  try {
+    await userService.deActivateAccount(user_id);
+    return res.status(200).json({
+      success: true,
+      message: "Account Deactivated sucessfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error: " + error.message,
+    });
+  }
+};
+
 module.exports = {
   requestOtpLogin,
   verifyOtpLogin,
@@ -366,4 +383,5 @@ module.exports = {
   upsertAddress,
   setDefaultAddress,
   deleteAddress,
+  deActivateAccount,
 };
