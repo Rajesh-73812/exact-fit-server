@@ -348,6 +348,21 @@ const getUserById = async (userId) => {
   return userJson;
 };
 
+const deActivateAccount = async (user_id) => {
+  try {
+    const user = await User.findOne({ where: { id: user_id } }); // Sequelize query to find the user by ID
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+    user.is_active = false;
+    await user.save();
+    return user;
+  } catch (error) {
+    throw new Error("Error deactivating account: " + error.message);
+  }
+};
+
 module.exports = {
   registerAdmin,
   checkUserExists,
@@ -358,4 +373,5 @@ module.exports = {
   userExists,
   updateProfile,
   getUserById,
+  deActivateAccount,
 };
