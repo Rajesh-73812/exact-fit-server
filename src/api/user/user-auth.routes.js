@@ -35,4 +35,11 @@ router.delete(
   middleware.authMiddleware,
   userAuthController.deleteAddress
 );
+
+router.patch(
+  endPoints.user.deActivateAccount,
+  middleware.authMiddleware,
+  userAuthController.deActivateAccount
+);
+
 module.exports = router;
