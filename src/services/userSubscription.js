@@ -2,6 +2,7 @@ const Plan = require("../models/subscriptionPlan");
 const PropertyType = require("../models/propertyType");
 const UserSubscription = require("../models/userSubscription");
 const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
+const SubscriptionPlan = require("../models/subscriptionPlan");
 const User = require("../models/user");
 const Address = require("../models/address");
 const sequelize = require("../config/db");
@@ -191,6 +192,11 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
     offset,
     include: [
       {
+        model: SubscriptionPlan,
+        as: "subscription_plan",
+        attributes: ["name", "description"],
+      },
+      {
         model: UserSubscriptionCustom,
         as: "custom_items",
         required: false,
@@ -203,10 +209,10 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
     const base = {
       id: s.id,
       user_id: s.user_id,
-      address_id: s.address_id,
-      plan_id: s.plan_id,
-      property_type_id: s.property_type_id,
-      service_id: s.service_id,
+      // address_id: s.address_id,
+      // plan_id: s.plan_id,
+      // property_type_id: s.property_type_id,
+      // service_id: s.service_id,
       start_date: s.start_date,
       end_date: s.end_date,
       status: s.status,
@@ -215,9 +221,11 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
       amount_per_cycle: s.amount_per_cycle,
       payment_status: s.payment_status,
       payment_method: s.payment_method,
-      createdAt: s.createdAt,
-      updatedAt: s.updatedAt,
+      // createdAt: s.createdAt,
+      // updatedAt: s.updatedAt,
       subscriptionType: isCustom ? "custom" : "plan",
+      subscriptionPlanName: s.subscription_plan.name,
+      subscriptionPlanDescription: s.subscription_plan.description,
     };
 
     if (isCustom) {
@@ -232,10 +240,10 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         })),
         plan_snapshot: s.plan_snapshot || null,
       };
-    } else {
-      base.details = {
-        plan_snapshot: s.plan_snapshot || null,
-      };
+      // } else {
+      //   base.details = {
+      //     plan_snapshot: s.plan_snapshot || null,
+      //   };
     }
 
     return base;

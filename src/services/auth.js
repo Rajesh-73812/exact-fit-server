@@ -340,7 +340,7 @@ const getUserById = async (userId) => {
         ...rest,
         subscription_plan_name: subscription_plan
           ? subscription_plan.name
-          : null,
+          : "Custom",
       };
     });
   }

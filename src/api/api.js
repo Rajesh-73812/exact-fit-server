@@ -79,6 +79,12 @@ const endPoints = {
     getAllEnquiry: `/${VERSION}/get-all-enquiry`,
     getAllEmergency: `/${VERSION}/get-all-emergency`,
   },
+  ticket: {
+    createTicket: `/${VERSION}/rise-ticket`,
+    getAllTicket: `/${VERSION}/get-all-ticket`,
+    getTicketByNumber: `/${VERSION}/get-ticket/:ticketNumber`,
+    statusBasedTicket: `/${VERSION}/ticket/:status`,
+  },
 };
 
 module.exports = {
