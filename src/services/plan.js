@@ -54,7 +54,49 @@ const deleteBySlug = async (slug) => {
   await plan.destroy();
 };
 
-const getAllPlan = async ({ user_id, search, page = 1, limit = 10 }) => {
+const getAllPlan = async ({ search, page = 1, limit = 10 }) => {
+  const where = {};
+  if (search) {
+    where[Op.or] = [{ name: { [Op.like]: `%${search}%` } }];
+  }
+
+  const offset = (page - 1) * limit;
+  const { count, rows } = await subscriptionPlan.findAndCountAll({
+    where,
+    attributes: [
+      "id",
+      "name",
+      "slug",
+      "base_price",
+      "description",
+      "scheduled_visits_count",
+      "duration_in_days",
+      "stars",
+      "is_active",
+      "category",
+    ],
+    order: [["createdAt", "DESC"]],
+    limit,
+    offset,
+  });
+
+  const totalPages = Math.ceil(count / limit);
+  return {
+    rows,
+    count,
+    page: parseInt(page),
+    limit: parseInt(limit),
+    totalPages,
+  };
+};
+
+const getAllPlanFetchByUser = async ({
+  user_id,
+  search,
+  page = 1,
+  limit = 10,
+}) => {
+  const where = {};
   const user = await User.findByPk(user_id);
   if (!user) {
     throw new Error("User not found");
@@ -72,10 +114,11 @@ const getAllPlan = async ({ user_id, search, page = 1, limit = 10 }) => {
   }
 
   const userCategory = userAddress.category;
+  console.log(userCategory, "catttttttttttt");
   if (userCategory) {
     where.category = userCategory;
   }
-  const where = {};
+
   if (search) {
     where[Op.or] = [{ name: { [Op.like]: `%${search}%` } }];
   }
@@ -129,4 +172,5 @@ module.exports = {
   deleteBySlug,
   getAllPlan,
   getPlanBySlug,
+  getAllPlanFetchByUser,
 };
