@@ -61,12 +61,7 @@ const Booking = sequelize.define(
 
     scope_of_work: {
       type: DataTypes.TEXT,
-      allowNull: true, // full-fit-out / renovation / refabrication details
-    },
-
-    specific_work_type: {
-      type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: true, // full-fit-out / renovation / refabrication details / Flooring, Ceiling, Partitions, Joinery, Others
     },
 
     existing_drawing: {

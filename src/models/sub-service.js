@@ -60,6 +60,11 @@ const subService = sequelize.define(
       defaultValue: "active",
       allowNull: false,
     },
+    sub_service_visit_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 3,
+    },
     external_link: {
       type: DataTypes.STRING,
       allowNull: true,

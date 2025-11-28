@@ -27,6 +27,7 @@ const banner = sequelize.define(
       allowNull: false,
     },
     priority: {
+      // new column
       type: DataTypes.INTEGER,
       allowNull: false,
     },
