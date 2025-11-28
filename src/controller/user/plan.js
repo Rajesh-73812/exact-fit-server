@@ -36,7 +36,7 @@ const getAllPlanFetchByUser = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "plan fetched sucessfuly",
-      data: plan,
+      data: plan.rows,
     });
   } catch (error) {
     console.error(error);
