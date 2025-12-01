@@ -3,6 +3,8 @@
 const PropertyType = require("../models/propertyType");
 const subscriptionPlan = require("../models/subscriptionPlan");
 const PropertySubscription = require("../models/propertySubscription");
+const User = require("../models/user");
+const Address = require("../models/address");
 const { Op } = require("sequelize");
 const sequelize = require("../config/db");
 
@@ -152,7 +154,28 @@ const deleteProperty = async (slug) => {
 
 // for user
 
-const getAllPropertyByPlan = async (planId) => {
+const getAllPropertyByPlan = async (user_id, planId) => {
+  const where = {};
+  const user = await User.findByPk(user_id);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const userAddress = await Address.findOne({
+    where: {
+      user_id: user_id,
+      is_default: true,
+    },
+  });
+
+  if (!userAddress) {
+    throw new Error("User's default address not found");
+  }
+
+  const userCategory = userAddress.category;
+  if (userCategory) {
+    where.category = userCategory;
+  }
   const subscriptionExists = await subscriptionPlan.findByPk(planId);
   if (!subscriptionExists) {
     console.log("Subscription plan not found!");
@@ -167,6 +190,7 @@ const getAllPropertyByPlan = async (planId) => {
       {
         model: PropertyType,
         as: "propertyType",
+        where,
         attributes: ["id", "name"],
       },
     ],

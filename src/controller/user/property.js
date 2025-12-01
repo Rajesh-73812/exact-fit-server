@@ -1,9 +1,13 @@
 const propertyService = require("../../services/property");
 
 const getAllProperty = async (req, res) => {
+  const user_id = req.user.id;
   const { planId } = req.params;
   try {
-    const property = await propertyService.getAllPropertyByPlan(planId);
+    const property = await propertyService.getAllPropertyByPlan(
+      user_id,
+      planId
+    );
     if (!property || property.length === 0) {
       return res.status(404).json({
         success: false,
