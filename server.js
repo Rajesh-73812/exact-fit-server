@@ -17,8 +17,7 @@ const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 require("./src/models/associations");
 // require("./src/models/propertyType");
 require("./src/models/propertySubscription");
-// require('./src/models/booking');
-require("./src/models/ticket");
+require("./src/models/notification");
 
 app.use(express.json());
 app.use(bodyParser.json());
