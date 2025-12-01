@@ -23,4 +23,3 @@ existing_drawing/plans(boolean),
 plan_images(json)-> to store multiple images,
 estimated_budget_range(string),
 description(text),
-

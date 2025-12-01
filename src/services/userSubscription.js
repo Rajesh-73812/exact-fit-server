@@ -224,8 +224,12 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
       // createdAt: s.createdAt,
       // updatedAt: s.updatedAt,
       subscriptionType: isCustom ? "custom" : "plan",
-      subscriptionPlanName: s.subscription_plan.name,
-      subscriptionPlanDescription: s.subscription_plan.description,
+      subscriptionPlanName: s.subscription_plan
+        ? s.subscription_plan.name
+        : null,
+      subscriptionPlanDescription: s.subscription_plan
+        ? s.subscription_plan.description
+        : null,
     };
 
     if (isCustom) {
