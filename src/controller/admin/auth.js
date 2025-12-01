@@ -2,17 +2,10 @@ const {
   loginValidator,
   profileValidator,
 } = require("../../validators/admin/authValidator");
-// const User = require("../../models");
 const bcrypt = require("bcrypt");
 const generateToken = require("../../utils/getToken");
 const AdminService = require("../../services/auth");
 const { sendEmail } = require("../../utils/sendEmail");
-
-/**
- * Register a new admin
- * @param {Object} adminData - Contains email and password
- * @returns {Object} - The newly created admin
- */
 
 const register = async (req, res) => {
   console.log(req.body, "bodyyyyyyyyyyyy");
@@ -53,13 +46,6 @@ const register = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
-/**
- * Handles the authentication logic
- * @param {String} email - User's email
- * @param {String} password - User's password
- * @returns {Object} - Auth result including token and user data
- */
 
 const login = async (req, res) => {
   const { email, password } = req.body;
@@ -106,24 +92,6 @@ const login = async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
-
-/**
- * Updates the user's profile
- * @param {Object} req - The request object containing user details
- * @param {string} req.body.fullname - User's full name
- * @param {string} req.body.email - User's email address
- * @param {string} req.body.mobile - User's mobile number
- * @param {string} req.body.emirates - User's emirates
- * @param {string} req.body.area - User's area
- * @param {string} req.body.building - User's building name or number
- * @param {string} [req.body.appartment_no] - Optional user's apartment number
- * @param {string} [req.body.addtional_address] - Optional additional address details
- * @param {string} req.body.category - User's address category (e.g., residential, commercial)
- * @param {string} [req.body.save_as_address_type] - Optional field for saving the address type
- * @param {number} [req.body.latitude] - Optional latitude of the user's address
- * @param {number} [req.body.longitude] - Optional longitude of the user's address
- * @returns {Object} - Returns the updated user data with a success message
- */
 
 const updateProfile = async (req, res) => {
   const {

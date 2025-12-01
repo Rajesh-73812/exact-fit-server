@@ -91,3 +91,22 @@ npm install eslint-plugin-boundaries --save-dev
 3. Show 6-digit input + resend timer (60 sec)
 4. User enters OTP → call /api/auth/verify-otp
 5. On success → save token, go to home
+
+# DEVELOPER KNOW:
+
+WHAT SEQUELIZE ACTUALLY DOES (AND WHICH JOIN IT USES):
+
+Condition, || JOIN Type Used || Why?
+========================================================================================  
+where inside include + LEFT JOIN Keeps all main records
+
+---
+
+required: false (default),
+where inside include + required: true, INNER JOIN, Only returns main records
+
+---
+
+# VERY VERY IMPORTANT (EVERYONE SHOULD KNOW ABOUT IT):
+
+    1). WHEN USER CREATE PROFILE AT THAT TIME THEY CHOOSE CATEGORY. THIS IS VERY CRUCIAL CATEGORY BASED WE SHOWN SUBSCRIPTIONPLAN AND RESPECTED PROPERTY AND SUBSERVICES. (THIS IS GOLDEN RULE).
