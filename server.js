@@ -12,7 +12,7 @@ const {
   DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-
+require("./src/helper/cron");
 // require("./src/models/user");
 require("./src/models/associations");
 // require("./src/models/propertyType");

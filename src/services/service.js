@@ -94,8 +94,8 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
 
   if (search) {
     where[Op.or] = [
-      { title: { [Op.iLike]: `%${search}%` } },
-      { service_slug: { [Op.iLike]: `%${search}%` } },
+      { title: { [Op.like]: `%${search}%` } },
+      { service_slug: { [Op.like]: `%${search}%` } },
     ];
   }
 
