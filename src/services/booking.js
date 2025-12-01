@@ -108,7 +108,7 @@ const upsertEmergency = async (user_id, bookingData) => {
       fullname: bookingData.fullname,
       email: bookingData.email,
       mobile: bookingData.mobile,
-      booking_type: "enquiry",
+      booking_type: "emergency",
       service_id: bookingData.service_id,
       sub_service_id: bookingData.sub_service_id,
       address_id: bookingData.address_id,
