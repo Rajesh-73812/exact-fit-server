@@ -1,0 +1,94 @@
+{
+  "subscription_activated": {
+    "title": "Subscription Activated!",
+    "message": "Congratulations! Your subscription is now active. Enjoy premium services!"
+  },
+  "subscription_cancelled": {
+    "title": "Subscription Cancelled",
+    "message": "Your subscription has been cancelled successfully. We hope to serve you again soon!"
+  },
+  "emi_payment_due_reminder": {
+    "title": "EMI Payment Due",
+    "message": "Your EMI installment is due in 3 days. Please complete payment to continue your subscription."
+  },
+  "payment_overdue": {
+    "title": "Payment Overdue",
+    "message": "Your EMI payment is overdue. Please clear it immediately to avoid service interruption."
+  },
+  "emi_reminder_before_due": {
+    "title": "EMI Reminder",
+    "message": "Friendly reminder: Your next EMI is due on {due_date}. Thank you for staying on track!"
+  },
+  "welcome_login": {
+    "title": "Welcome Back!",
+    "message": "Great to see you again! Your Exact Fit account is ready."
+  },
+  "profile_updated": {
+    "title": "Profile Updated",
+    "message": "Your profile has been updated successfully!"
+  },
+  "enquiry_sent": {
+    "title": "Enquiry Received",
+    "message": "Thank you! Your enquiry has been sent. Our team will respond within 3–4 business days."
+  },
+  "enquiry_cancelled": {
+    "title": "Enquiry Cancelled",
+    "message": "Your enquiry request has been cancelled successfully."
+  },
+  "emergency_request_sent": {
+    "title": "Emergency Request Received",
+    "message": "We’ve received your emergency request. Help is on the way! Response within 3–4 business days."
+  },
+  "scheduled_subscription_reminder": {
+    "title": "Subscription Renewal Soon",
+    "message": "Your subscription will renew in {days_left} days. Keep enjoying uninterrupted service!"
+  },
+  "subscription_expiring": {
+    "title": "Subscription Expiring Soon",
+    "message": "Your subscription expires in {days_left} days. Renew now to continue!"
+  },
+  "profile_update_required": {
+    "title": "Update Required",
+    "message": "Please update your profile to activate or renew a subscription plan."
+  },
+  "quotation_received_enquiry": {
+    "title": "Quotation Received!",
+    "message": "You have a new quotation for your enquiry. Check it now!"
+  },
+  "quotation_received_emergency": {
+    "title": "Emergency Quotation Ready!",
+    "message": "Quotation for your emergency request is ready. View details now."
+  },
+  "scheduled_service_completed": {
+    "title": "Service Completed",
+    "message": "Your scheduled service has been successfully completed by the technician. Thank you!"
+  },
+  "emergency_service_completed": {
+    "title": "Emergency Service Completed",
+    "message": "Your emergency service has been completed. We hope everything is resolved!"
+  },
+  "ticket_raised": {
+    "title": "Support Ticket Created",
+    "message": "Your ticket has been raised successfully. Our team will respond within 3–4 business days."
+  },
+  "ticket_status_updated": {
+    "title": "Ticket Update",
+    "message": "Your support ticket #{ticket_id} status: {status}. {comment}"
+  },
+  "ticket_status_changed": {
+    "title": "Ticket Status Changed",
+    "message": "Your ticket #{ticket_id} is now: {status}"
+  },
+  "ticket_raised_to_admin": {
+    "title": "New Support Ticket",
+    "message": "A new support ticket has been raised by {user_name}."
+  },
+  "technician_assigned_emergency": {
+    "title": "Technician Assigned!",
+    "message": "Great news! A technician has been assigned to your emergency request."
+  },
+  "technician_tracking": {
+    "title": "Technician On The Way",
+    "message": "Your technician is en route! Track live location in the app."
+  }
+}

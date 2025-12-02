@@ -148,8 +148,7 @@ const getAllEmergency = async (req, res) => {
 
 const getServiceById = async (req, res) => {
   const user_id = req.user.id;
-  const { type } = req.query;
-  const { id } = req.params;
+  const { id, type } = req.query;
   try {
     const result = await bookingService.getServiceById({ user_id, id, type });
     if (!result) {
