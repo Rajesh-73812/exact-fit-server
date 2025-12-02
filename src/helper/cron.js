@@ -1,17 +1,29 @@
 const cron = require("node-cron");
 const Banner = require("../models/banner");
 
-cron.schedule("* * * * *", async () => {
-  const currentTime = new Date().toISOString();
+const getCurrentDateWithoutTime = () => {
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+  return currentDate.toISOString().slice(0, 10);
+};
+
+// Banner Activation
+// cron.schedule("* * * * *", async () => {
+cron.schedule("0 0 * * *", async () => {
+  // run every day night 12am
+  const currentDate = getCurrentDateWithoutTime();
+  console.log(currentDate, "from cron");
+  console.log(`Checking for banners to activate on ${currentDate}`);
 
   try {
     const bannersToActivate = await Banner.findAll({
       where: {
-        start_date: currentTime,
+        start_date: currentDate,
         is_active: false,
       },
     });
 
+    console.log(bannersToActivate, "from cronnnnn banner active");
     if (bannersToActivate.length > 0) {
       console.log(`Activating ${bannersToActivate.length} banners.`);
       for (let banner of bannersToActivate) {
@@ -19,19 +31,25 @@ cron.schedule("* * * * *", async () => {
         await banner.save();
         console.log(`Banner with ID: ${banner.id} activated.`);
       }
+    } else {
+      console.log("No banners to activate.");
     }
   } catch (error) {
     console.error("Error activating banners:", error);
   }
 });
 
-cron.schedule("* * * * *", async () => {
-  const currentTime = new Date().toISOString();
+// Banner Deactivation
+// cron.schedule("* * * * *", async () => { // run every minute
+cron.schedule("0 0 * * *", async () => {
+  // run every day night 12am
+  const currentDate = getCurrentDateWithoutTime();
+  console.log(`Checking for banners to deactivate on ${currentDate}`);
 
   try {
     const bannersToDeactivate = await Banner.findAll({
       where: {
-        end_date: currentTime,
+        end_date: currentDate,
         is_active: true,
       },
     });
@@ -43,8 +61,12 @@ cron.schedule("* * * * *", async () => {
         await banner.save();
         console.log(`Banner with ID: ${banner.id} deactivated.`);
       }
+    } else {
+      console.log("No banners to deactivate.");
     }
   } catch (error) {
     console.error("Error deactivating banners:", error);
   }
 });
+
+// subscription reminder
