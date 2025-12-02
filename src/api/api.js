@@ -81,7 +81,7 @@ const endPoints = {
     upsertEmergency: `/${VERSION}/upsert-emergency`,
     getAllEnquiry: `/${VERSION}/get-all-enquiry`,
     getAllEmergency: `/${VERSION}/get-all-emergency`,
-    getEnquiryById: `/${VERSION}/get-service-by-id/:id`,
+    getEnquiryById: `/${VERSION}/get-service-by-id`,
   },
   ticket: {
     createTicket: `/${VERSION}/rise-ticket`,
