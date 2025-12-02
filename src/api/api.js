@@ -54,6 +54,8 @@ const endPoints = {
     setDefaultAddress: `/${VERSION}/set-default-address/:addressId`,
     deleteAddress: `/${VERSION}/delete-address/:addressId`,
     deActivateAccount: `/${VERSION}/account-deactivate`,
+    updateOneSignal: `/${VERSION}/update-onesignal-id`,
+    removeOneSignal: `/${VERSION}/remove-onesignal-id`,
   },
   dashboard: {
     getStats: `/${VERSION}/dashboard-stats`,

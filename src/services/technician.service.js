@@ -183,28 +183,13 @@ const userExists = async (mobile) => {
   try {
     const technician = await User.findOne({
       where: { mobile: mobile },
-      attributes: [
-        "id",
-        "fullname",
-        "email",
-        "mobile",
-        "role",
-        "is_profile_update",
-      ],
-      raw: true,
+      attributes: ["id"],
     });
 
     if (!technician) {
-      return null;
+      return false;
     }
-    console.log(technician, "technician");
-    return {
-      id: technician.id,
-      mobile: technician.mobile,
-      fullname: technician.fullname,
-      role: technician.role,
-      is_profile_update: technician.is_profile_update,
-    };
+    return true;
   } catch (error) {
     console.error("Sequelize Error in technicianExists:", error.message);
     throw new Error("Failed to verify technician. Please try again later.");

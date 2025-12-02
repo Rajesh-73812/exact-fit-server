@@ -42,4 +42,15 @@ router.patch(
   userAuthController.deActivateAccount
 );
 
+router.patch(
+  endPoints.user.updateOneSignal,
+  middleware.authMiddleware,
+  userAuthController.updateOneSignalId
+);
+router.delete(
+  endPoints.user.removeOneSignal,
+  middleware.authMiddleware,
+  userAuthController.removeOneSignalId
+);
+
 module.exports = router;

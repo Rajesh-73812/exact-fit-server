@@ -21,6 +21,7 @@ const requestOtpLogin = async (req, res) => {
 
   try {
     let user = await technicianService.userExists(formatedMobile);
+    console.log(user, "userrrrrrrrrrrr");
     // if (!user) {
     //     return res.status(404).json({
     //         success: false,
@@ -29,17 +30,11 @@ const requestOtpLogin = async (req, res) => {
     // }
 
     // 2) if not exists, create minimal user record
-    if (!user) {
-      const created =
-        await technicianService.createUserWithMobile(formatedMobile);
-      // created has { id, mobile, ... , created: true/false }
-      user = {
-        id: created.id,
-        mobile: created.mobile,
-        fullname: created.fullname,
-        email: created.email,
-        role: created.role,
-      };
+    if (user === false || user === "false") {
+      return res.status(400).json({
+        success: false,
+        message: "Number entered is not registered in Exact Fit",
+      });
     }
 
     await technicianService.sendOTP(formatedMobile);

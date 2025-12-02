@@ -11,8 +11,10 @@ const sendInAppNotification = async (playerId, title, message, type) => {
   try {
     let apiKey, appId;
     if (type === "technician") {
-      apiKey = process.env.TECHNICIAN_ONESIGNAL_API_KEY;
-      appId = process.env.TECHNICIAN_ONESIGNAL_APP_ID;
+      // apiKey = process.env.TECHNICIAN_ONESIGNAL_API_KEY;
+      // appId = process.env.TECHNICIAN_ONESIGNAL_APP_ID;
+      apiKey = process.env.ONESIGNAL_REST_API_KEY;
+      appId = process.env.ONESIGNAL_APP_ID;
     } else if (type === "customer") {
       apiKey = process.env.CUSTOMER_ONESIGNAL_API_KEY;
       appId = process.env.CUSTOMER_ONESIGNAL_APP_ID;
