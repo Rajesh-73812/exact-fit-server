@@ -8,6 +8,6 @@ router.post(
   technicianAuthController.requestOtpLogin
 );
 router.post(endPoints.user.verifyOTP, technicianAuthController.verifyOtpLogin);
-// router.post(endPoints.user.resendOTP, technicianAuthController.resendOtp);
+router.post(endPoints.user.resendOTP, technicianAuthController.resendOtp);
 
 module.exports = router;
