@@ -100,7 +100,49 @@ const verifyOtpLogin = async (req, res) => {
   }
 };
 
+const resendOtp = async (req, res) => {
+  const { mobile } = req.body;
+  if (!mobile) {
+    return res.status(400).json({
+      success: false,
+      message: "Mobile number is required.",
+    });
+  }
+
+  const formattedMobile = mobile.trim();
+
+  // if (!formattedMobile.startsWith("+971")) {
+  //     return res.status(400).json({
+  //         success: false,
+  //         message: "Please use UAE number starting with +971.",
+  //     });
+  // }
+
+  try {
+    const user = await technicianService.userExists(formattedMobile);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found. Please register first.",
+      });
+    }
+    await technicianService.sendOTP(formattedMobile);
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP resent successfully.",
+    });
+  } catch (error) {
+    console.error("Resend OTP Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to resend OTP. Please try again.",
+    });
+  }
+};
+
 module.exports = {
   requestOtpLogin,
   verifyOtpLogin,
+  resendOtp,
 };

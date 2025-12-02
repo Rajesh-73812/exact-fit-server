@@ -25,4 +25,10 @@ router.get(
   bookingController.getAllEmergency
 );
 
+router.get(
+  endPoints.booking.getEnquiryById,
+  middleware.authMiddleware,
+  bookingController.getServiceById
+);
+
 module.exports = router;
