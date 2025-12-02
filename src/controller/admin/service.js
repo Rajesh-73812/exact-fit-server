@@ -13,6 +13,7 @@ const upsertService = async (req, res) => {
     image_alt,
     status,
     external_link,
+    type,
   } = req.body;
 
   console.log(req.body, "from service");
@@ -42,7 +43,8 @@ const upsertService = async (req, res) => {
       status,
       external_link,
       created_by: created_by,
-      service_slug: service_slug, // ← we will set this new slug
+      service_slug: service_slug,
+      type,
     };
 
     // ← FIX: Pass the slug we used to search (old or new)

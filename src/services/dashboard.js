@@ -282,6 +282,7 @@ const getServicesBySlug = async (service_slug) => {
             "price",
             "discount",
             "status",
+            "image_url",
             "createdAt",
           ],
         },
