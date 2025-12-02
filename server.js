@@ -12,7 +12,7 @@ const {
   DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-
+require("./src/helper/cron");
 // require("./src/models/user");
 require("./src/models/associations");
 // require("./src/models/propertyType");
@@ -154,6 +154,7 @@ app.post("/upload-image", async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to generate URL" });
   }
 });
+
 app.delete("/api/delete-image", async (req, res) => {
   const filePath = req.body.filePath;
 

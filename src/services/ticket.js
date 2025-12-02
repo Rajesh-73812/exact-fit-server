@@ -27,7 +27,18 @@ const getAllTicket = async (user_id) => {
       order: [["createdAt", "DESC"]],
     });
 
-    return tickets;
+    console.log(tickets, "frommmmmmmmmmmmmmmtickettttttttttt");
+    const cleanedTickets = tickets.map((ticket) => {
+      if (ticket.image_url && typeof ticket.image_url === "string") {
+        try {
+          ticket.image_url = JSON.parse(ticket.image_url);
+        } catch (error) {
+          console.error("Error parsing image_url:", error);
+        }
+      }
+      return ticket;
+    });
+    return cleanedTickets;
   } catch (error) {
     console.error("Error fetching tickets:", error);
     throw new Error("Error fetching tickets");
@@ -44,6 +55,13 @@ const getTicketByNumber = async ({ user_id, ticketNumber }) => {
       throw new Error("Ticket not found");
     }
 
+    if (ticket.image_url && typeof ticket.image_url === "string") {
+      try {
+        ticket.image_url = JSON.parse(ticket.image_url);
+      } catch (error) {
+        console.error("Error parsing image_url:", error);
+      }
+    }
     return ticket;
   } catch (error) {
     console.error("Error fetching ticket by number:", error);

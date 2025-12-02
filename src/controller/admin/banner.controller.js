@@ -1,81 +1,86 @@
 const bannerService = require("../../services/banner.service");
-const slugify = require("slugify");
 
 const upsertBanner = async (req, res) => {
   try {
     const {
       id,
       name,
+      slug,
       image_url,
-      schedule_time,
-      link_url,
       priority,
+      link_url,
+      start_date,
+      end_date,
+      is_active,
       banner_type,
     } = req.body;
 
-    // Required fields validation
-    if (!name || !image_url) {
+    // Required fields
+    if (!name?.trim() || !image_url) {
       return res.status(400).json({
         success: false,
-        message: "Name and image_url are required.",
-        code: "BANNER_REQUIRED_FIELDS_MISSING",
+        message: "Name and image are required.",
       });
     }
 
-    // Auto-generate slug from name
-    const slug = slugify(name, { lower: true });
+    const finalSlug = slug?.trim();
 
-    let result;
-
-    // UPDATE EXISTING BANNER
-    if (id) {
-      const updated = await bannerService.updateBanner(id, {
-        name,
-        slug,
-        image_url,
-        schedule_time,
-        link_url,
-        priority,
-        banner_type,
+    if (!finalSlug) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid slug generated from name.",
       });
+    }
 
-      if (!updated) {
-        return res.status(404).json({
+    // If editing (id exists) → allow same slug, just exclude current record
+    // If creating → check uniqueness
+    if (!id) {
+      const slugExists = await bannerService.bannerExists(finalSlug);
+      if (slugExists) {
+        return res.status(400).json({
           success: false,
-          message: "Banner not found with provided ID.",
-          code: "BANNER_NOT_FOUND",
+          message: "A banner with this slug already exists. Try a unique name.",
         });
       }
-
-      result = await bannerService.getBannerById(id);
+    } else {
+      // Editing: allow same slug only for this banner
+      const slugExistsElsewhere = await bannerService.bannerExists(
+        finalSlug,
+        id
+      );
+      if (slugExistsElsewhere) {
+        return res.status(400).json({
+          success: false,
+          message: "This slug is already used by another banner.",
+        });
+      }
     }
 
-    // CREATE NEW BANNER
-    else {
-      result = await bannerService.createBanner({
-        name,
-        slug,
-        image_url,
-        schedule_time,
-        link_url,
-        priority,
-        banner_type,
-      });
-    }
+    const bannerData = {
+      id, // only used if present (edit)
+      name: name.trim(),
+      slug: finalSlug,
+      image_url,
+      priority: priority ? Number(priority) : null,
+      link_url: link_url || null,
+      start_date: start_date || null,
+      end_date: end_date || null,
+      is_active: is_active === true || is_active === "true",
+      banner_type,
+    };
 
-    return res.status(200).json({
+    const { banner, created } = await bannerService.upsertBanner(bannerData);
+
+    return res.status(created ? 201 : 200).json({
       success: true,
-      message: id
-        ? "Banner updated successfully"
-        : "Banner created successfully",
-      data: result,
+      message: `Banner ${created ? "created" : "updated"} successfully!`,
+      data: banner,
     });
   } catch (error) {
     console.error("Error in upsertBanner:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to upsert banner",
-      code: "BANNER_UPSERT_FAILED",
+      message: error.message || "Failed to save banner",
     });
   }
 };
@@ -108,16 +113,15 @@ const getBannerById = async (req, res) => {
 };
 
 const getBannerBySlug = async (req, res) => {
-  const { slug } = req.params;
+  const { id } = req.params;
 
   try {
-    const banner = await bannerService.getBannerBySlug(slug);
+    const banner = await bannerService.getBannerBySlug(id);
 
     if (!banner) {
       return res.status(404).json({
         success: false,
         message: "Banner not found",
-        code: "BANNER_NOT_FOUND",
       });
     }
 
@@ -130,24 +134,46 @@ const getBannerBySlug = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch banner by slug",
-      code: "BANNER_FETCH_BY_SLUG_FAILED",
     });
   }
 };
 
 const getAllBanners = async (req, res) => {
+  const { search, page = 1, limit = 10 } = req.query;
+  console.log(req.query, "from query");
+
+  const parsedPage = parseInt(page, 10);
+  const parsedLimit = parseInt(limit, 10);
+
   try {
-    const banners = await bannerService.getAllBanners();
+    const result = await bannerService.getAllBanners({
+      search: search || undefined,
+      page: parsedPage,
+      limit: parsedLimit,
+    });
+
+    const { rows, count, activeCount = 0, inactiveCount = 0 } = result;
+
+    const totalPages = Math.ceil(count / parsedLimit);
+
     return res.status(200).json({
       success: true,
-      data: banners,
+      message: "Banners fetched successfully!",
+      data: rows, // Return the actual banners data
+      pagination: {
+        total: count,
+        page: parsedPage,
+        limit: parsedLimit,
+        totalPages,
+      },
+      activeCount,
+      inactiveCount,
     });
   } catch (error) {
     console.error("Error in getAllBanners:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch banners",
-      code: "BANNER_FETCH_FAILED",
     });
   }
 };
@@ -180,10 +206,39 @@ const deleteBanner = async (req, res) => {
   }
 };
 
+const statusUpdateBnner = async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Banner id is required.",
+    });
+  }
+  try {
+    const banner = await bannerService.toggleStatus(id);
+    if (!banner) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Banner not found." });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Status updated successfully.",
+      data: banner,
+    });
+  } catch (error) {
+    console.error("Error updating status:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   upsertBanner,
   getBannerById,
   getBannerBySlug,
   getAllBanners,
   deleteBanner,
+  statusUpdateBnner,
 };

@@ -22,10 +22,11 @@ const endPoints = {
   },
   banner: {
     upsert: `/${VERSION}/upsert-banner`,
-    getBannerBySlug: `/${VERSION}/get-banner-by-slug/:slug`,
+    getBannerBySlug: `/${VERSION}/get-banner-by-slug/:id`,
     getBannerById: `/${VERSION}/get-banner-by-id/:id`,
     getAllBanners: `/${VERSION}/get-all-banners`,
     deleteBanner: `/${VERSION}/delete-banner/:id`,
+    statusUpdateBnner: `/${VERSION}/toggle-banner-status/:id`,
   },
   plan: {
     upsertPlan: `/${VERSION}/upsert-plan`,
@@ -84,6 +85,9 @@ const endPoints = {
     getAllTicket: `/${VERSION}/get-all-ticket`,
     getTicketByNumber: `/${VERSION}/get-ticket/:ticketNumber`,
     statusBasedTicket: `/${VERSION}/ticket/:status`,
+  },
+  "user-banner": {
+    getAll: `/${VERSION}/get-all`,
   },
 };
 
