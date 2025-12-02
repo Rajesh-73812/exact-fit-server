@@ -89,6 +89,13 @@ const endPoints = {
   "user-banner": {
     getAll: `/${VERSION}/get-all`,
   },
+
+  //for technician
+  technician: {
+    requestOTP: `/${VERSION}/request-otp`,
+    verifyOTP: `/${VERSION}/verify-otp`,
+    resendOTP: `/${VERSION}/resend-otp`,
+  },
 };
 
 module.exports = {

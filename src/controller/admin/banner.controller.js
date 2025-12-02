@@ -1,5 +1,13 @@
 const bannerService = require("../../services/banner.service");
 
+const formatDate = (dateString) => {
+  if (!dateString) {
+    return null;
+  }
+  const date = new Date(dateString);
+  return date.toISOString().split("T")[0];
+};
+
 const upsertBanner = async (req, res) => {
   try {
     const {
@@ -15,6 +23,7 @@ const upsertBanner = async (req, res) => {
       banner_type,
     } = req.body;
 
+    console.log(req.body, "from bodyyyyyyyyyyyyyyyyy");
     // Required fields
     if (!name?.trim() || !image_url) {
       return res.status(400).json({
@@ -63,8 +72,8 @@ const upsertBanner = async (req, res) => {
       image_url,
       priority: priority ? Number(priority) : null,
       link_url: link_url || null,
-      start_date: start_date || null,
-      end_date: end_date || null,
+      start_date: formatDate(start_date) || null,
+      end_date: formatDate(end_date) || null,
       is_active: is_active === true || is_active === "true",
       banner_type,
     };

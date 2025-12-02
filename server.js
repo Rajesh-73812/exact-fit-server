@@ -123,8 +123,8 @@ const s3 = new S3Client({
 // });
 
 app.post("/upload-image", async (req, res) => {
-  const { fileName, fileType, folder = "services" } = req.body;
-
+  const { fileName, fileType, folder = "uploads" } = req.body;
+  console.log(req.body, "from upload image");
   if (!fileName || !fileType) {
     return res
       .status(400)
@@ -132,17 +132,18 @@ app.post("/upload-image", async (req, res) => {
   }
 
   const key = `${folder}/${Date.now()}-${Math.round(Math.random() * 1e9)}-${fileName}`;
-
+  console.log(key, "from upload image  key   ");
   try {
     const command = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET_NAME, // e.g. "excat-fit-dxb"
+      Bucket: process.env.S3_BUCKET_NAME,
       Key: key,
-      ContentType: fileType, // THIS LINE WAS MISSING!
+      ContentType: fileType,
       ACL: "public-read",
     });
 
+    console.log(command, "from command");
     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
-
+    console.log(uploadUrl, "from uploadurlllllllll");
     res.json({
       success: true,
       uploadUrl,

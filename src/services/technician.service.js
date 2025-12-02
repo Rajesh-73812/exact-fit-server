@@ -1,5 +1,9 @@
 const Address = require("../models/address");
 const User = require("../models/user");
+const twilio = require("twilio")(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 
 // const normalizeServicesKnown = (data) => {
 //   if (Array.isArray(data)) return data.join(", ");
@@ -63,6 +67,150 @@ const getTechnicianByIdWithAddress = async (id) => {
   });
 };
 
+//for mobile
+
+const createUserWithMobile = async (mobile) => {
+  try {
+    // findOrCreate returns [instance, created(boolean)]
+    const [technicianRecord, created] = await User.findOrCreate({
+      where: { mobile },
+      defaults: {
+        mobile,
+        fullname: null,
+        email: null,
+        password: null,
+        role: "technician", // choose sensible default
+      },
+    });
+
+    return {
+      id: technicianRecord.id,
+      mobile: technicianRecord.mobile,
+      fullname: technicianRecord.fullname,
+      email: technicianRecord.email,
+      role: technicianRecord.role,
+      created: !!created,
+    };
+  } catch (error) {
+    // you can fallback to fetching it again
+    if (error.name === "SequelizeUniqueConstraintError") {
+      const existing = await userExists(mobile);
+      if (existing) return { ...existing, created: false };
+    }
+    console.error("Create user error:", error);
+    throw new Error("Failed to create user. Please try again later.");
+  }
+};
+
+const sendOTP = async (mobile) => {
+  // if (!isValidUAENumber(mobile)) {
+  //   throw new Error("Invalid UAE mobile number format.");
+  // }
+
+  try {
+    const verification = await twilio.verify.v2
+      .services(process.env.TWILIO_VERIFY_SERVICE_SID)
+      .verifications.create({ to: mobile, channel: "sms" });
+
+    if (verification.status === "pending") {
+      return { success: true, sid: verification.sid };
+    } else {
+      throw new Error("Failed to send OTP. Please try again.");
+    }
+  } catch (error) {
+    if (error.code === 60202) {
+      throw new Error("OTP already sent recently. Please wait 30 seconds.");
+    }
+    if (error.code === 20429) {
+      throw new Error("Too many requests. Try again later.");
+    }
+    if (error.code === 20001) {
+      throw new Error("Invalid mobile number.");
+    }
+    throw new Error(
+      "Unable to send OTP at the moment. Please try again later."
+    );
+  }
+};
+
+const verifyOTP = async (mobile, code) => {
+  // if (!isValidUAENumber(mobile)) {
+  //   throw new Error("Invalid UAE mobile number.");
+  // }
+  if (!code || code.toString().length !== 6) {
+    throw new Error("OTP must be 6 digits.");
+  }
+
+  try {
+    const serviceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
+    if (!serviceSid) {
+      console.error("Missing TWILIO_VERIFY_SERVICE_SID");
+      return { valid: false, message: "OTP service not configured." };
+    }
+
+    // Verify the code
+    const check = await twilio.verify.v2
+      .services(serviceSid)
+      .verificationChecks.create({
+        to: mobile,
+        code: code.toString(),
+      });
+
+    // Twilio returns status === "approved" when code is valid
+    if (check && check.status === "approved") {
+      return { valid: true, payload: check };
+    }
+
+    // Any other status is considered invalid/expired
+    return { valid: false, message: "Invalid or expired OTP." };
+  } catch (error) {
+    if (error.code === 20404) {
+      return { valid: false, message: "OTP expired or not found." };
+    }
+    if (error.code === 60200) {
+      return { valid: false, message: "Invalid OTP." };
+    }
+    throw new Error("OTP verification failed. Please try again.");
+  }
+};
+
+const userExists = async (mobile) => {
+  // const formattedMobile = mobile.trim();
+  // if (!isValidUAENumber(formattedMobile)) {
+  //   throw new Error("Invalid UAE mobile number format.");
+  // }
+
+  try {
+    const technician = await User.findOne({
+      where: { mobile: mobile },
+      attributes: [
+        "id",
+        "fullname",
+        "email",
+        "mobile",
+        "role",
+        "is_profile_update",
+      ],
+      raw: true,
+    });
+
+    if (!technician) {
+      return null;
+    }
+    console.log(technician, "technician");
+    return {
+      id: technician.id,
+      mobile: technician.mobile,
+      fullname: technician.fullname,
+      role: technician.role,
+      is_profile_update: technician.is_profile_update,
+    };
+  } catch (error) {
+    console.error("Sequelize Error in technicianExists:", error.message);
+    throw new Error("Failed to verify technician. Please try again later.");
+  }
+};
+
 module.exports = {
   createTechnician,
   getAllTechnicians,
@@ -72,4 +220,8 @@ module.exports = {
   updateTechnician,
   deleteTechnician,
   getTechnicianByIdWithAddress,
+  createUserWithMobile,
+  verifyOTP,
+  userExists,
+  sendOTP,
 };
