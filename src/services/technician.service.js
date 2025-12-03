@@ -183,17 +183,58 @@ const userExists = async (mobile) => {
   try {
     const technician = await User.findOne({
       where: { mobile: mobile },
-      attributes: ["id"],
+      attributes: [
+        "id",
+        "fullname",
+        "mobile",
+        "email",
+        "id_proofs",
+        "service_category",
+        "services_known",
+        "service_type",
+        "profile_pic",
+        "role",
+      ],
     });
 
     if (!technician) {
-      return false;
+      return null;
     }
-    return true;
+    return technician;
   } catch (error) {
     console.error("Sequelize Error in technicianExists:", error.message);
     throw new Error("Failed to verify technician. Please try again later.");
   }
+};
+
+const detailOfTechnician = async (user_id) => {
+  return User.findByPk(user_id, {
+    attributes: [
+      "fullname",
+      "mobile",
+      "email",
+      "id_proofs",
+      "service_category",
+      "services_known",
+      "service_type",
+      "profile_pic",
+    ],
+    include: [
+      {
+        model: Address,
+        as: "addresses",
+        attributes: ["location", "latitude", "longitude"],
+      },
+    ],
+  });
+};
+
+const accountDeactivate = async (user_id) => {
+  const technician = await User.findByPk(user_id);
+  technician.is_active = !technician.is_active;
+  await technician.save();
+
+  return technician;
 };
 
 module.exports = {
@@ -209,4 +250,6 @@ module.exports = {
   verifyOTP,
   userExists,
   sendOTP,
+  detailOfTechnician,
+  accountDeactivate,
 };

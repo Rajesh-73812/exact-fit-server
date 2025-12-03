@@ -30,7 +30,7 @@ const requestOtpLogin = async (req, res) => {
     // }
 
     // 2) if not exists, create minimal user record
-    if (user === false || user === "false") {
+    if (!user) {
       return res.status(400).json({
         success: false,
         message: "Number entered is not registered in Exact Fit",
@@ -73,11 +73,19 @@ const verifyOtpLogin = async (req, res) => {
       });
     }
     const user = await technicianService.userExists(mobile);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Technician not found.",
+      });
+    }
     const token = await generateToken({
       id: user.id,
       role: user.role,
       mobile: user.mobile,
     });
+
+    console.log(user, "from techhhhhhhh");
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -86,13 +94,12 @@ const verifyOtpLogin = async (req, res) => {
         user: {
           fullname: user.fullname,
           mobile: user.mobile,
-          email: user.mobile,
+          email: user.email,
           id_proofs: user.id_proofs,
           service_category: user.service_category,
           services_known: user.services_known,
           service_type: user.service_type,
           profile_pic: user.profile_pic,
-          status: user.status,
         },
       },
     });
@@ -146,8 +153,53 @@ const resendOtp = async (req, res) => {
   }
 };
 
+const detailsOfTechnician = async (req, res) => {
+  const user_id = req.user.id;
+  try {
+    const technician = await technicianService.detailOfTechnician(user_id);
+    return res.status(200).json({
+      success: true,
+      message: "Technician Data fetched sucessfully",
+      data: technician,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server eror",
+    });
+  }
+};
+
+const technicianDeactivateAccount = async (req, res) => {
+  const user_id = req.user.id;
+  try {
+    const technician = await technicianService.accountDeactivate(user_id);
+    if (!technician) {
+      return res.status(404).json({
+        success: false,
+        message: "Technician not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Account deactivated sucessfully",
+      // data: technician
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server eror",
+    });
+  }
+};
+
 module.exports = {
   requestOtpLogin,
   verifyOtpLogin,
   resendOtp,
+  detailsOfTechnician,
+  technicianDeactivateAccount,
 };

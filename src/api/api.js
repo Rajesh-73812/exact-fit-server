@@ -98,8 +98,13 @@ const endPoints = {
     requestOTP: `/${VERSION}/request-otp`,
     verifyOTP: `/${VERSION}/verify-otp`,
     resendOTP: `/${VERSION}/resend-otp`,
+    details: `/${VERSION}/get-details`,
+    deactivateAccount: `/${VERSION}/deactivate`,
   },
 };
+// console.log('API Version:', VERSION);
+// console.log('Details of Technician route:', endPoints.technician.details);
+// console.log('Deactivate Account route:', endPoints.technician.deactivateAccount);
 
 module.exports = {
   VERSION,
