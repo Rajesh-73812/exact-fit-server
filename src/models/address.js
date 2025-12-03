@@ -43,6 +43,10 @@ const address = sequelize.define(
       type: DataTypes.ENUM("residential", "commercial"), //residential, commercial
       allowNull: true,
     },
+    emirates_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     save_as_address_type: {
       type: DataTypes.STRING,
       allowNull: true,
