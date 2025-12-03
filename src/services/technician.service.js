@@ -219,12 +219,13 @@ const detailOfTechnician = async (user_id) => {
       "service_type",
       "skill",
       "profile_pic",
+      "emirates_id",
     ],
     include: [
       {
         model: Address,
         as: "addresses",
-        attributes: ["location", "latitude", "longitude","emirates_id"],
+        attributes: ["location", "latitude", "longitude"],
       },
     ],
   });
