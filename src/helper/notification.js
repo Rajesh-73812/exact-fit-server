@@ -1,5 +1,5 @@
 const axios = require("axios");
-const Notification = require("../models/booking");
+const Notification = require("../models/notification");
 
 const sendInAppNotification = async (playerId, title, message, type) => {
   console.log("notification startttttttttttttttttttttt");
@@ -46,12 +46,11 @@ const sendInAppNotification = async (playerId, title, message, type) => {
   }
 };
 
-const createNotification = async (user_id, title, message, type) => {
+const createNotification = async (user_id, title, message) => {
   const create = await Notification.create({
     user_id,
     title,
-    message,
-    type,
+    description: message,
   });
 
   if (create) {

@@ -1,6 +1,11 @@
 const userService = require("../../services/auth");
 const addressService = require("../../services/address.service");
 const generateToken = require("../../utils/getToken");
+const {
+  sendInAppNotification,
+  createNotification,
+} = require("../../helper/notification");
+const notification = require("../../config/notifications.json");
 
 const requestOtpLogin = async (req, res) => {
   const { mobile } = req.body;
@@ -80,6 +85,22 @@ const verifyOtpLogin = async (req, res) => {
       role: user.role,
       mobile: user.mobile,
     });
+
+    if (!user.last_login) {
+      // send welcome message
+      await sendInAppNotification(
+        user.onesignal_id,
+        notification.welcome_login.title,
+        notification.welcome_login.message,
+        user.role
+      );
+
+      await createNotification(
+        user.id,
+        notification.welcome_login.title,
+        notification.welcome_login.message
+      );
+    }
     return res.status(200).json({
       success: true,
       message: "Login successful",
