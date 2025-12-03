@@ -100,6 +100,8 @@ const verifyOtpLogin = async (req, res) => {
         notification.welcome_login.title,
         notification.welcome_login.message
       );
+
+      await userService.updateLastLogin(user.id);
     }
     return res.status(200).json({
       success: true,
