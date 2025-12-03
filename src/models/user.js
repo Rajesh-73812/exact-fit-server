@@ -62,6 +62,10 @@ const user = sequelize.define(
       type: DataTypes.JSON,
       allowNull: true,
     },
+    emirates_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     is_profile_update: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
