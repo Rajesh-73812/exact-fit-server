@@ -54,6 +54,8 @@ const endPoints = {
     setDefaultAddress: `/${VERSION}/set-default-address/:addressId`,
     deleteAddress: `/${VERSION}/delete-address/:addressId`,
     deActivateAccount: `/${VERSION}/account-deactivate`,
+    updateOneSignal: `/${VERSION}/update-onesignal-id`,
+    removeOneSignal: `/${VERSION}/remove-onesignal-id`,
   },
   dashboard: {
     getStats: `/${VERSION}/dashboard-stats`,
@@ -79,6 +81,7 @@ const endPoints = {
     upsertEmergency: `/${VERSION}/upsert-emergency`,
     getAllEnquiry: `/${VERSION}/get-all-enquiry`,
     getAllEmergency: `/${VERSION}/get-all-emergency`,
+    getEnquiryById: `/${VERSION}/get-service-by-id`,
   },
   ticket: {
     createTicket: `/${VERSION}/rise-ticket`,
@@ -95,8 +98,13 @@ const endPoints = {
     requestOTP: `/${VERSION}/request-otp`,
     verifyOTP: `/${VERSION}/verify-otp`,
     resendOTP: `/${VERSION}/resend-otp`,
+    details: `/${VERSION}/get-details`,
+    deactivateAccount: `/${VERSION}/deactivate`,
   },
 };
+// console.log('API Version:', VERSION);
+// console.log('Details of Technician route:', endPoints.technician.details);
+// console.log('Deactivate Account route:', endPoints.technician.deactivateAccount);
 
 module.exports = {
   VERSION,

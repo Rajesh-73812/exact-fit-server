@@ -1,13 +1,23 @@
 const router = require("express").Router();
-// const middleware = require("../../middlewares/authMiddleware");
-const { endPoints } = require("../api");
+const middleware = require("../../middlewares/authMiddleware");
 const technicianAuthController = require("../../controller/user/technician-auth");
+const { endPoints } = require("../api");
+const { technician } = endPoints;
 
-router.post(
-  endPoints.user.requestOTP,
-  technicianAuthController.requestOtpLogin
+router.post(technician.requestOTP, technicianAuthController.requestOtpLogin);
+router.post(technician.verifyOTP, technicianAuthController.verifyOtpLogin);
+router.post(technician.resendOTP, technicianAuthController.resendOtp);
+
+router.get(
+  technician.details,
+  middleware.authMiddleware,
+  technicianAuthController.detailsOfTechnician
 );
-router.post(endPoints.user.verifyOTP, technicianAuthController.verifyOtpLogin);
-// router.post(endPoints.user.resendOTP, technicianAuthController.resendOtp);
+
+router.patch(
+  technician.deactivateAccount,
+  middleware.authMiddleware,
+  technicianAuthController.technicianDeactivateAccount
+);
 
 module.exports = router;

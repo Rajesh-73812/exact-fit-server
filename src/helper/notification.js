@@ -1,5 +1,5 @@
 const axios = require("axios");
-const Notification = require("../models/booking");
+const Notification = require("../models/notification");
 
 const sendInAppNotification = async (playerId, title, message, type) => {
   console.log("notification startttttttttttttttttttttt");
@@ -11,8 +11,10 @@ const sendInAppNotification = async (playerId, title, message, type) => {
   try {
     let apiKey, appId;
     if (type === "technician") {
-      apiKey = process.env.TECHNICIAN_ONESIGNAL_API_KEY;
-      appId = process.env.TECHNICIAN_ONESIGNAL_APP_ID;
+      // apiKey = process.env.TECHNICIAN_ONESIGNAL_API_KEY;
+      // appId = process.env.TECHNICIAN_ONESIGNAL_APP_ID;
+      apiKey = process.env.ONESIGNAL_REST_API_KEY;
+      appId = process.env.ONESIGNAL_APP_ID;
     } else if (type === "customer") {
       apiKey = process.env.CUSTOMER_ONESIGNAL_API_KEY;
       appId = process.env.CUSTOMER_ONESIGNAL_APP_ID;
@@ -44,12 +46,11 @@ const sendInAppNotification = async (playerId, title, message, type) => {
   }
 };
 
-const createNotification = async (user_id, title, message, type) => {
+const createNotification = async (user_id, title, message) => {
   const create = await Notification.create({
     user_id,
     title,
-    message,
-    type,
+    description: message,
   });
 
   if (create) {

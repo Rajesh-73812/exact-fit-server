@@ -363,6 +363,30 @@ const deActivateAccount = async (user_id) => {
   }
 };
 
+const updateOneSignalIdService = async (user_id, onesignal_id) => {
+  const user = await User.findByPk(user_id);
+  if (!user) {
+    throw Object.assign(new Error("User not found"), { status: 404 });
+  }
+
+  user.onesignal_id = onesignal_id;
+  await user.save();
+
+  return user.toJSON();
+};
+
+const removeOneSignalIdService = async (user_id) => {
+  const user = await User.findByPk(user_id);
+  if (!user) {
+    throw Object.assign(new Error("User not found"), { status: 404 });
+  }
+
+  user.onesignal_id = null;
+  await user.save();
+
+  return user.toJSON();
+};
+
 module.exports = {
   registerAdmin,
   checkUserExists,
@@ -374,4 +398,6 @@ module.exports = {
   updateProfile,
   getUserById,
   deActivateAccount,
+  updateOneSignalIdService,
+  removeOneSignalIdService,
 };

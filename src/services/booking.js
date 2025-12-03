@@ -202,9 +202,50 @@ const getAllEnquiry = async (user_id, page = 1, pageSize = 10, search = "") => {
   }
 };
 
+const getServiceById = async ({ user_id, id, type }) => {
+  try {
+    let condition = {
+      where: {
+        id: id,
+        user_id: user_id,
+      },
+    };
+
+    if (type) {
+      condition.where.booking_type = type;
+    }
+
+    const booking = await Booking.findOne(condition);
+
+    if (!booking) {
+      return null;
+    }
+
+    return {
+      id: booking.id,
+      fullname: booking.fullname,
+      email: booking.email,
+      mobile: booking.mobile,
+      booking_type: booking.booking_type,
+      service_id: booking.service_id,
+      sub_service_id: booking.sub_service_id,
+      status: booking.status,
+      scope_of_work: booking.scope_of_work,
+      existing_drawing: booking.existing_drawing,
+      plan_images: booking.plan_images,
+      estimated_budget_range: booking.estimated_budget_range,
+      description: booking.description,
+    };
+  } catch (error) {
+    console.error("Error in getServiceById:", error);
+    throw new Error("Failed to retrieve service. Please try again later.");
+  }
+};
+
 module.exports = {
   upsertEnquiry,
   upsertEmergency,
   getAllEmergency,
   getAllEnquiry,
+  getServiceById,
 };

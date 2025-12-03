@@ -186,29 +186,55 @@ const userExists = async (mobile) => {
       attributes: [
         "id",
         "fullname",
-        "email",
         "mobile",
+        "email",
+        "id_proofs",
+        "service_category",
+        "services_known",
+        "service_type",
+        "profile_pic",
         "role",
-        "is_profile_update",
       ],
-      raw: true,
     });
 
     if (!technician) {
       return null;
     }
-    console.log(technician, "technician");
-    return {
-      id: technician.id,
-      mobile: technician.mobile,
-      fullname: technician.fullname,
-      role: technician.role,
-      is_profile_update: technician.is_profile_update,
-    };
+    return technician;
   } catch (error) {
     console.error("Sequelize Error in technicianExists:", error.message);
     throw new Error("Failed to verify technician. Please try again later.");
   }
+};
+
+const detailOfTechnician = async (user_id) => {
+  return User.findByPk(user_id, {
+    attributes: [
+      "fullname",
+      "mobile",
+      "email",
+      "id_proofs",
+      "service_category",
+      "services_known",
+      "service_type",
+      "profile_pic",
+    ],
+    include: [
+      {
+        model: Address,
+        as: "addresses",
+        attributes: ["location", "latitude", "longitude"],
+      },
+    ],
+  });
+};
+
+const accountDeactivate = async (user_id) => {
+  const technician = await User.findByPk(user_id);
+  technician.is_active = !technician.is_active;
+  await technician.save();
+
+  return technician;
 };
 
 module.exports = {
@@ -224,4 +250,6 @@ module.exports = {
   verifyOTP,
   userExists,
   sendOTP,
+  detailOfTechnician,
+  accountDeactivate,
 };

@@ -21,6 +21,7 @@ const requestOtpLogin = async (req, res) => {
 
   try {
     let user = await technicianService.userExists(formatedMobile);
+    console.log(user, "userrrrrrrrrrrr");
     // if (!user) {
     //     return res.status(404).json({
     //         success: false,
@@ -30,16 +31,10 @@ const requestOtpLogin = async (req, res) => {
 
     // 2) if not exists, create minimal user record
     if (!user) {
-      const created =
-        await technicianService.createUserWithMobile(formatedMobile);
-      // created has { id, mobile, ... , created: true/false }
-      user = {
-        id: created.id,
-        mobile: created.mobile,
-        fullname: created.fullname,
-        email: created.email,
-        role: created.role,
-      };
+      return res.status(400).json({
+        success: false,
+        message: "Number entered is not registered in Exact Fit",
+      });
     }
 
     await technicianService.sendOTP(formatedMobile);
@@ -78,21 +73,33 @@ const verifyOtpLogin = async (req, res) => {
       });
     }
     const user = await technicianService.userExists(mobile);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Technician not found.",
+      });
+    }
     const token = await generateToken({
       id: user.id,
       role: user.role,
       mobile: user.mobile,
     });
+
+    console.log(user, "from techhhhhhhh");
     return res.status(200).json({
       success: true,
       message: "Login successful",
       data: {
         token,
         user: {
-          id: user.id,
+          fullname: user.fullname,
           mobile: user.mobile,
-          name: user.name,
-          is_profile_update: user.is_profile_update,
+          email: user.email,
+          id_proofs: user.id_proofs,
+          service_category: user.service_category,
+          services_known: user.services_known,
+          service_type: user.service_type,
+          profile_pic: user.profile_pic,
         },
       },
     });
@@ -105,7 +112,94 @@ const verifyOtpLogin = async (req, res) => {
   }
 };
 
+const resendOtp = async (req, res) => {
+  const { mobile } = req.body;
+  if (!mobile) {
+    return res.status(400).json({
+      success: false,
+      message: "Mobile number is required.",
+    });
+  }
+
+  const formattedMobile = mobile.trim();
+
+  // if (!formattedMobile.startsWith("+971")) {
+  //     return res.status(400).json({
+  //         success: false,
+  //         message: "Please use UAE number starting with +971.",
+  //     });
+  // }
+
+  try {
+    const user = await technicianService.userExists(formattedMobile);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found. Please register first.",
+      });
+    }
+    await technicianService.sendOTP(formattedMobile);
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP resent successfully.",
+    });
+  } catch (error) {
+    console.error("Resend OTP Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to resend OTP. Please try again.",
+    });
+  }
+};
+
+const detailsOfTechnician = async (req, res) => {
+  const user_id = req.user.id;
+  try {
+    const technician = await technicianService.detailOfTechnician(user_id);
+    return res.status(200).json({
+      success: true,
+      message: "Technician Data fetched sucessfully",
+      data: technician,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server eror",
+    });
+  }
+};
+
+const technicianDeactivateAccount = async (req, res) => {
+  const user_id = req.user.id;
+  try {
+    const technician = await technicianService.accountDeactivate(user_id);
+    if (!technician) {
+      return res.status(404).json({
+        success: false,
+        message: "Technician not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Account deactivated sucessfully",
+      // data: technician
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server eror",
+    });
+  }
+};
+
 module.exports = {
   requestOtpLogin,
   verifyOtpLogin,
+  resendOtp,
+  detailsOfTechnician,
+  technicianDeactivateAccount,
 };
