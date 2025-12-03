@@ -1,5 +1,11 @@
 const { generateTicketNumber } = require("../helper/formattedMobile");
+const {
+  sendInAppNotification,
+  createNotification,
+} = require("../helper/notification");
 const Ticket = require("../models/ticket");
+const User = require("../models/user");
+const notification = require("../config/notifications.json");
 
 const createTicket = async ({ user_id, title, description, image_url }) => {
   const ticketNumber = await generateTicketNumber();
@@ -13,6 +19,20 @@ const createTicket = async ({ user_id, title, description, image_url }) => {
       status: "pending",
     });
 
+    const user = await User.findByPk(user_id);
+    if (user.onesignal_id) {
+      await sendInAppNotification(
+        user.onesignal_id,
+        notification.ticket_raised.title,
+        notification.ticket_raised.message,
+        user.role
+      );
+      await createNotification(
+        user.id,
+        notification.ticket_raised.title,
+        notification.ticket_raised.message
+      );
+    }
     return ticket;
   } catch (error) {
     console.error("Error creating ticket:", error);

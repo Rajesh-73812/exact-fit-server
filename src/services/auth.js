@@ -4,6 +4,11 @@ const UserSubscription = require("../models/userSubscription");
 const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const SubscriptionPlan = require("../models/subscriptionPlan");
 const sequelize = require("../config/db");
+const {
+  sendInAppNotification,
+  createNotification,
+} = require("../helper/notification");
+const notification = require("../config/notifications.json");
 
 const twilio = require("twilio")(
   process.env.TWILIO_ACCOUNT_SID,
@@ -229,11 +234,30 @@ const userExists = async (mobile) => {
   }
 };
 
+const updateLastLogin = async (user_id) => {
+  try {
+    const user = await User.update(
+      { last_login: new Date() },
+      { where: { id: user_id } }
+    );
+
+    if (user[0] === 1) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error updating last_login:", error.message);
+    throw new Error("Failed to update last login.");
+  }
+};
+
 const updateProfile = async (userId, userData, addressData) => {
   const t = await User.sequelize.transaction();
   try {
-    let updatedUser = null;
-    let updatedAddress = null;
+    let currentUser = await User.findByPk(userId);
+    if (!currentUser) throw new Error("USER_NOT_FOUND");
+
+    const isFirstTimeUpdate = !currentUser.is_profile_update;
 
     // 1. Update User
     if (Object.keys(userData).length > 0) {
@@ -247,9 +271,10 @@ const updateProfile = async (userId, userData, addressData) => {
     }
 
     // Fetch updated user
-    updatedUser = await User.findByPk(userId, { transaction: t });
+    currentUser = await User.findByPk(userId, { transaction: t });
 
     // 2. Update or Create Address
+    let updatedAddress = null;
     if (Object.keys(addressData).length > 0) {
       // Check if the user already has an address
       let existingAddress = await Address.findOne({
@@ -272,9 +297,24 @@ const updateProfile = async (userId, userData, addressData) => {
 
     await t.commit();
 
+    if (isFirstTimeUpdate) {
+      await sendInAppNotification(
+        currentUser.onesignal_id,
+        notification.profile_updated.title,
+        notification.profile_updated.message,
+        currentUser.role
+      );
+
+      await createNotification(
+        currentUser.id,
+        notification.profile_updated.title,
+        notification.profile_updated.message
+      );
+    }
+
     return {
       success: true,
-      user: updatedUser,
+      user: currentUser,
       address: updatedAddress,
     };
   } catch (error) {
@@ -400,4 +440,5 @@ module.exports = {
   deActivateAccount,
   updateOneSignalIdService,
   removeOneSignalIdService,
+  updateLastLogin,
 };
