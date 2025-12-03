@@ -54,6 +54,14 @@ const user = sequelize.define(
         },
       },
     },
+    service_type: {
+      type: DataTypes.ENUM("enquiry", "subscription"),
+      allowNull: true,
+    },
+    skill: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
     is_profile_update: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
@@ -80,12 +88,6 @@ const user = sequelize.define(
       type: DataTypes.JSON,
       allowNull: true,
       comment: "List of services the technician can perform",
-    },
-
-    service_type: {
-      type: DataTypes.ENUM("general", "emergency"),
-      allowNull: true,
-      comment: "Service type the technician offers",
     },
     description: {
       type: DataTypes.TEXT,
