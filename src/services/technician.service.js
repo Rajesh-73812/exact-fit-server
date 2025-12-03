@@ -224,7 +224,7 @@ const detailOfTechnician = async (user_id) => {
       {
         model: Address,
         as: "addresses",
-        attributes: ["location", "latitude", "longitude","emirates_id"],
+        attributes: ["location", "latitude", "longitude", "emirates_id"],
       },
     ],
   });
