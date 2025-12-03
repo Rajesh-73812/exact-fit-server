@@ -1,11 +1,18 @@
 const { Op } = require("sequelize");
 const Address = require("../models/address");
+const User = require("../models/user");
 const Booking = require("../models/booking");
 const Service = require("../models/service");
 const SubService = require("../models/sub-service");
+const {
+  sendInAppNotification,
+  createNotification,
+} = require("../helper/notification");
+const notification = require("../config/notifications.json");
 
 const upsertEnquiry = async (user_id, bookingData) => {
   try {
+    const user = await User.findByPk(user_id);
     const address = bookingData.address_id
       ? await Address.findOne({
           where: { id: bookingData.address_id, user_id },
@@ -50,6 +57,19 @@ const upsertEnquiry = async (user_id, bookingData) => {
       snapshot: snapshot,
     });
 
+    if (user.onesignal_id) {
+      await sendInAppNotification(
+        user.onesignal_id,
+        notification.enquiry_sent.title,
+        notification.enquiry_sent.message,
+        user.role
+      );
+      await createNotification(
+        user.id,
+        notification.enquiry_sent.title,
+        notification.enquiry_sent.message
+      );
+    }
     return newBooking;
   } catch (error) {
     console.error("Error in upsertEnquiry service:", error);
@@ -59,6 +79,8 @@ const upsertEnquiry = async (user_id, bookingData) => {
 
 const upsertEmergency = async (user_id, bookingData) => {
   try {
+    const user = await User.findByPk(user_id);
+
     const address = bookingData.address_id
       ? await Address.findOne({
           where: { id: bookingData.address_id, user_id },
@@ -116,6 +138,19 @@ const upsertEmergency = async (user_id, bookingData) => {
       snapshot: snapshot,
     });
 
+    if (user.onesignal_id) {
+      await sendInAppNotification(
+        user.onesignal_id,
+        notification.emergency_request_sent.title,
+        notification.emergency_request_sent.message,
+        user.role
+      );
+      await createNotification(
+        user.id,
+        notification.emergency_request_sent.title,
+        notification.emergency_request_sent.message
+      );
+    }
     return newBooking;
   } catch (error) {
     console.error("Error in upsertEmergency service:", error);

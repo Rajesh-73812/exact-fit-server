@@ -32,11 +32,11 @@ const allowedOrigins = [
   "https://exact-fit-admin.vercel.app",
 ];
 
-// const PORT = process.env.PORT || 4446;
+const PORT = process.env.PORT || 4446;
 
-// app.listen(PORT, () => {
-//   console.log(`🚀 Server running on port ${PORT}`);
-// });
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 
 app.use(
   cors({
@@ -69,17 +69,18 @@ if (process.env.NODE_ENV !== "test") {
     });
 }
 
-// replace the old app.listen block with this:
-app.listen(process.env.PORT, async () => {
-  console.log(`Server running on port ${process.env.PORT}`);
-
+// Initialize routes
+(async () => {
   try {
     await loadRoutes(app);
-    console.log("All routes loaded successfully!");
   } catch (err) {
-    console.error("Failed to load routes:", err);
+    console.error("❌ Failed to initialize routes:", err.message);
     process.exit(1);
   }
+})();
+
+app.get("/", (req, res) => {
+  res.send("Server is Running..............");
 });
 
 const s3 = new S3Client({
@@ -92,7 +93,7 @@ const s3 = new S3Client({
 
 app.post("/upload-image", async (req, res) => {
   const { fileName, fileType, folder = "uploads" } = req.body;
-  console.log(req.body, "from upload image");
+
   if (!fileName || !fileType) {
     return res
       .status(400)
@@ -100,18 +101,17 @@ app.post("/upload-image", async (req, res) => {
   }
 
   const key = `${folder}/${Date.now()}-${Math.round(Math.random() * 1e9)}-${fileName}`;
-  console.log(key, "from upload image  key   ");
+
   try {
     const command = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET_NAME,
+      Bucket: process.env.S3_BUCKET_NAME, // e.g. "excat-fit-dxb"
       Key: key,
-      ContentType: fileType,
+      ContentType: fileType, // THIS LINE WAS MISSING!
       ACL: "public-read",
     });
 
-    console.log(command, "from command");
     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
-    console.log(uploadUrl, "from uploadurlllllllll");
+
     res.json({
       success: true,
       uploadUrl,

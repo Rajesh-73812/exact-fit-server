@@ -92,6 +92,7 @@ const verifyOtpLogin = async (req, res) => {
       data: {
         token,
         user: {
+          id: user.id,
           fullname: user.fullname,
           mobile: user.mobile,
           email: user.email,
