@@ -308,6 +308,14 @@ const getSubServicesBySlug = async (sub_service_slug) => {
   }
 };
 
+const getTechnicianAddress = async (user_id) => {
+  const address = await Address.findOne({
+    where: { user_id },
+    attributes: ["area", "location"],
+  });
+  return address;
+};
+
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,
@@ -315,4 +323,5 @@ module.exports = {
   getDefaultAddress,
   getServicesBySlug,
   getSubServicesBySlug,
+  getTechnicianAddress,
 };

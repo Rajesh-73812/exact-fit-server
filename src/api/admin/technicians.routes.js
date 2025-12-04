@@ -1,26 +1,32 @@
-const express = require("express");
-const router = express.Router();
+const router = require("express").Router();
 const technicianController = require("../../controller/admin/technician.controller");
-// const authMiddleware = require("../../middlewares/authMiddleware");
-const upload = require("../../utils/multer");
+const authMiddleware = require("../../middlewares/authMiddleware");
+const { endPoints } = require("../api");
 
-// ✅ Create or Update Technician (with optional profile image upload)
 router.post(
-  "/upsert-technician",
-  //   authMiddleware.authMiddleware,
-  upload.fields([
-    { name: "profile_pic", maxCount: 1 },
-    { name: "id_proof", maxCount: 1 },
-  ]),
+  endPoints["a-technician"].upsertTechnician,
+  authMiddleware.authMiddleware,
   technicianController.upsertTechnician
 );
-
-router.get("/get-all", technicianController.getAllTechnicians);
-router.get("/:id", technicianController.getTechnicianByIdController);
-router.put(
-  "/:id/toggle-status",
+router.get(
+  endPoints["a-technician"].getAllTechnician,
+  authMiddleware.authMiddleware,
+  technicianController.getAllTechnicians
+);
+router.get(
+  endPoints["a-technician"].getTechnicianById,
+  authMiddleware.authMiddleware,
+  technicianController.getTechnicianByIdController
+);
+router.patch(
+  endPoints["a-technician"].statusUpdate,
+  authMiddleware.authMiddleware,
   technicianController.updateTechnicianToggleStatus
 );
-router.delete("/:id", technicianController.deleteTechnician);
+router.delete(
+  endPoints["a-technician"].deleteTechnician,
+  authMiddleware.authMiddleware,
+  technicianController.deleteTechnician
+);
 
 module.exports = router;

@@ -25,4 +25,10 @@ router.get(
   dashboardController.getSubServicesBySlug
 );
 
+// for technician
+router.get(
+  endPoints.dashboard.getTechnicianAddress,
+  middleware.authMiddleware,
+  dashboardController.getTechnicianAddress
+);
 module.exports = router;

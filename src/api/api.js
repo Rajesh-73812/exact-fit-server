@@ -42,6 +42,13 @@ const endPoints = {
     deleteProperty: `/${VERSION}/delete-property/:idOrSlug`,
     updateStatusProperty: `/${VERSION}/update-property/:slug`,
   },
+  "a-technician": {
+    getAllTechnician: `/${VERSION}/get-all`,
+    upsertTechnician: `/${VERSION}/upsert-technician`,
+    statusUpdate: `/${VERSION}/toggle-status/:id`,
+    getTechnicianById: `/${VERSION}/get-by-id/:id`,
+    deleteTechnician: `/${VERSION}/delete-technician/:id`,
+  },
 
   // for user
   user: {
@@ -63,6 +70,7 @@ const endPoints = {
     getDefaultAddress: `/${VERSION}/get-default-address`,
     getServicesBySlug: `/${VERSION}/get-services-by-slug/:slug`,
     getSubServicesBySlug: `/${VERSION}/get-sub-services-by-slug/:slug`,
+    getTechnicianAddress: `/${VERSION}/get-technician-address`,
   },
   "user-plan": {
     getAllPlan: `/${VERSION}/get-all-plan`,
