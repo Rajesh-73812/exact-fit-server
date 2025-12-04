@@ -20,6 +20,7 @@ const createTicket = async ({ user_id, title, description, image_url }) => {
   }
 };
 
+
 const getAllTicket = async (user_id) => {
   try {
     const tickets = await Ticket.findAll({

@@ -40,6 +40,10 @@ const service = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    type: {
+      type: DataTypes.ENUM("enquiry", "subscription"),
+      allowNull: true,
+    },
     image_url: {
       type: DataTypes.TEXT,
       allowNull: true,
