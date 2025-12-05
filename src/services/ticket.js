@@ -1,5 +1,11 @@
 const { generateTicketNumber } = require("../helper/formattedMobile");
+const {
+  sendInAppNotification,
+  createNotification,
+} = require("../helper/notification");
 const Ticket = require("../models/ticket");
+const User = require("../models/user");
+const notification = require("../config/notifications.json");
 
 const createTicket = async ({ user_id, title, description, image_url }) => {
   const ticketNumber = await generateTicketNumber();
@@ -13,6 +19,20 @@ const createTicket = async ({ user_id, title, description, image_url }) => {
       status: "pending",
     });
 
+    const user = await User.findByPk(user_id);
+    if (user.onesignal_id) {
+      await sendInAppNotification(
+        user.onesignal_id,
+        notification.ticket_raised.title,
+        notification.ticket_raised.message,
+        user.role
+      );
+      await createNotification(
+        user.id,
+        notification.ticket_raised.title,
+        notification.ticket_raised.message
+      );
+    }
     return ticket;
   } catch (error) {
     console.error("Error creating ticket:", error);
@@ -28,7 +48,18 @@ const getAllTicket = async (user_id) => {
       order: [["createdAt", "DESC"]],
     });
 
-    return tickets;
+    console.log(tickets, "frommmmmmmmmmmmmmmtickettttttttttt");
+    const cleanedTickets = tickets.map((ticket) => {
+      if (ticket.image_url && typeof ticket.image_url === "string") {
+        try {
+          ticket.image_url = JSON.parse(ticket.image_url);
+        } catch (error) {
+          console.error("Error parsing image_url:", error);
+        }
+      }
+      return ticket;
+    });
+    return cleanedTickets;
   } catch (error) {
     console.error("Error fetching tickets:", error);
     throw new Error("Error fetching tickets");
@@ -45,6 +76,13 @@ const getTicketByNumber = async ({ user_id, ticketNumber }) => {
       throw new Error("Ticket not found");
     }
 
+    if (ticket.image_url && typeof ticket.image_url === "string") {
+      try {
+        ticket.image_url = JSON.parse(ticket.image_url);
+      } catch (error) {
+        console.error("Error parsing image_url:", error);
+      }
+    }
     return ticket;
   } catch (error) {
     console.error("Error fetching ticket by number:", error);

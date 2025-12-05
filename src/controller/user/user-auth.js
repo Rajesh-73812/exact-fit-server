@@ -1,6 +1,11 @@
 const userService = require("../../services/auth");
 const addressService = require("../../services/address.service");
 const generateToken = require("../../utils/getToken");
+const {
+  sendInAppNotification,
+  createNotification,
+} = require("../../helper/notification");
+const notification = require("../../config/notifications.json");
 
 const requestOtpLogin = async (req, res) => {
   const { mobile } = req.body;
@@ -80,6 +85,24 @@ const verifyOtpLogin = async (req, res) => {
       role: user.role,
       mobile: user.mobile,
     });
+
+    if (!user.last_login) {
+      // send welcome message
+      await sendInAppNotification(
+        user.onesignal_id,
+        notification.welcome_login.title,
+        notification.welcome_login.message,
+        user.role
+      );
+
+      await createNotification(
+        user.id,
+        notification.welcome_login.title,
+        notification.welcome_login.message
+      );
+
+      await userService.updateLastLogin(user.id);
+    }
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -374,6 +397,58 @@ const deActivateAccount = async (req, res) => {
   }
 };
 
+const updateOneSignalId = async (req, res) => {
+  const user_id = req.user?.id;
+  console.log("User ID from request:", user_id);
+  const { onesignal_id } = req.body;
+  if (!onesignal_id) {
+    return res
+      .status(400)
+      .json({ success: false, message: "OneSignal ID is required" });
+  }
+  try {
+    const result = await userService.updateOneSignalIdService(
+      user_id,
+      onesignal_id
+    );
+    res.status(200).json({
+      success: true,
+      message: "OneSignal ID updated successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("❌ Error in updateOneSignalId:", error);
+    const status = error.status || 500;
+    res.status(status).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
+const removeOneSignalId = async (req, res) => {
+  const user_id = req.user?.id;
+  if (!user_id) {
+    return res.status(400).json({ success: false, message: " ID is required" });
+  }
+  console.log("User ID from request:", user_id);
+  try {
+    const result = await userService.removeOneSignalIdService(user_id);
+    res.status(200).json({
+      success: true,
+      message: "OneSignal ID removed successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("❌ Error in removeOneSignalId:", error);
+    const status = error.status || 500;
+    res.status(status).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   requestOtpLogin,
   verifyOtpLogin,
@@ -384,4 +459,6 @@ module.exports = {
   setDefaultAddress,
   deleteAddress,
   deActivateAccount,
+  updateOneSignalId,
+  removeOneSignalId,
 };

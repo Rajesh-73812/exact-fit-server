@@ -12,7 +12,7 @@ const {
   DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-
+require("./src/helper/cron");
 // require("./src/models/user");
 require("./src/models/associations");
 // require("./src/models/propertyType");
@@ -91,39 +91,8 @@ const s3 = new S3Client({
   },
 });
 
-// AWS S3 Presigned URL for Image Uploads
-// app.post("/upload-image", async (req, res) => {
-//   // const timeStamp = Math.floor(Date.now() / 1000);
-//   const folder = req.body.folder || "e-fit";
-//   const fileName = req.body.fileName;
-
-//   if (!fileName) {
-//     return res.status(400).json({ message: "fileName is required" });
-//   }
-
-//   const uniqueFileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}-${fileName}`;
-//   const key = `${folder}/${uniqueFileName}`;
-
-//   const command = new PutObjectCommand({
-//     Bucket: process.env.S3_BUCKET_NAME,
-//     Key: key,
-//   });
-
-//   try {
-//     const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
-//     res.json({
-//       uploadUrl,
-//       filePath: key,
-//       publicUrl: `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`,
-//     });
-//   } catch (error) {
-//     console.error("Presigned URL Error:", error);
-//     return res.status(500).json({ message: "Error generating upload URL" });
-//   }
-// });
-
 app.post("/upload-image", async (req, res) => {
-  const { fileName, fileType, folder = "services" } = req.body;
+  const { fileName, fileType, folder = "uploads" } = req.body;
 
   if (!fileName || !fileType) {
     return res
@@ -154,6 +123,7 @@ app.post("/upload-image", async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to generate URL" });
   }
 });
+
 app.delete("/api/delete-image", async (req, res) => {
   const filePath = req.body.filePath;
 

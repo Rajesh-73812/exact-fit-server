@@ -1,11 +1,18 @@
 const { Op } = require("sequelize");
 const Address = require("../models/address");
+const User = require("../models/user");
 const Booking = require("../models/booking");
 const Service = require("../models/service");
 const SubService = require("../models/sub-service");
+const {
+  sendInAppNotification,
+  createNotification,
+} = require("../helper/notification");
+const notification = require("../config/notifications.json");
 
 const upsertEnquiry = async (user_id, bookingData) => {
   try {
+    const user = await User.findByPk(user_id);
     const address = bookingData.address_id
       ? await Address.findOne({
           where: { id: bookingData.address_id, user_id },
@@ -50,6 +57,19 @@ const upsertEnquiry = async (user_id, bookingData) => {
       snapshot: snapshot,
     });
 
+    if (user.onesignal_id) {
+      await sendInAppNotification(
+        user.onesignal_id,
+        notification.enquiry_sent.title,
+        notification.enquiry_sent.message,
+        user.role
+      );
+      await createNotification(
+        user.id,
+        notification.enquiry_sent.title,
+        notification.enquiry_sent.message
+      );
+    }
     return newBooking;
   } catch (error) {
     console.error("Error in upsertEnquiry service:", error);
@@ -59,6 +79,8 @@ const upsertEnquiry = async (user_id, bookingData) => {
 
 const upsertEmergency = async (user_id, bookingData) => {
   try {
+    const user = await User.findByPk(user_id);
+
     const address = bookingData.address_id
       ? await Address.findOne({
           where: { id: bookingData.address_id, user_id },
@@ -108,7 +130,7 @@ const upsertEmergency = async (user_id, bookingData) => {
       fullname: bookingData.fullname,
       email: bookingData.email,
       mobile: bookingData.mobile,
-      booking_type: "enquiry",
+      booking_type: "emergency",
       service_id: bookingData.service_id,
       sub_service_id: bookingData.sub_service_id,
       address_id: bookingData.address_id,
@@ -116,6 +138,19 @@ const upsertEmergency = async (user_id, bookingData) => {
       snapshot: snapshot,
     });
 
+    if (user.onesignal_id) {
+      await sendInAppNotification(
+        user.onesignal_id,
+        notification.emergency_request_sent.title,
+        notification.emergency_request_sent.message,
+        user.role
+      );
+      await createNotification(
+        user.id,
+        notification.emergency_request_sent.title,
+        notification.emergency_request_sent.message
+      );
+    }
     return newBooking;
   } catch (error) {
     console.error("Error in upsertEmergency service:", error);
@@ -202,9 +237,50 @@ const getAllEnquiry = async (user_id, page = 1, pageSize = 10, search = "") => {
   }
 };
 
+const getServiceById = async ({ user_id, id, type }) => {
+  try {
+    let condition = {
+      where: {
+        id: id,
+        user_id: user_id,
+      },
+    };
+
+    if (type) {
+      condition.where.booking_type = type;
+    }
+
+    const booking = await Booking.findOne(condition);
+
+    if (!booking) {
+      return null;
+    }
+
+    return {
+      id: booking.id,
+      fullname: booking.fullname,
+      email: booking.email,
+      mobile: booking.mobile,
+      booking_type: booking.booking_type,
+      service_id: booking.service_id,
+      sub_service_id: booking.sub_service_id,
+      status: booking.status,
+      scope_of_work: booking.scope_of_work,
+      existing_drawing: booking.existing_drawing,
+      plan_images: booking.plan_images,
+      estimated_budget_range: booking.estimated_budget_range,
+      description: booking.description,
+    };
+  } catch (error) {
+    console.error("Error in getServiceById:", error);
+    throw new Error("Failed to retrieve service. Please try again later.");
+  }
+};
+
 module.exports = {
   upsertEnquiry,
   upsertEmergency,
   getAllEmergency,
   getAllEnquiry,
+  getServiceById,
 };

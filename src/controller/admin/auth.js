@@ -194,9 +194,82 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+const getAllCustomers = async (req, res) => {
+  const { search = "", page = 1, limit = 10 } = req.query;
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+
+  try {
+    const customers = await AdminService.getAllCustomers({
+      search,
+      pageNum,
+      limitNum,
+    });
+    return res.status(200).json({
+      success: true,
+      message: "Customers fetched successfully",
+      data: customers,
+    });
+  } catch (error) {
+    console.error("Get all customers error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+      error: error.message,
+    });
+  }
+};
+
+const customerDetailsById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const customer = await AdminService.getCustomerDetailsByIdService(id);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found.",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Customer details fetched successfully.",
+      data: customer,
+    });
+  } catch (error) {
+    console.error("Get customer details error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+      error: error.message,
+    });
+  }
+};
+
+const updateStatus = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const updatedStatus = await AdminService.updateStatus(id);
+    return res.status(200).json({
+      success: true,
+      message: "Status updated successfully.",
+      data: updatedStatus,
+    });
+  } catch (error) {
+    console.error("Update status error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   updateProfile,
   forgotPassword,
+  getAllCustomers,
+  customerDetailsById,
+  updateStatus,
 };

@@ -4,6 +4,7 @@ const Service = require("../models/service");
 const { Op, Sequelize } = require("sequelize");
 const Address = require("../models/address");
 const SubService = require("../models/sub-service");
+
 const getUserTechnicianCounts = async () => {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
@@ -282,6 +283,7 @@ const getServicesBySlug = async (service_slug) => {
             "price",
             "discount",
             "status",
+            "image_url",
             "createdAt",
           ],
         },
@@ -307,6 +309,15 @@ const getSubServicesBySlug = async (sub_service_slug) => {
   }
 };
 
+const getTechnicianAddress = async (user_id) => {
+  const address = await Address.findOne({
+    where: { user_id },
+    attributes: ["area", "location"],
+  });
+  return address;
+};
+
+// const getDashboardStats = async(userId) => {}
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,
@@ -314,4 +325,5 @@ module.exports = {
   getDefaultAddress,
   getServicesBySlug,
   getSubServicesBySlug,
+  getTechnicianAddress,
 };

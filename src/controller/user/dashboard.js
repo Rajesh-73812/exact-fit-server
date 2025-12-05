@@ -94,9 +94,48 @@ const getSubServicesBySlug = async (req, res) => {
   }
 };
 
+//for technician
+const getTechnicianAddress = async (req, res) => {
+  const user_id = req.user?.id || null;
+  try {
+    const address = await dashboardService.getTechnicianAddress(user_id);
+    return res.status(200).json({
+      success: true,
+      message: "Technician address fetched successfully",
+      data: address,
+    });
+  } catch (error) {
+    console.error("Error fetching technician address:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch technician address" });
+  }
+};
+
+// dashboard
+
+const getDashboardStats = async (req, res) => {
+  const userId = req.user?.id || null;
+  try {
+    const stats = await dashboardService.getDashboardStats(userId);
+    return res.status(200).json({
+      success: true,
+      message: "Dashboard stats fetched successfully",
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch dashboard stats" });
+  }
+};
+
 module.exports = {
   getAllServices,
   getDefaultAddress,
   getServicesBySlug,
   getSubServicesBySlug,
+  getTechnicianAddress,
+  getDashboardStats,
 };

@@ -4,6 +4,12 @@ const UserSubscription = require("../models/userSubscription");
 const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const SubscriptionPlan = require("../models/subscriptionPlan");
 const sequelize = require("../config/db");
+const {
+  sendInAppNotification,
+  createNotification,
+} = require("../helper/notification");
+const notification = require("../config/notifications.json");
+const { Op } = require("sequelize");
 
 const twilio = require("twilio")(
   process.env.TWILIO_ACCOUNT_SID,
@@ -229,11 +235,30 @@ const userExists = async (mobile) => {
   }
 };
 
+const updateLastLogin = async (user_id) => {
+  try {
+    const user = await User.update(
+      { last_login: new Date() },
+      { where: { id: user_id } }
+    );
+
+    if (user[0] === 1) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error updating last_login:", error.message);
+    throw new Error("Failed to update last login.");
+  }
+};
+
 const updateProfile = async (userId, userData, addressData) => {
   const t = await User.sequelize.transaction();
   try {
-    let updatedUser = null;
-    let updatedAddress = null;
+    let currentUser = await User.findByPk(userId);
+    if (!currentUser) throw new Error("USER_NOT_FOUND");
+
+    const isFirstTimeUpdate = !currentUser.is_profile_update;
 
     // 1. Update User
     if (Object.keys(userData).length > 0) {
@@ -247,9 +272,10 @@ const updateProfile = async (userId, userData, addressData) => {
     }
 
     // Fetch updated user
-    updatedUser = await User.findByPk(userId, { transaction: t });
+    currentUser = await User.findByPk(userId, { transaction: t });
 
     // 2. Update or Create Address
+    let updatedAddress = null;
     if (Object.keys(addressData).length > 0) {
       // Check if the user already has an address
       let existingAddress = await Address.findOne({
@@ -272,9 +298,24 @@ const updateProfile = async (userId, userData, addressData) => {
 
     await t.commit();
 
+    if (isFirstTimeUpdate) {
+      await sendInAppNotification(
+        currentUser.onesignal_id,
+        notification.profile_updated.title,
+        notification.profile_updated.message,
+        currentUser.role
+      );
+
+      await createNotification(
+        currentUser.id,
+        notification.profile_updated.title,
+        notification.profile_updated.message
+      );
+    }
+
     return {
       success: true,
-      user: updatedUser,
+      user: currentUser,
       address: updatedAddress,
     };
   } catch (error) {
@@ -363,6 +404,125 @@ const deActivateAccount = async (user_id) => {
   }
 };
 
+const updateOneSignalIdService = async (user_id, onesignal_id) => {
+  const user = await User.findByPk(user_id);
+  if (!user) {
+    throw Object.assign(new Error("User not found"), { status: 404 });
+  }
+
+  user.onesignal_id = onesignal_id;
+  await user.save();
+
+  return user.toJSON();
+};
+
+const removeOneSignalIdService = async (user_id) => {
+  const user = await User.findByPk(user_id);
+  if (!user) {
+    throw Object.assign(new Error("User not found"), { status: 404 });
+  }
+
+  user.onesignal_id = null;
+  await user.save();
+
+  return user.toJSON();
+};
+
+const getAllCustomers = async ({ search = "", page = 1, limit = 10 }) => {
+  const offset = (page - 1) * limit;
+  const baseWhere = {
+    role: "customer",
+    deletedAt: null,
+  };
+
+  const searchCondition = search
+    ? {
+        [Op.or]: [
+          { fullname: { [Op.iLike]: `%${search}%` } },
+          { email: { [Op.iLike]: `%${search}%` } },
+          { mobile: { [Op.iLike]: `%${search}%` } },
+        ],
+      }
+    : {};
+  const where = { ...baseWhere, ...searchCondition };
+  try {
+    const { rows, count } = await User.findAndCountAll({
+      where,
+      attributes: [
+        "id",
+        "fullname",
+        "email",
+        "mobile",
+        "is_active",
+        "plan_start_date",
+        "plan_end_date",
+      ],
+      order: [["createdAt", "DESC"]],
+      offset,
+      limit,
+    });
+
+    const activeCount = await User.count({
+      where: { ...where, is_active: true },
+    });
+    const deactiveCount = await User.count({
+      where: { ...where, is_active: false },
+    });
+
+    return {
+      rows,
+      count,
+      limit,
+      offset,
+      activeCount,
+      deactiveCount,
+      totalPages: Math.ceil(count / limit), // Add totalPages
+      currentPage: page, // Add currentPage
+    };
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    throw new Error("Failed to fetch customers. Please try again later.");
+  }
+};
+
+const getCustomerDetailsByIdService = async (id) => {
+  try {
+    const customer = await User.findOne({
+      where: { id: id, role: "customer" },
+      attributes: [
+        "id",
+        "fullname",
+        "email",
+        "mobile",
+        "is_active",
+        "createdAt",
+      ],
+    });
+
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+
+    return customer;
+  } catch (error) {
+    console.error("Error fetching customer details:", error);
+    throw new Error(
+      "Failed to fetch customer details. Please try again later."
+    );
+  }
+};
+
+const updateStatus = async (user_id) => {
+  const user = await User.findByPk(user_id);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  user.is_active = !user.is_active;
+  await user.save();
+  return user;
+};
+
 module.exports = {
   registerAdmin,
   checkUserExists,
@@ -374,4 +534,10 @@ module.exports = {
   updateProfile,
   getUserById,
   deActivateAccount,
+  updateOneSignalIdService,
+  removeOneSignalIdService,
+  updateLastLogin,
+  getCustomerDetailsByIdService,
+  getAllCustomers,
+  updateStatus,
 };

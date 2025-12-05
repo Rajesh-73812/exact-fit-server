@@ -5,6 +5,9 @@ const endPoints = {
     register: `/${VERSION}/register`,
     login: `/${VERSION}/login`,
     forgotPassword: `/${VERSION}/forgot-password`,
+    getAllCustomers: `/${VERSION}/get-all-customers`,
+    getCustomerById: `/${VERSION}/get-customers-by-id/:id`,
+    updateStatus: `/${VERSION}/update-status/:id`,
   },
   service: {
     upsert: `/${VERSION}/upsert-service`,
@@ -22,10 +25,11 @@ const endPoints = {
   },
   banner: {
     upsert: `/${VERSION}/upsert-banner`,
-    getBannerBySlug: `/${VERSION}/get-banner-by-slug/:slug`,
+    getBannerBySlug: `/${VERSION}/get-banner-by-slug/:id`,
     getBannerById: `/${VERSION}/get-banner-by-id/:id`,
     getAllBanners: `/${VERSION}/get-all-banners`,
     deleteBanner: `/${VERSION}/delete-banner/:id`,
+    statusUpdateBnner: `/${VERSION}/toggle-banner-status/:id`,
   },
   plan: {
     upsertPlan: `/${VERSION}/upsert-plan`,
@@ -41,6 +45,18 @@ const endPoints = {
     deleteProperty: `/${VERSION}/delete-property/:idOrSlug`,
     updateStatusProperty: `/${VERSION}/update-property/:slug`,
   },
+  "a-technician": {
+    getAllTechnician: `/${VERSION}/get-all`,
+    upsertTechnician: `/${VERSION}/upsert-technician`,
+    statusUpdate: `/${VERSION}/toggle-status/:id`,
+    getTechnicianById: `/${VERSION}/get-by-id/:id`,
+    deleteTechnician: `/${VERSION}/delete-technician/:id`,
+  },
+  settings: 
+  {
+    upsertSettings: `/${VERSION}/upsert-settings`,
+    getSettings: `/${VERSION}/get-settings`,
+  },
 
   // for user
   user: {
@@ -53,6 +69,8 @@ const endPoints = {
     setDefaultAddress: `/${VERSION}/set-default-address/:addressId`,
     deleteAddress: `/${VERSION}/delete-address/:addressId`,
     deActivateAccount: `/${VERSION}/account-deactivate`,
+    updateOneSignal: `/${VERSION}/update-onesignal-id`,
+    removeOneSignal: `/${VERSION}/remove-onesignal-id`,
   },
   dashboard: {
     getStats: `/${VERSION}/dashboard-stats`,
@@ -60,6 +78,7 @@ const endPoints = {
     getDefaultAddress: `/${VERSION}/get-default-address`,
     getServicesBySlug: `/${VERSION}/get-services-by-slug/:slug`,
     getSubServicesBySlug: `/${VERSION}/get-sub-services-by-slug/:slug`,
+    getTechnicianAddress: `/${VERSION}/get-technician-address`,
   },
   "user-plan": {
     getAllPlan: `/${VERSION}/get-all-plan`,
@@ -78,6 +97,7 @@ const endPoints = {
     upsertEmergency: `/${VERSION}/upsert-emergency`,
     getAllEnquiry: `/${VERSION}/get-all-enquiry`,
     getAllEmergency: `/${VERSION}/get-all-emergency`,
+    getEnquiryById: `/${VERSION}/get-service-by-id`,
   },
   ticket: {
     createTicket: `/${VERSION}/rise-ticket`,
@@ -85,7 +105,25 @@ const endPoints = {
     getTicketByNumber: `/${VERSION}/get-ticket/:ticketNumber`,
     statusBasedTicket: `/${VERSION}/ticket/:status`,
   },
+  "user-banner": {
+    getAll: `/${VERSION}/get-all`,
+  },
+  contactus: {
+    createContactus: `/${VERSION}/create-contactus`,
+  },
+
+  //for technician
+  technician: {
+    requestOTP: `/${VERSION}/request-otp`,
+    verifyOTP: `/${VERSION}/verify-otp`,
+    resendOTP: `/${VERSION}/resend-otp`,
+    details: `/${VERSION}/get-details`,
+    deactivateAccount: `/${VERSION}/deactivate`,
+  },
 };
+// console.log('API Version:', VERSION);
+// console.log('Details of Technician route:', endPoints.technician.details);
+// console.log('Deactivate Account route:', endPoints.technician.deactivateAccount);
 
 module.exports = {
   VERSION,
