@@ -52,6 +52,11 @@ const endPoints = {
     getTechnicianById: `/${VERSION}/get-by-id/:id`,
     deleteTechnician: `/${VERSION}/delete-technician/:id`,
   },
+  settings: 
+  {
+    upsertSettings: `/${VERSION}/upsert-settings`,
+    getSettings: `/${VERSION}/get-settings`,
+  },
 
   // for user
   user: {
@@ -102,6 +107,9 @@ const endPoints = {
   },
   "user-banner": {
     getAll: `/${VERSION}/get-all`,
+  },
+  contactus: {
+    createContactus: `/${VERSION}/create-contactus`,
   },
 
   //for technician

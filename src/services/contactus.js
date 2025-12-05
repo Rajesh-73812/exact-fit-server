@@ -1,4 +1,4 @@
-const Contactus = require("../models/address");
+const Contactus = require("../models/contact_us");
 
 const createContactus = async (contactUsData) => {
   return Contactus.create(contactUsData);

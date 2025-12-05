@@ -1,4 +1,4 @@
-const Settings = require("../models/address");
+const Settings = require("../models/settings");
 
 const upsertSettings = async (settingsData) => {
   try {
