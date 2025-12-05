@@ -9,6 +9,7 @@ const {
   createNotification,
 } = require("../helper/notification");
 const notification = require("../config/notifications.json");
+const { Op } = require("sequelize");
 
 const twilio = require("twilio")(
   process.env.TWILIO_ACCOUNT_SID,
@@ -427,6 +428,101 @@ const removeOneSignalIdService = async (user_id) => {
   return user.toJSON();
 };
 
+const getAllCustomers = async ({ search = "", page = 1, limit = 10 }) => {
+  const offset = (page - 1) * limit;
+  const baseWhere = {
+    role: "customer",
+    deletedAt: null,
+  };
+
+  const searchCondition = search
+    ? {
+        [Op.or]: [
+          { fullname: { [Op.iLike]: `%${search}%` } },
+          { email: { [Op.iLike]: `%${search}%` } },
+          { mobile: { [Op.iLike]: `%${search}%` } },
+        ],
+      }
+    : {};
+  const where = { ...baseWhere, ...searchCondition };
+  try {
+    const { rows, count } = await User.findAndCountAll({
+      where,
+      attributes: [
+        "id",
+        "fullname",
+        "email",
+        "mobile",
+        "is_active",
+        "plan_start_date",
+        "plan_end_date",
+      ],
+      order: [["createdAt", "DESC"]],
+      offset,
+      limit,
+    });
+
+    const activeCount = await User.count({
+      where: { ...where, is_active: true },
+    });
+    const deactiveCount = await User.count({
+      where: { ...where, is_active: false },
+    });
+
+    return {
+      rows,
+      count,
+      limit,
+      offset,
+      activeCount,
+      deactiveCount,
+      totalPages: Math.ceil(count / limit), // Add totalPages
+      currentPage: page, // Add currentPage
+    };
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    throw new Error("Failed to fetch customers. Please try again later.");
+  }
+};
+
+const getCustomerDetailsByIdService = async (id) => {
+  try {
+    const customer = await User.findOne({
+      where: { id: id, role: "customer" },
+      attributes: [
+        "id",
+        "fullname",
+        "email",
+        "mobile",
+        "is_active",
+        "createdAt",
+      ],
+    });
+
+    if (!customer) {
+      throw new Error("Customer not found");
+    }
+
+    return customer;
+  } catch (error) {
+    console.error("Error fetching customer details:", error);
+    throw new Error(
+      "Failed to fetch customer details. Please try again later."
+    );
+  }
+};
+
+const updateStatus = async (user_id) => {
+  const user = await User.findByPk(user_id);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  user.is_active = !user.is_active;
+  await user.save();
+  return user;
+};
+
 module.exports = {
   registerAdmin,
   checkUserExists,
@@ -441,4 +537,7 @@ module.exports = {
   updateOneSignalIdService,
   removeOneSignalIdService,
   updateLastLogin,
+  getCustomerDetailsByIdService,
+  getAllCustomers,
+  updateStatus,
 };

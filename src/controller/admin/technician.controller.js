@@ -164,6 +164,16 @@ const getTechnicianByIdController = async (req, res) => {
 
     const tech = technician.toJSON();
 
+    // Parse the skill field if it is a string
+    if (tech.skill && typeof tech.skill === "string") {
+      try {
+        tech.skill = JSON.parse(tech.skill);
+      } catch (error) {
+        console.error("Error parsing skill:", error);
+      }
+    }
+
+    // Clean the response
     const response = {
       id: tech.id,
       fullname: tech.fullname,
@@ -171,11 +181,16 @@ const getTechnicianByIdController = async (req, res) => {
       mobile: tech.mobile,
       profile_pic: tech.profile_pic || null,
       service_category: tech.service_category || null,
-      services_known: tech.services_known || null,
+      service_type: tech.service_type || null,
+      services_known: tech.services_known
+        ? JSON.parse(tech.services_known)
+        : [], // Parse services_known if it is a string
       description: tech.description || null,
+      emirates_id: tech.emirates_id || null,
+      skill: tech.skill || [], // Ensure it's an array
       id_proofs: tech.id_proofs || null,
       is_active: tech.is_active || false,
-      addresses: tech.addresses || [],
+      addresses: tech.addresses || [], // Ensure addresses are returned
       createdAt: tech.createdAt,
       updatedAt: tech.updatedAt,
     };
@@ -185,7 +200,6 @@ const getTechnicianByIdController = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Technician retrieved successfully.",
-      code: "TECHNICIAN_FETCH_SUCCESS",
       data: response,
     });
   } catch (error) {
@@ -194,7 +208,6 @@ const getTechnicianByIdController = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error.",
-      code: "TECHNICIAN_INTERNAL_SERVER_ERROR",
       error: error.message,
     });
   }

@@ -5,6 +5,9 @@ const endPoints = {
     register: `/${VERSION}/register`,
     login: `/${VERSION}/login`,
     forgotPassword: `/${VERSION}/forgot-password`,
+    getAllCustomers: `/${VERSION}/get-all-customers`,
+    getCustomerById: `/${VERSION}/get-customers-by-id/:id`,
+    updateStatus: `/${VERSION}/update-status/:id`,
   },
   service: {
     upsert: `/${VERSION}/upsert-service`,

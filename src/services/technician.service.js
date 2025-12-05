@@ -193,16 +193,19 @@ const getTechnicianByIdWithAddress = async (id) => {
       "profile_pic",
       "service_category",
       "services_known",
+      "service_type",
+      "emirates_id",
+      "id_proofs",
+      "skill",
       "description",
       "is_active",
-      "createdAt",
     ],
     include: [
       {
         model: Address,
         as: "addresses",
         where: { user_id: id },
-        attributes: ["emirate", "location"],
+        attributes: ["id", "user_id", "emirate", "location"],
       },
     ],
   });
