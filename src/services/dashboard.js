@@ -4,6 +4,7 @@ const Service = require("../models/service");
 const { Op, Sequelize } = require("sequelize");
 const Address = require("../models/address");
 const SubService = require("../models/sub-service");
+
 const getUserTechnicianCounts = async () => {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
@@ -316,6 +317,7 @@ const getTechnicianAddress = async (user_id) => {
   return address;
 };
 
+// const getDashboardStats = async(userId) => {}
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,

@@ -111,10 +111,31 @@ const getTechnicianAddress = async (req, res) => {
       .json({ success: false, message: "Failed to fetch technician address" });
   }
 };
+
+// dashboard
+
+const getDashboardStats = async (req, res) => {
+  const userId = req.user?.id || null;
+  try {
+    const stats = await dashboardService.getDashboardStats(userId);
+    return res.status(200).json({
+      success: true,
+      message: "Dashboard stats fetched successfully",
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch dashboard stats" });
+  }
+};
+
 module.exports = {
   getAllServices,
   getDefaultAddress,
   getServicesBySlug,
   getSubServicesBySlug,
   getTechnicianAddress,
+  getDashboardStats,
 };
