@@ -196,14 +196,15 @@ const forgotPassword = async (req, res) => {
 
 const getAllCustomers = async (req, res) => {
   const { search = "", page = 1, limit = 10 } = req.query;
+  console.log(limit, "from query");
   const pageNum = parseInt(page);
   const limitNum = parseInt(limit);
 
   try {
     const customers = await AdminService.getAllCustomers({
       search,
-      pageNum,
-      limitNum,
+      page: pageNum,
+      limit: limitNum,
     });
     return res.status(200).json({
       success: true,
@@ -264,6 +265,38 @@ const updateStatus = async (req, res) => {
   }
 };
 
+const sentNotification = async (req, res) => {
+  const admin_id = req.user.id;
+  const { title, message, userIds, TechnicianIds, schedule_start } = req.body;
+  console.log(req.body, "from bodyy");
+  if (!title || !message) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Title and message are required." });
+  }
+  try {
+    const notification = await AdminService.sendNotification({
+      title,
+      message,
+      userIds,
+      TechnicianIds,
+      schedule_start,
+      admin_id,
+    });
+    console.log(notification);
+    return res.status(200).json({
+      success: true,
+      message: "Notification sent sucessfully",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -272,4 +305,5 @@ module.exports = {
   getAllCustomers,
   customerDetailsById,
   updateStatus,
+  sentNotification,
 };

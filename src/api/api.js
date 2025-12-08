@@ -8,6 +8,7 @@ const endPoints = {
     getAllCustomers: `/${VERSION}/get-all-customers`,
     getCustomerById: `/${VERSION}/get-customers-by-id/:id`,
     updateStatus: `/${VERSION}/update-status/:id`,
+    sentNotification: `/${VERSION}/sent-notification`,
   },
   service: {
     upsert: `/${VERSION}/upsert-service`,
@@ -52,12 +53,23 @@ const endPoints = {
     getTechnicianById: `/${VERSION}/get-by-id/:id`,
     deleteTechnician: `/${VERSION}/delete-technician/:id`,
   },
-  settings: 
-  {
+  settings: {
     upsertSettings: `/${VERSION}/upsert-settings`,
     getSettings: `/${VERSION}/get-settings`,
   },
-
+  reports: {
+    getAllCustomerReports: `/${VERSION}/get-all-customers-report`,
+    getAllTechnicianReports: `/${VERSION}/get-all-technicians-report`,
+    getAllCustmersReportDownload: `/${VERSION}/get-all-customer-report-download`,
+    getSingleCustomersReportDownload: `/${VERSION}/get-single-customer-report-download/:id`,
+    getAllTechniciansReportDownload: `/${VERSION}/get-all-technicians-report-download`,
+    getSingleTechnicianReportDownload: `/${VERSION}/get-single-technician-report-download/:id`,
+  },
+  notification: {
+    getAllNotifications: `/${VERSION}/get-all-notifications`,
+    sendNotification: `/${VERSION}/send-notification`,
+    deleteNotification: `/${VERSION}/delete-notification/:id`,
+  },
   // for user
   user: {
     requestOTP: `/${VERSION}/request-otp`,
