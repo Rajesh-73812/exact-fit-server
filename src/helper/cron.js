@@ -1,5 +1,9 @@
 const cron = require("node-cron");
 const Banner = require("../models/banner");
+const NotificationCampaign = require("../models/banner");
+const NotificationRecipient = require("../models/banner");
+const { sendInAppNotification } = require("./notification");
+const { Op } = require("sequelize");
 
 const getCurrentDateWithoutTime = () => {
   const currentDate = new Date();
@@ -70,4 +74,39 @@ cron.schedule("0 0 * * *", async () => {
 });
 
 // cron run every minute to send scedule based notification
+cron.schedule("* * * * *", async () => {
+  const campaigns = await NotificationCampaign.findAll({
+    where: {
+      scheduled_at: { [Op.lte]: new Date() },
+      status: "scheduled",
+    },
+    include: [
+      {
+        model: NotificationRecipient,
+        as: "NotificationRecipients",
+        where: { sent_at: null },
+        required: true,
+      },
+    ],
+  });
+
+  for (const campaign of campaigns) {
+    for (const recipient of campaign.NotificationRecipients) {
+      if (recipient.onesignal_id) {
+        await sendInAppNotification(
+          recipient.onesignal_id,
+          campaign.title,
+          campaign.message,
+          recipient.user_type
+        );
+      }
+      await recipient.update({ sent_at: new Date() });
+    }
+
+    await campaign.update({
+      status: "sent",
+      sent_count: campaign.total_recipients,
+    });
+  }
+});
 // subscription reminder
