@@ -25,13 +25,17 @@ const Notification = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
-    schedule_start: {
-      type: DataTypes.STRING,
-      allowNull: true,
+    status: {
+      type: DataTypes.ENUM("pending", "sent", "failed"),
+      defaultValue: "pending",
     },
-    type: {
-      type: DataTypes.STRING,
-      allowNull: true,
+    total_recipients: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    sent_count: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
     },
   },
   {
