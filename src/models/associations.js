@@ -8,8 +8,8 @@ const PropertyType = require("../models/propertyType");
 const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const UserSubscription = require("../models/userSubscription");
 const SubscriptionPlan = require("../models/subscriptionPlan");
-const NotificationRecipeient = require("./notification_recipient");
-const Notification = require("./notification");
+const NotificationRecipeient = require("../models/notification_recipeient");
+const Notification = require("../models/notification");
 
 // In models/index.js or after model definitions
 User.hasMany(Address, {
@@ -88,5 +88,5 @@ module.exports = {
   UserSubscriptionCustom,
   UserSubscription,
   NotificationRecipeient,
-  Notification
+  Notification,
 };

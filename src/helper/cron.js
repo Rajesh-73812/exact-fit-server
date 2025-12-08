@@ -1,9 +1,9 @@
 const cron = require("node-cron");
 const Banner = require("../models/banner");
-const User = require("../models/");
+const User = require("../models/user");
 const Notification = require("../models/notification");
-const NotificationRecipient = require("../models/notification_recipient");
-const { sendInAppNotification } = require("./notification");
+const NotificationRecipient = require("../models/notification_recipeient");
+const { sendInAppNotification } = require("../models/notification_recipeient");
 const { Op } = require("sequelize");
 
 const getCurrentDateWithoutTime = () => {
@@ -107,7 +107,12 @@ cron.schedule("* * * * *", async () => {
       if (user?.onesignal_id) {
         const type = user.role === "technician" ? "technician" : "customer";
         try {
-          await sendInAppNotification(user.onesignal_id, notif.title, notif.description, type);
+          await sendInAppNotification(
+            user.onesignal_id,
+            notif.title,
+            notif.description,
+            type
+          );
           await recipient.update({ sent_at: new Date() });
           sentCount++;
         } catch (err) {
@@ -119,10 +124,9 @@ cron.schedule("* * * * *", async () => {
     }
 
     await notif.update({ status: "sent", sent_count: sentCount });
-    console.log(`Sent scheduled notification: ${notif.id} → ${sentCount} users`);
+    console.log(
+      `Sent scheduled notification: ${notif.id} → ${sentCount} users`
+    );
   }
-
-
-  
 });
 // subscription reminder

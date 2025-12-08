@@ -5,7 +5,7 @@ const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const SubscriptionPlan = require("../models/subscriptionPlan");
 const sequelize = require("../config/db");
 const Notification = require("../models/notification");
-const NotificationRecipeient = require("../models/notification_recipient");
+const NotificationRecipeient = require("../models/notification_recipeient");
 const {
   sendInAppNotification,
   createNotification,
@@ -557,38 +557,40 @@ const sendNotification = async ({
     );
 
     // bulk create recipients
-    const recipients = allUserIds.map(userId => ({
+    const recipients = allUserIds.map((userId) => ({
       notification_id: notification.id,
       user_id: userId,
-      sent_At: null
+      sent_At: null,
     }));
 
-    await NotificationRecipeient.bulkCreate(recipients, { transaction: t});
+    await NotificationRecipeient.bulkCreate(recipients, { transaction: t });
 
     if (sendNow) {
       const users = await User.findAll({
-        where: { id: allUserIds},
+        where: { id: allUserIds },
         attributes: ["id", "onesignal_id", "role"],
-        transaction: t
+        transaction: t,
       });
-      
-      for(const user of users) {
-        if(user.onesignal_id) {
-          const type = TechnicianIds.includes(user.id) ? "technician" : "customer";
+
+      for (const user of users) {
+        if (user.onesignal_id) {
+          const type = TechnicianIds.includes(user.id)
+            ? "technician"
+            : "customer";
           await sendInAppNotification(user.onesignal_id, title, message, type);
           pushSentCount++;
         }
         await NotificationRecipeient.update(
-          {sent_at: new Date().toISOString()},
+          { sent_at: new Date().toISOString() },
           {
             where: {
               notification_id: notification.id,
-              user_id: user.id
+              user_id: user.id,
             },
-            transaction: t
+            transaction: t,
           }
         );
-      };
+      }
 
       await notification.update({
         status: "sent",
@@ -615,20 +617,19 @@ const getAllNotifications = async (page, limit) => {
   const offset = (page - 1) * limit;
 
   const notifications = await Notification.findAndCountAll({
-    limit,     
-    offset,     
-    order: [["createdAt", "DESC"]], 
+    limit,
+    offset,
+    order: [["createdAt", "DESC"]],
   });
 
   return {
     data: notifications.rows,
     totalItems: notifications.count,
-    totalPages: Math.ceil(notifications.count / limit), 
+    totalPages: Math.ceil(notifications.count / limit),
     currentPage: page,
     limit,
   };
 };
-
 
 module.exports = {
   registerAdmin,

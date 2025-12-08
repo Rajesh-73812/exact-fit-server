@@ -29,5 +29,9 @@ router.post(
   admin.sentNotification
 );
 
-router.get(endPoints.admin.getAllNotifications, middleware.authMiddleware, admin.getAllNotifications);
+router.get(
+  endPoints.admin.getAllNotifications,
+  middleware.authMiddleware,
+  admin.getAllNotifications
+);
 module.exports = router;

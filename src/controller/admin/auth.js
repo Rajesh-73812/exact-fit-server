@@ -307,13 +307,13 @@ const getAllNotifications = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Notifications fetched successfully!",
-      data: notifications.data, 
+      data: notifications.data,
       pagination: {
         totalItems: notifications.totalItems,
-        totalPages: notifications.totalPages, 
+        totalPages: notifications.totalPages,
         currentPage: notifications.currentPage,
         limit: notifications.limit,
-      }
+      },
     });
   } catch (error) {
     console.error(error);
@@ -323,7 +323,6 @@ const getAllNotifications = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   register,
