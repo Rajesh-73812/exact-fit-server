@@ -9,6 +9,7 @@ const endPoints = {
     getCustomerById: `/${VERSION}/get-customers-by-id/:id`,
     updateStatus: `/${VERSION}/update-status/:id`,
     sentNotification: `/${VERSION}/sent-notification`,
+    getAllNotifications: `/${VERSION}/get-all-notification`,
   },
   service: {
     upsert: `/${VERSION}/upsert-service`,

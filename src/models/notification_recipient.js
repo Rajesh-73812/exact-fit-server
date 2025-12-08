@@ -1,8 +1,8 @@
 const sequelize = require("../config/db");
 const { DataTypes } = require("sequelize");
 
-const NotificationRecipeients = sequelize.define(
-  "NotificationRecipeients",
+const NotificationRecipeient = sequelize.define(
+  "NotificationRecipeient",
   {
     id: {
       type: DataTypes.UUID,
@@ -29,4 +29,4 @@ const NotificationRecipeients = sequelize.define(
   { tableName: "notification_recipeients", timestamps: true, paranoid: true }
 );
 
-module.exports = NotificationRecipeients;
+module.exports = NotificationRecipeient;
