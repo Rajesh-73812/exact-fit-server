@@ -23,4 +23,9 @@ router.patch(
   admin.updateStatus
 );
 
+router.post(
+  endPoints.admin.sentNotification,
+  middleware.authMiddleware,
+  admin.sentNotification
+);
 module.exports = router;

@@ -25,6 +25,14 @@ const Notification = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
+    schedule_start: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     tableName: "notifications",

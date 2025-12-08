@@ -4,6 +4,7 @@ const UserSubscription = require("../models/userSubscription");
 const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const SubscriptionPlan = require("../models/subscriptionPlan");
 const sequelize = require("../config/db");
+const Notification = require("../models/notification");
 const {
   sendInAppNotification,
   createNotification,
@@ -523,6 +524,93 @@ const updateStatus = async (user_id) => {
   return user;
 };
 
+const sendNotification = async ({
+  title,
+  message,
+  userIds = [],
+  TechnicianIds = [],
+  schedule_start,
+  admin_id,
+}) => {
+  const t = await sequelize.transaction();
+  let pushSentCount = 0;
+
+  try {
+    const now = new Date();
+    const scheduledDateTime = schedule_start ? new Date(schedule_start) : null;
+
+    if (scheduledDateTime && scheduledDateTime > now) {
+      console.log("Scheduled notification for:", schedule_start);
+    }
+    const dbScheduledAt = schedule_start || null;
+    console.log(dbScheduledAt, "checkkk");
+    if (!dbScheduledAt) {
+      console.log(dbScheduledAt, "bbbbbbbbbbbbbbbbbbbbbb");
+      if (userIds.length > 0) {
+        const users = await User.findAll({
+          where: { id: userIds },
+          attributes: ["id", "onesignal_id", "fullname"],
+          transaction: t,
+        });
+
+        for (const user of users) {
+          // Send push only if player_id exists
+          if (user.onesignal_id) {
+            await sendInAppNotification(
+              user.onesignal_id,
+              title,
+              message,
+              "customer"
+            );
+            pushSentCount++;
+          }
+        }
+      }
+
+      if (TechnicianIds.length > 0) {
+        const technicians = await User.findAll({
+          where: { id: TechnicianIds, role: "technician" },
+          attributes: ["id", "onesignal_id", "fullname"],
+          transaction: t,
+        });
+
+        for (const tech of technicians) {
+          if (tech.onesignal_id) {
+            await sendInAppNotification(
+              tech.onesignal_id,
+              title,
+              message,
+              "technician"
+            );
+            pushSentCount++;
+          }
+        }
+      }
+    }
+
+    await Notification.create(
+      {
+        user_id: admin_id,
+        type: "push",
+        title,
+        description: message,
+        schedule_start: dbScheduledAt,
+      },
+      { transaction: t }
+    );
+
+    await t.commit();
+    return {
+      success: true,
+      total_recipients: userIds.length + TechnicianIds.length,
+      push_sent: pushSentCount,
+    };
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
+};
+
 module.exports = {
   registerAdmin,
   checkUserExists,
@@ -540,4 +628,5 @@ module.exports = {
   getCustomerDetailsByIdService,
   getAllCustomers,
   updateStatus,
+  sendNotification,
 };
