@@ -297,6 +297,34 @@ const sentNotification = async (req, res) => {
   }
 };
 
+const getAllNotifications = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const notifications = await AdminService.getAllNotifications(page, limit);
+
+    return res.status(200).json({
+      success: true,
+      message: "Notifications fetched successfully!",
+      data: notifications.data, 
+      pagination: {
+        totalItems: notifications.totalItems,
+        totalPages: notifications.totalPages, 
+        currentPage: notifications.currentPage,
+        limit: notifications.limit,
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server error",
+    });
+  }
+};
+
+
 module.exports = {
   register,
   login,
@@ -306,4 +334,5 @@ module.exports = {
   customerDetailsById,
   updateStatus,
   sentNotification,
+  getAllNotifications,
 };

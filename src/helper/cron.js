@@ -1,5 +1,10 @@
 const cron = require("node-cron");
 const Banner = require("../models/banner");
+const User = require("../models/");
+const Notification = require("../models/notification");
+const NotificationRecipient = require("../models/notification_recipient");
+const { sendInAppNotification } = require("./notification");
+const { Op } = require("sequelize");
 
 const getCurrentDateWithoutTime = () => {
   const currentDate = new Date();
@@ -70,4 +75,54 @@ cron.schedule("0 0 * * *", async () => {
 });
 
 // cron run every minute to send scedule based notification
+cron.schedule("* * * * *", async () => {
+  console.log("Checking for scheduled notifications...");
+
+  const pending = await Notification.findAll({
+    where: {
+      status: "pending",
+      schedule_start: { [Op.lte]: new Date() },
+    },
+    include: [
+      {
+        model: NotificationRecipient,
+        as: "recipients",
+        where: { sent_at: null },
+        required: true,
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["id", "onesignal_id", "role"],
+          },
+        ],
+      },
+    ],
+  });
+
+  for (const notif of pending) {
+    let sentCount = 0;
+    for (const recipient of notif.recipients) {
+      const user = recipient.user;
+      if (user?.onesignal_id) {
+        const type = user.role === "technician" ? "technician" : "customer";
+        try {
+          await sendInAppNotification(user.onesignal_id, notif.title, notif.description, type);
+          await recipient.update({ sent_at: new Date() });
+          sentCount++;
+        } catch (err) {
+          console.error("Push failed:", err.message);
+        }
+      } else {
+        await recipient.update({ sent_at: new Date() }); // skip
+      }
+    }
+
+    await notif.update({ status: "sent", sent_count: sentCount });
+    console.log(`Sent scheduled notification: ${notif.id} → ${sentCount} users`);
+  }
+
+
+  
+});
 // subscription reminder

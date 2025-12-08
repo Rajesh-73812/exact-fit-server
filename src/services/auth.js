@@ -5,6 +5,7 @@ const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const SubscriptionPlan = require("../models/subscriptionPlan");
 const sequelize = require("../config/db");
 const Notification = require("../models/notification");
+const NotificationRecipeient = require("../models/notification_recipient");
 const {
   sendInAppNotification,
   createNotification,
@@ -536,80 +537,98 @@ const sendNotification = async ({
   let pushSentCount = 0;
 
   try {
+    const allUserIds = [...new Set([...userIds, ...TechnicianIds])];
+    if (allUserIds.length === 0) throw new Error("No recipients selected");
+
+    const hasSchedule = !!schedule_start && schedule_start.trim() !== "";
     const now = new Date();
-    const scheduledDateTime = schedule_start ? new Date(schedule_start) : null;
+    const scheduledAt = hasSchedule ? new Date(schedule_start) : null;
+    const sendNow = !hasSchedule || scheduledAt <= now;
 
-    if (scheduledDateTime && scheduledDateTime > now) {
-      console.log("Scheduled notification for:", schedule_start);
-    }
-    const dbScheduledAt = schedule_start || null;
-    console.log(dbScheduledAt, "checkkk");
-    if (!dbScheduledAt) {
-      console.log(dbScheduledAt, "bbbbbbbbbbbbbbbbbbbbbb");
-      if (userIds.length > 0) {
-        const users = await User.findAll({
-          where: { id: userIds },
-          attributes: ["id", "onesignal_id", "fullname"],
-          transaction: t,
-        });
-
-        for (const user of users) {
-          // Send push only if player_id exists
-          if (user.onesignal_id) {
-            await sendInAppNotification(
-              user.onesignal_id,
-              title,
-              message,
-              "customer"
-            );
-            pushSentCount++;
-          }
-        }
-      }
-
-      if (TechnicianIds.length > 0) {
-        const technicians = await User.findAll({
-          where: { id: TechnicianIds, role: "technician" },
-          attributes: ["id", "onesignal_id", "fullname"],
-          transaction: t,
-        });
-
-        for (const tech of technicians) {
-          if (tech.onesignal_id) {
-            await sendInAppNotification(
-              tech.onesignal_id,
-              title,
-              message,
-              "technician"
-            );
-            pushSentCount++;
-          }
-        }
-      }
-    }
-
-    await Notification.create(
+    const notification = await Notification.create(
       {
         user_id: admin_id,
-        type: "push",
+        type: "admin send",
         title,
         description: message,
-        schedule_start: dbScheduledAt,
+        status: sendNow ? "sent" : "pending",
       },
       { transaction: t }
     );
 
+    // bulk create recipients
+    const recipients = allUserIds.map(userId => ({
+      notification_id: notification.id,
+      user_id: userId,
+      sent_At: null
+    }));
+
+    await NotificationRecipeient.bulkCreate(recipients, { transaction: t});
+
+    if (sendNow) {
+      const users = await User.findAll({
+        where: { id: allUserIds},
+        attributes: ["id", "onesignal_id", "role"],
+        transaction: t
+      });
+      
+      for(const user of users) {
+        if(user.onesignal_id) {
+          const type = TechnicianIds.includes(user.id) ? "technician" : "customer";
+          await sendInAppNotification(user.onesignal_id, title, message, type);
+          pushSentCount++;
+        }
+        await NotificationRecipeient.update(
+          {sent_at: new Date().toISOString()},
+          {
+            where: {
+              notification_id: notification.id,
+              user_id: user.id
+            },
+            transaction: t
+          }
+        );
+      };
+
+      await notification.update({
+        status: "sent",
+        sent_count: pushSentCount,
+      });
+    }
+
     await t.commit();
     return {
       success: true,
-      total_recipients: userIds.length + TechnicianIds.length,
+      notification_id: notification.id,
+      total_recipients: allUserIds.length,
       push_sent: pushSentCount,
+      scheduled: hasSchedule && scheduledAt > now,
     };
   } catch (error) {
     await t.rollback();
+    console.error("Send notification error:", error);
     throw error;
   }
 };
+
+const getAllNotifications = async (page, limit) => {
+  const offset = (page - 1) * limit;
+
+  const notifications = await Notification.findAndCountAll({
+    limit,     
+    offset,     
+    order: [["createdAt", "DESC"]], 
+  });
+
+  return {
+    data: notifications.rows,
+    totalItems: notifications.count,
+    totalPages: Math.ceil(notifications.count / limit), 
+    currentPage: page,
+    limit,
+  };
+};
+
 
 module.exports = {
   registerAdmin,
@@ -629,4 +648,5 @@ module.exports = {
   getAllCustomers,
   updateStatus,
   sendNotification,
+  getAllNotifications,
 };
