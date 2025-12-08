@@ -69,4 +69,5 @@ cron.schedule("0 0 * * *", async () => {
   }
 });
 
+// cron run every minute to send scedule based notification
 // subscription reminder
