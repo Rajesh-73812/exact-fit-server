@@ -34,4 +34,10 @@ router.get(
   middleware.authMiddleware,
   admin.getAllNotifications
 );
+
+router.delete(
+  endPoints.admin.deleteNotification,
+  middleware.authMiddleware,
+  admin.deleteNotification
+);
 module.exports = router;

@@ -10,6 +10,7 @@ const endPoints = {
     updateStatus: `/${VERSION}/update-status/:id`,
     sentNotification: `/${VERSION}/sent-notification`,
     getAllNotifications: `/${VERSION}/get-all-notification`,
+    deleteNotification: `/${VERSION}/delete-notification/:id`,
   },
   service: {
     upsert: `/${VERSION}/upsert-service`,
@@ -70,6 +71,11 @@ const endPoints = {
     getAllNotifications: `/${VERSION}/get-all-notifications`,
     sendNotification: `/${VERSION}/send-notification`,
     deleteNotification: `/${VERSION}/delete-notification/:id`,
+  },
+
+  "contact-us": {
+    getAllContacts: `/${VERSION}/get-all`,
+    viewContacts: `/${VERSION}/get-by-id/:id`,
   },
   // for user
   user: {

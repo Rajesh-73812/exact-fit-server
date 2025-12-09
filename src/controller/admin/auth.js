@@ -298,11 +298,16 @@ const sentNotification = async (req, res) => {
 };
 
 const getAllNotifications = async (req, res) => {
+  const admin_id = req.user?.id;
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const notifications = await AdminService.getAllNotifications(page, limit);
+    const notifications = await AdminService.getAllNotifications(
+      admin_id,
+      page,
+      limit
+    );
 
     return res.status(200).json({
       success: true,
@@ -324,6 +329,43 @@ const getAllNotifications = async (req, res) => {
   }
 };
 
+const deleteNotification = async (req, res) => {
+  const admin_id = req.user?.id;
+  const { id } = req.params;
+
+  // Validate ID
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      message: "Notification ID is required",
+    });
+  }
+
+  try {
+    // Call the service to delete the notification
+    const result = await AdminService.deleteNotification(id, admin_id);
+
+    // Check if the deletion was successful (affected rows > 0)
+    if (result > 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Notification deleted successfully",
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found",
+      });
+    }
+  } catch (error) {
+    console.error(error); // Log the error for debugging purposes
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -334,4 +376,5 @@ module.exports = {
   updateStatus,
   sentNotification,
   getAllNotifications,
+  deleteNotification,
 };

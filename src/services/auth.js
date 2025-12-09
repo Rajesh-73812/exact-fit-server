@@ -613,10 +613,11 @@ const sendNotification = async ({
   }
 };
 
-const getAllNotifications = async (page, limit) => {
+const getAllNotifications = async (admin_id, page, limit) => {
   const offset = (page - 1) * limit;
 
   const notifications = await Notification.findAndCountAll({
+    where: { user_id: admin_id },
     limit,
     offset,
     order: [["createdAt", "DESC"]],
@@ -629,6 +630,12 @@ const getAllNotifications = async (page, limit) => {
     currentPage: page,
     limit,
   };
+};
+
+const deleteNotification = async (id, admin_id) => {
+  return Notification.destroy({
+    where: { id, user_id: admin_id },
+  });
 };
 
 module.exports = {
@@ -650,4 +657,5 @@ module.exports = {
   updateStatus,
   sendNotification,
   getAllNotifications,
+  deleteNotification,
 };
