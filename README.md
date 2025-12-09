@@ -23,3 +23,19 @@ existing_drawing/plans(boolean),
 plan_images(json)-> to store multiple images,
 estimated_budget_range(string),
 description(text),
+
+#########################################
+
+Service model
+
+type.enum(subscription,enquiry) #
+
+Sub-Service
+
+price(optional) #
+
+PropertyType
+
+remove category(not required) #
+
+commercial_price, residential_price(float/decimal).optional #
