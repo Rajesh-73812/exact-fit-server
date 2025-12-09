@@ -25,8 +25,12 @@ const PropertyType = sequelize.define(
       type: DataTypes.STRING,
       unique: true,
     },
-    category: {
-      type: DataTypes.ENUM("residential", "commercial"),
+    commercial_price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    residential_price: {
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
     },
     description: {
