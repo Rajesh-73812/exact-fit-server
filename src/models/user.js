@@ -55,7 +55,7 @@ const user = sequelize.define(
       },
     },
     service_type: {
-      type: DataTypes.ENUM("enquiry", "subscription"),
+      type: DataTypes.ENUM("enquiry", "subscription", "both"),
       allowNull: true,
     },
     skill: {
