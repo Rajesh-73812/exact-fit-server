@@ -25,10 +25,11 @@ const getAllPlan = async (req, res) => {
 const getAllPlanFetchByUser = async (req, res) => {
   const user_id = req.user.id;
   console.log(user_id, "uddddddddddddddddd");
-  const { search, page = 1, limit = 10 } = req.query;
+  const { category, search, page = 1, limit = 10 } = req.query;
   try {
     const plan = await subscriptionPlan.getAllPlanFetchByUser({
       user_id,
+      category,
       search,
       page,
       limit,

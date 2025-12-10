@@ -1,8 +1,7 @@
-// services/planService.js
 const { Op } = require("sequelize");
 const subscriptionPlan = require("../models/subscriptionPlan");
 const User = require("../models/user");
-const Address = require("../models/address");
+// const Address = require("../models/address");
 
 const planService = {
   async isSlugTaken(newSlug, excludeSlug = null) {
@@ -92,6 +91,7 @@ const getAllPlan = async ({ search, page = 1, limit = 10 }) => {
 
 const getAllPlanFetchByUser = async ({
   user_id,
+  category,
   search,
   page = 1,
   limit = 10,
@@ -102,23 +102,26 @@ const getAllPlanFetchByUser = async ({
     throw new Error("User not found");
   }
 
-  const userAddress = await Address.findOne({
-    where: {
-      user_id: user_id,
-      is_default: true,
-    },
-  });
+  // const userAddress = await Address.findOne({
+  //   where: {
+  //     user_id: user_id,
+  //     is_default: true,
+  //   },
+  // });
 
-  if (!userAddress) {
-    throw new Error("User's default address not found");
+  // if (!userAddress) {
+  //   throw new Error("User's default address not found");
+  // }
+
+  // const userCategory = userAddress.category;
+  // console.log(userCategory, "catttttttttttt");
+  // if (userCategory) {
+  //   where.category = userCategory;
+  // }
+
+  if (category) {
+    where.category = category;
   }
-
-  const userCategory = userAddress.category;
-  console.log(userCategory, "catttttttttttt");
-  if (userCategory) {
-    where.category = userCategory;
-  }
-
   if (search) {
     where[Op.or] = [{ name: { [Op.like]: `%${search}%` } }];
   }

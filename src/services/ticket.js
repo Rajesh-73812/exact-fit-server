@@ -6,6 +6,7 @@ const {
 const Ticket = require("../models/ticket");
 const User = require("../models/user");
 const notification = require("../config/notifications.json");
+const { Op } = require("sequelize");
 
 const createTicket = async ({ user_id, title, description, image_url }) => {
   const ticketNumber = await generateTicketNumber();
@@ -103,9 +104,87 @@ const statusBasedTicket = async ({ user_id, status }) => {
   }
 };
 
+// for admin
+
+const getAllTickets = async (search, offset, limit) => {
+  try {
+    const where = {
+      [Op.or]: [
+        { title: { [Op.like]: `%${search}%` } },
+        { description: { [Op.like]: `%${search}%` } },
+      ],
+    };
+
+    const tickets = await Ticket.findAll({
+      where,
+      order: [["createdAt", "DESC"]],
+      offset,
+      limit,
+    });
+
+    const totalCount = await Ticket.count({ where });
+
+    const cleanedTickets = tickets.map((ticket) => {
+      if (ticket.image_url && typeof ticket.image_url === "string") {
+        try {
+          ticket.image_url = JSON.parse(ticket.image_url);
+        } catch (error) {
+          console.error("Error parsing image_url:", error);
+        }
+      }
+      return ticket;
+    });
+
+    return { tickets: cleanedTickets, totalCount };
+  } catch (error) {
+    console.error("Error fetching tickets:", error);
+    throw new Error("Error fetching tickets");
+  }
+};
+
+const updateTicketStatus = async (ticketId, status) => {
+  try {
+    const ticket = await Ticket.findByPk(ticketId);
+    if (!ticket) {
+      throw new Error("Ticket not found");
+    }
+
+    ticket.status = status;
+    await ticket.save();
+  } catch (error) {
+    console.error("Error updating ticket status:", error);
+    throw new Error("Error updating ticket status");
+  }
+};
+
+const viewTicket = async (id) => {
+  try {
+    const ticket = await Ticket.findByPk(id);
+
+    if (!ticket) {
+      throw new Error("Ticket not found");
+    }
+
+    if (ticket.image_url && typeof ticket.image_url === "string") {
+      try {
+        ticket.image_url = JSON.parse(ticket.image_url);
+      } catch (error) {
+        console.error("Error parsing image_url:", error);
+      }
+    }
+    return ticket;
+  } catch (error) {
+    console.error("Error fetching ticket by number:", error);
+    throw new Error("Error fetching ticket");
+  }
+};
+
 module.exports = {
   createTicket,
   getAllTicket,
   getTicketByNumber,
   statusBasedTicket,
+  getAllTickets,
+  updateTicketStatus,
+  viewTicket,
 };
