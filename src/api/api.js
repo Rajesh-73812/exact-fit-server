@@ -149,6 +149,9 @@ const endPoints = {
     updateOneSignal: `/${VERSION}/update-onesignal-id`,
     removeOneSignal: `/${VERSION}/remove-onesignal-id`,
   },
+  "technician-dashboard": {
+    dashboard: `/${VERSION}/dashboard`,
+  },
 };
 // console.log('API Version:', VERSION);
 // console.log('Details of Technician route:', endPoints.technician.details);
