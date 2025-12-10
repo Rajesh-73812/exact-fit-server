@@ -122,6 +122,7 @@ const getAllPlanFetchByUser = async ({
   if (category) {
     where.category = category;
   }
+  console.log(category, "cattt");
   if (search) {
     where[Op.or] = [{ name: { [Op.like]: `%${search}%` } }];
   }

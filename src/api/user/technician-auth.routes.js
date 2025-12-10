@@ -20,4 +20,15 @@ router.patch(
   technicianAuthController.technicianDeactivateAccount
 );
 
+router.patch(
+  technician.updateOneSignal,
+  middleware.authMiddleware,
+  technicianAuthController.updateOneSignalId
+);
+router.delete(
+  technician.removeOneSignal,
+  middleware.authMiddleware,
+  technicianAuthController.removeOneSignalId
+);
+
 module.exports = router;

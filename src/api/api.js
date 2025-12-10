@@ -108,7 +108,7 @@ const endPoints = {
     getTechnicianAddress: `/${VERSION}/get-technician-address`,
   },
   "user-plan": {
-    getAllPlan: `/${VERSION}/get-all-plan/:category`,
+    getAllPlan: `/${VERSION}/get-all-plan`,
     getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
   },
   property: {
@@ -146,6 +146,8 @@ const endPoints = {
     resendOTP: `/${VERSION}/resend-otp`,
     details: `/${VERSION}/get-details`,
     deactivateAccount: `/${VERSION}/deactivate`,
+    updateOneSignal: `/${VERSION}/update-onesignal-id`,
+    removeOneSignal: `/${VERSION}/remove-onesignal-id`,
   },
 };
 // console.log('API Version:', VERSION);
