@@ -81,7 +81,7 @@ const endPoints = {
     getTechnicianAddress: `/${VERSION}/get-technician-address`,
   },
   "user-plan": {
-    getAllPlan: `/${VERSION}/get-all-plan`,
+    getAllPlanFetchByUser: `/${VERSION}/get-all-plan`,
     getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
   },
   property: {
