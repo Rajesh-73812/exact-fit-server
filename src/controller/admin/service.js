@@ -4,8 +4,8 @@ const upsertService = async (req, res) => {
   const created_by = req.user ? req.user.id : null;
 
   const {
-    old_service_slug, // ← ADD THIS LINE (only sent from frontend during edit)
-    service_slug, // ← this is the NEW slug (from current title)
+    old_service_slug,
+    service_slug,
     title,
     position,
     description,
@@ -19,10 +19,8 @@ const upsertService = async (req, res) => {
   console.log(req.body, "from service");
 
   try {
-    // ← FIX: Use old slug if editing, otherwise use new slug
     const slugToSearch = old_service_slug || service_slug;
 
-    // ← FIX: Check duplicate but ignore current record if editing
     const existingservice = await Service.ServiceExists(
       title,
       service_slug,
@@ -47,7 +45,6 @@ const upsertService = async (req, res) => {
       type,
     };
 
-    // ← FIX: Pass the slug we used to search (old or new)
     const { service, created } = await Service.upsertService(
       slugToSearch,
       serviceData

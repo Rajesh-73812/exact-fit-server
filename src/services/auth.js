@@ -23,17 +23,39 @@ const twilio = require("twilio")(
 //   return uaeRegex.test(mobile.trim());
 // };
 
-const registerAdmin = async ({ email, password }) => {
-  const admin = await User.create(
-    {
-      email,
-      password,
-      role: "admin",
-    },
-    {
-      attributes: ["email"],
-    }
-  );
+const registerAdmin = async ({
+  id,
+  email,
+  password,
+  fullname,
+  mobile,
+  role,
+  profile_pic,
+}) => {
+  if (id) {
+    const admin = await User.findByPk(id);
+    if (!admin) throw new Error("Admin not found");
+
+    const updateData = {};
+    if (email) updateData.email = email;
+    if (password) updateData.password = password;
+    if (fullname) updateData.fullname = fullname;
+    if (mobile) updateData.mobile = mobile;
+    if (role) updateData.role = role;
+    if (profile_pic) updateData.profile_pic = profile_pic;
+
+    await admin.update(updateData);
+    return admin;
+  }
+
+  const admin = await User.create({
+    email,
+    password,
+    fullname,
+    mobile,
+    role,
+    profile_pic,
+  });
 
   return admin;
 };
@@ -62,6 +84,89 @@ const checkUserExists = async (email, from = null) => {
   return user;
 };
 
+const getAdminById = async (id) => {
+  const admin = await User.findByPk(id, {
+    attributes: [
+      "id",
+      "fullname",
+      "email",
+      "mobile",
+      "role",
+      "profile_pic",
+      "status",
+      "createdAt",
+    ],
+  });
+
+  if (!admin) throw new Error("Admin not found");
+  return admin;
+};
+
+const changeAdminStatus = async (id, status) => {
+  const admin = await User.findByPk(id);
+  if (!admin) throw new Error("Admin not found");
+
+  await admin.update({ status });
+  return admin;
+};
+
+const deleteAdmin = async (id) => {
+  const admin = await User.findByPk(id);
+  if (!admin) throw new Error("Admin not found");
+
+  await admin.destroy();
+  return { message: "Admin deleted successfully" };
+};
+
+const getAdminAll = async ({ search = "", page = 1, limit = 10 }) => {
+  const pageNum = Number(page) || 1;
+  const limitNum = Number(limit) || 10;
+  const offset = (pageNum - 1) * limitNum;
+
+  const where = {
+    role: "admin",
+  };
+
+  if (search && search.trim()) {
+    const q = `%${search.trim()}%`;
+    where[Op.or] = [
+      { fullname: { [Op.like]: q } },
+      { email: { [Op.like]: q } },
+    ];
+  }
+
+  const { count, rows } = await User.findAndCountAll({
+    where,
+    attributes: [
+      "id",
+      "fullname",
+      "email",
+      "mobile",
+      "role",
+      "profile_pic",
+      "status",
+      "createdAt",
+    ],
+    order: [["createdAt", "DESC"]],
+    limit: limitNum,
+    offset,
+  });
+
+  const totalItems = count;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limitNum));
+
+  return {
+    data: rows,
+    pagination: {
+      totalItems,
+      totalPages,
+      currentPage: pageNum,
+      itemsPerPage: limitNum,
+    },
+  };
+};
+
+// for mobile
 const updateProfileService = async (userId, profileData) => {
   const [updatedRows, updatedUsers] = await User.update(profileData, {
     where: { id: userId },
@@ -90,8 +195,6 @@ const updateProfileService = async (userId, profileData) => {
     longitude: updatedUser.longitude,
   };
 };
-
-// for mobile
 
 const createUserWithMobile = async (mobile) => {
   try {
@@ -613,10 +716,11 @@ const sendNotification = async ({
   }
 };
 
-const getAllNotifications = async (page, limit) => {
+const getAllNotifications = async (admin_id, page, limit) => {
   const offset = (page - 1) * limit;
 
   const notifications = await Notification.findAndCountAll({
+    where: { user_id: admin_id },
     limit,
     offset,
     order: [["createdAt", "DESC"]],
@@ -629,6 +733,12 @@ const getAllNotifications = async (page, limit) => {
     currentPage: page,
     limit,
   };
+};
+
+const deleteNotification = async (id, admin_id) => {
+  return Notification.destroy({
+    where: { id, user_id: admin_id },
+  });
 };
 
 module.exports = {
@@ -650,4 +760,9 @@ module.exports = {
   updateStatus,
   sendNotification,
   getAllNotifications,
+  deleteNotification,
+  getAdminById,
+  changeAdminStatus,
+  deleteAdmin,
+  getAdminAll,
 };
