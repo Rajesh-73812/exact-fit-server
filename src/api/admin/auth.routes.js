@@ -6,6 +6,26 @@ const middleware = require("../../middlewares/authMiddleware");
 router.post(endPoints.admin.register, admin.register);
 router.post(endPoints.admin.login, admin.login);
 router.post(endPoints.admin.forgotPassword, admin.forgotPassword);
+router.get(
+  endPoints.admin.fetchAdminById,
+  middleware.authMiddleware,
+  admin.fetchAdminById
+);
+router.patch(
+  endPoints.admin.updateAdminStatus,
+  middleware.authMiddleware,
+  admin.updateAdminStatus
+);
+router.delete(
+  endPoints.admin.remove,
+  middleware.authMiddleware,
+  admin.removeAdmin
+);
+router.get(
+  endPoints.admin.getAllAdmin,
+  middleware.authMiddleware,
+  admin.getAllAdmin
+);
 
 router.get(
   endPoints.admin.getAllCustomers,

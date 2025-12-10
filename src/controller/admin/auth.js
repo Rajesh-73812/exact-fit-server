@@ -8,42 +8,77 @@ const AdminService = require("../../services/auth");
 const { sendEmail } = require("../../utils/sendEmail");
 
 const register = async (req, res) => {
-  console.log(req.body, "bodyyyyyyyyyyyy");
-  const { email, password } = req.body;
-  const { error } = loginValidator.validate({ email, password });
+  const { id, email, password, fullname, mobile, role, profile_pic } = req.body;
 
-  if (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.details[0].message || "email and password required",
-    });
+  // For create: email + password required
+  if (!id) {
+    const { error } = loginValidator.validate({ email, password });
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        message:
+          error.details?.[0]?.message || "Email and password are required",
+      });
+    }
   }
 
   try {
-    const existingAdmin = await AdminService.checkUserExists(email);
-    console.log(existingAdmin, "check from service");
-    if (existingAdmin) {
-      return res.status(409).json({
-        success: false,
-        message: "Admin already exists!",
+    if (!id) {
+      // CREATE flow: check if user exists
+      const existingAdmin = await AdminService.checkUserExists(email);
+      if (existingAdmin) {
+        return res.status(409).json({
+          success: false,
+          message: "Admin already exists",
+        });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const newAdmin = await AdminService.registerAdmin({
+        email,
+        password: hashedPassword,
+        fullname,
+        mobile,
+        role: role || "admin",
+        profile_pic,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: "Admin registered successfully",
+        data: { id: newAdmin.id, email: newAdmin.email },
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const newAdmin = await AdminService.registerAdmin({
-      email,
-      password: hashedPassword,
+    // UPDATE flow: update only provided fields
+    const updatePayload = {};
+    if (email) updatePayload.email = email;
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updatePayload.password = await bcrypt.hash(password, salt);
+    }
+    if (fullname) updatePayload.fullname = fullname;
+    if (mobile) updatePayload.mobile = mobile;
+    if (role) updatePayload.role = role;
+    if (profile_pic) updatePayload.profile_pic = profile_pic;
+
+    const updatedAdmin = await AdminService.registerAdmin({
+      id,
+      ...updatePayload,
     });
 
-    res.status(201).json({
+    return res.status(200).json({
       success: true,
-      message: "Admin registered successfully",
-      data: { email: newAdmin.email },
+      message: "Admin updated successfully",
+      data: { id: updatedAdmin.id, email: updatedAdmin.email },
     });
-  } catch (error) {
-    console.error("Register error:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+  } catch (err) {
+    console.error("Register controller error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -93,6 +128,133 @@ const login = async (req, res) => {
   }
 };
 
+const fetchAdminById = async (req, res) => {
+  const id = req.user?.id;
+  try {
+    const admin = await AdminService.getAdminById(id);
+    res.status(200).json({
+      success: true,
+      message: "Admin details fetched successfully",
+      data: admin,
+    });
+  } catch (error) {
+    res.status(404).json({ success: false, message: error.message });
+  }
+};
+
+const updateAdminStatus = async (req, res) => {
+  const id = req.user?.id;
+  const { status } = req.query;
+  try {
+    const admin = await AdminService.changeAdminStatus(id, status);
+    res.status(200).json({
+      success: true,
+      message: "Admin status updated successfully",
+      data: admin,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const removeAdmin = async (req, res) => {
+  const id = req.user?.id;
+  try {
+    const result = await AdminService.deleteAdmin(id);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  console.log(email, "from request body");
+
+  if (!email) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Email address required" });
+  }
+
+  try {
+    const user = await AdminService.checkUserExists(email, "forgot-password");
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found!" });
+    }
+
+    if (!user.email) {
+      console.error(
+        "Forgot Password Error: user object missing email property",
+        user
+      );
+
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error: User email data is incomplete.",
+      });
+    }
+
+    const token = await generateToken({
+      id: user.id,
+      role: user.role,
+      email: user.email,
+    });
+
+    const baseUrl = process.env.APP_URL || "http://localhost:3000";
+    const resetLink = `${baseUrl}/createnewpassword/${token}`;
+    const subject = "Reset Your Admin Password";
+    const message = `Click the link to reset your password:\n\n${resetLink}\n\nThis link will expire in ${process.env.JWT_EXPIRATION_TIME} minutes.`;
+
+    await sendEmail({ to: user.email, subject, html: message });
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification sent to registered email address",
+    });
+  } catch (error) {
+    console.error("Forgot Password error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
+const getAllAdmin = async (req, res) => {
+  const { search = "", page = "1", limit = "10" } = req.query;
+
+  const pageNum = parseInt(page, 10) || 1;
+  const limitNum = parseInt(limit, 10) || 10;
+
+  try {
+    const result = await AdminService.getAdminAll({
+      search,
+      page: pageNum,
+      limit: limitNum,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Admins fetched successfully",
+      data: result.data,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    console.error("getAllAdmin error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// for user
 const updateProfile = async (req, res) => {
   const {
     fullname,
@@ -145,52 +307,6 @@ const updateProfile = async (req, res) => {
   } catch (error) {
     const status = error.status || 500;
     return res.status(status).json({ success: false, message: error.message });
-  }
-};
-
-const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  console.log(email, "from request body");
-  if (!email) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Email address required" });
-  }
-
-  try {
-    const user = await AdminService.checkUserExists(email, "forgot-password");
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found!" });
-    }
-
-    if (!user.email) {
-      console.error(
-        "Forgot Password Error: User not found, but 'email' property is missing or undefined.",
-        user
-      );
-      return res.status(500).json({
-        success: false,
-        message: "Internal server error: User email data is incomplete.",
-      });
-    }
-
-    const token = await generateToken({
-      id: user.id,
-      role: user.role,
-      email: user.email,
-    });
-    const resetLink = `http://localhost:3000/createnewpassword/${token}`;
-    const subject = "Reset Your Admin Password";
-    const message = `Click the link to reset your password:\n\n${resetLink}\n\nThis link will expire in ${process.env.JWT_EXPIRATION_TIME} minutes.`;
-    await sendEmail({ to: user.email, subject: subject, html: message });
-    return res.status(200).json({
-      success: true,
-      message: "Notification send to registered email address",
-    });
-  } catch (error) {
-    console.error(error);
   }
 };
 
@@ -377,4 +493,8 @@ module.exports = {
   sentNotification,
   getAllNotifications,
   deleteNotification,
+  fetchAdminById,
+  updateAdminStatus,
+  removeAdmin,
+  getAllAdmin,
 };

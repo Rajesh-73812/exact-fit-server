@@ -5,6 +5,10 @@ const endPoints = {
     register: `/${VERSION}/register`,
     login: `/${VERSION}/login`,
     forgotPassword: `/${VERSION}/forgot-password`,
+    fetchAdminById: `/${VERSION}/get-admin`,
+    updateAdminStatus: `/${VERSION}/update-status`,
+    remove: `/${VERSION}/delete-by-id`,
+    getAllAdmin: `/${VERSION}/get-all`,
     getAllCustomers: `/${VERSION}/get-all-customers`,
     getCustomerById: `/${VERSION}/get-customers-by-id/:id`,
     updateStatus: `/${VERSION}/update-status/:id`,
@@ -72,10 +76,14 @@ const endPoints = {
     sendNotification: `/${VERSION}/send-notification`,
     deleteNotification: `/${VERSION}/delete-notification/:id`,
   },
-
   "contact-us": {
     getAllContacts: `/${VERSION}/get-all`,
     viewContacts: `/${VERSION}/get-by-id/:id`,
+  },
+  "support-ticket": {
+    getAllTickets: `/${VERSION}/get-all`,
+    changeTicketStatus: `/${VERSION}/change-status/:status/:ticketId`,
+    viewTicket: `/${VERSION}/view-ticket/:id`,
   },
   // for user
   user: {
@@ -100,7 +108,7 @@ const endPoints = {
     getTechnicianAddress: `/${VERSION}/get-technician-address`,
   },
   "user-plan": {
-    getAllPlan: `/${VERSION}/get-all-plan`,
+    getAllPlan: `/${VERSION}/get-all-plan/:category`,
     getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
   },
   property: {
