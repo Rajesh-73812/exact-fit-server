@@ -317,6 +317,10 @@ const getTechnicianAddress = async (user_id) => {
   return address;
 };
 
+const getTechnicianDashBoard = async (user_id) => {
+  return user_id;
+};
+
 // const getDashboardStats = async(userId) => {}
 module.exports = {
   getUserTechnicianCounts,
@@ -326,4 +330,5 @@ module.exports = {
   getServicesBySlug,
   getSubServicesBySlug,
   getTechnicianAddress,
+  getTechnicianDashBoard,
 };

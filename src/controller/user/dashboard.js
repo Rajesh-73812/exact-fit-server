@@ -112,6 +112,24 @@ const getTechnicianAddress = async (req, res) => {
   }
 };
 
+const getTechnicianDashBoard = async (req, res) => {
+  const user_id = req.user?.id;
+  try {
+    const dashboard = await dashboardService.getTechnicianDashBoard(user_id);
+    return res.status(200).json({
+      success: true,
+      message: "dashboard data etched sucessfully",
+      data: dashboard,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 // dashboard
 
 const getDashboardStats = async (req, res) => {
@@ -138,4 +156,5 @@ module.exports = {
   getSubServicesBySlug,
   getTechnicianAddress,
   getDashboardStats,
+  getTechnicianDashBoard,
 };
