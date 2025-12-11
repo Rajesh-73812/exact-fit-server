@@ -6,8 +6,8 @@ const endPoints = {
     login: `/${VERSION}/login`,
     forgotPassword: `/${VERSION}/forgot-password`,
     fetchAdminById: `/${VERSION}/get-admin`,
-    updateAdminStatus: `/${VERSION}/update-status`,
-    remove: `/${VERSION}/delete-by-id`,
+    updateAdminStatus: `/${VERSION}/update-status/:id`,
+    remove: `/${VERSION}/delete-by-id/:id`,
     getAllAdmin: `/${VERSION}/get-all`,
     getAllCustomers: `/${VERSION}/get-all-customers`,
     getCustomerById: `/${VERSION}/get-customers-by-id/:id`,
@@ -113,7 +113,7 @@ const endPoints = {
     getTechnicianAddress: `/${VERSION}/get-technician-address`,
   },
   "user-plan": {
-    getAllPlan: `/${VERSION}/get-all-plan`,
+    getAllPlanFetchByUser: `/${VERSION}/get-all-plan`,
     getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
   },
   property: {

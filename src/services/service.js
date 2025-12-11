@@ -116,6 +116,7 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
       "position",
       "image_url",
       "image_alt",
+      "type",
     ],
     order: [
       ["position", "ASC"],

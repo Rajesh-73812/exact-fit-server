@@ -143,10 +143,10 @@ const fetchAdminById = async (req, res) => {
 };
 
 const updateAdminStatus = async (req, res) => {
-  const id = req.user?.id;
-  const { status } = req.query;
+  const { id } = req.params;
+
   try {
-    const admin = await AdminService.changeAdminStatus(id, status);
+    const admin = await AdminService.changeAdminStatus(id);
     res.status(200).json({
       success: true,
       message: "Admin status updated successfully",
@@ -158,7 +158,7 @@ const updateAdminStatus = async (req, res) => {
 };
 
 const removeAdmin = async (req, res) => {
-  const id = req.user?.id;
+  const id = req.params.id;
   try {
     const result = await AdminService.deleteAdmin(id);
     res.status(200).json({

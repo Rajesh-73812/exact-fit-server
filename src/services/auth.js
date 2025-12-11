@@ -102,11 +102,12 @@ const getAdminById = async (id) => {
   return admin;
 };
 
-const changeAdminStatus = async (id, status) => {
+const changeAdminStatus = async (id) => {
   const admin = await User.findByPk(id);
   if (!admin) throw new Error("Admin not found");
 
-  await admin.update({ status });
+  admin.is_active = admin.is_active === 1 ? 0 : 1;
+  await admin.save();
   return admin;
 };
 
