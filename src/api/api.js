@@ -85,6 +85,11 @@ const endPoints = {
     changeTicketStatus: `/${VERSION}/change-status/:status/:ticketId`,
     viewTicket: `/${VERSION}/view-ticket/:id`,
   },
+  "a-booking": {
+    getAllSubscriptionBooking: `/${VERSION}/get-all-subscription-booking`,
+    getAllEmergencyBooking: `/${VERSION}/get-all-emergency-booking`,
+    getAllEnquiryBooking: `/${VERSION}/get-all-enquiry-booking`,
+  },
   // for user
   user: {
     requestOTP: `/${VERSION}/request-otp`,

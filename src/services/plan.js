@@ -50,7 +50,7 @@ const toggleStatus = async (slug) => {
 const deleteBySlug = async (slug) => {
   const plan = await subscriptionPlan.findOne({ where: { slug } });
   if (!plan) return null;
-  await plan.destroy({ force });
+  await plan.destroy({ force: true });
 };
 
 const getAllPlan = async ({ search, page = 1, limit = 10 }) => {
