@@ -25,6 +25,18 @@ const Notification = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
+    status: {
+      type: DataTypes.ENUM("pending", "sent", "failed"),
+      defaultValue: "pending",
+    },
+    total_recipients: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+    sent_count: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
   },
   {
     tableName: "notifications",

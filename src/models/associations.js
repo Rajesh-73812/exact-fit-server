@@ -8,6 +8,8 @@ const PropertyType = require("../models/propertyType");
 const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const UserSubscription = require("../models/userSubscription");
 const SubscriptionPlan = require("../models/subscriptionPlan");
+const NotificationRecipeient = require("../models/notification_recipeient");
+const Notification = require("../models/notification");
 
 // In models/index.js or after model definitions
 User.hasMany(Address, {
@@ -59,6 +61,22 @@ UserSubscription.belongsTo(SubscriptionPlan, {
   as: "subscription_plan",
 });
 
+Notification.hasMany(NotificationRecipeient, {
+  foreignKey: "notification_id",
+  as: "recipients",
+  onDelete: "CASCADE",
+});
+NotificationRecipeient.belongsTo(Notification, {
+  foreignKey: "notification_id",
+  as: "notification",
+});
+
+NotificationRecipeient.belongsTo(User, { foreignKey: "user_id", as: "user" });
+User.hasMany(NotificationRecipeient, {
+  foreignKey: "user_id",
+  as: "receivedNotifications",
+});
+
 module.exports = {
   sequelize,
   User,
@@ -69,4 +87,6 @@ module.exports = {
   PropertySubscription,
   UserSubscriptionCustom,
   UserSubscription,
+  NotificationRecipeient,
+  Notification,
 };

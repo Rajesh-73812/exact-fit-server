@@ -4,6 +4,8 @@ const UserSubscription = require("../models/userSubscription");
 const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const SubscriptionPlan = require("../models/subscriptionPlan");
 const sequelize = require("../config/db");
+const Notification = require("../models/notification");
+const NotificationRecipeient = require("../models/notification_recipeient");
 const {
   sendInAppNotification,
   createNotification,
@@ -21,17 +23,39 @@ const twilio = require("twilio")(
 //   return uaeRegex.test(mobile.trim());
 // };
 
-const registerAdmin = async ({ email, password }) => {
-  const admin = await User.create(
-    {
-      email,
-      password,
-      role: "admin",
-    },
-    {
-      attributes: ["email"],
-    }
-  );
+const registerAdmin = async ({
+  id,
+  email,
+  password,
+  fullname,
+  mobile,
+  role,
+  profile_pic,
+}) => {
+  if (id) {
+    const admin = await User.findByPk(id);
+    if (!admin) throw new Error("Admin not found");
+
+    const updateData = {};
+    if (email) updateData.email = email;
+    if (password) updateData.password = password;
+    if (fullname) updateData.fullname = fullname;
+    if (mobile) updateData.mobile = mobile;
+    if (role) updateData.role = role;
+    if (profile_pic) updateData.profile_pic = profile_pic;
+
+    await admin.update(updateData);
+    return admin;
+  }
+
+  const admin = await User.create({
+    email,
+    password,
+    fullname,
+    mobile,
+    role,
+    profile_pic,
+  });
 
   return admin;
 };
@@ -60,6 +84,90 @@ const checkUserExists = async (email, from = null) => {
   return user;
 };
 
+const getAdminById = async (id) => {
+  const admin = await User.findByPk(id, {
+    attributes: [
+      "id",
+      "fullname",
+      "email",
+      "mobile",
+      "role",
+      "profile_pic",
+      "status",
+      "createdAt",
+    ],
+  });
+
+  if (!admin) throw new Error("Admin not found");
+  return admin;
+};
+
+const changeAdminStatus = async (id) => {
+  const admin = await User.findByPk(id);
+  if (!admin) throw new Error("Admin not found");
+
+  admin.is_active = admin.is_active === 1 ? 0 : 1;
+  await admin.save();
+  return admin;
+};
+
+const deleteAdmin = async (id) => {
+  const admin = await User.findByPk(id);
+  if (!admin) throw new Error("Admin not found");
+
+  await admin.destroy();
+  return { message: "Admin deleted successfully" };
+};
+
+const getAdminAll = async ({ search = "", page = 1, limit = 10 }) => {
+  const pageNum = Number(page) || 1;
+  const limitNum = Number(limit) || 10;
+  const offset = (pageNum - 1) * limitNum;
+
+  const where = {
+    role: "admin",
+  };
+
+  if (search && search.trim()) {
+    const q = `%${search.trim()}%`;
+    where[Op.or] = [
+      { fullname: { [Op.like]: q } },
+      { email: { [Op.like]: q } },
+    ];
+  }
+
+  const { count, rows } = await User.findAndCountAll({
+    where,
+    attributes: [
+      "id",
+      "fullname",
+      "email",
+      "mobile",
+      "role",
+      "profile_pic",
+      "status",
+      "createdAt",
+    ],
+    order: [["createdAt", "DESC"]],
+    limit: limitNum,
+    offset,
+  });
+
+  const totalItems = count;
+  const totalPages = Math.max(1, Math.ceil(totalItems / limitNum));
+
+  return {
+    data: rows,
+    pagination: {
+      totalItems,
+      totalPages,
+      currentPage: pageNum,
+      itemsPerPage: limitNum,
+    },
+  };
+};
+
+// for mobile
 const updateProfileService = async (userId, profileData) => {
   const [updatedRows, updatedUsers] = await User.update(profileData, {
     where: { id: userId },
@@ -88,8 +196,6 @@ const updateProfileService = async (userId, profileData) => {
     longitude: updatedUser.longitude,
   };
 };
-
-// for mobile
 
 const createUserWithMobile = async (mobile) => {
   try {
@@ -523,6 +629,119 @@ const updateStatus = async (user_id) => {
   return user;
 };
 
+const sendNotification = async ({
+  title,
+  message,
+  userIds = [],
+  TechnicianIds = [],
+  schedule_start,
+  admin_id,
+}) => {
+  const t = await sequelize.transaction();
+  let pushSentCount = 0;
+
+  try {
+    const allUserIds = [...new Set([...userIds, ...TechnicianIds])];
+    if (allUserIds.length === 0) throw new Error("No recipients selected");
+
+    const hasSchedule = !!schedule_start && schedule_start.trim() !== "";
+    const now = new Date();
+    const scheduledAt = hasSchedule ? new Date(schedule_start) : null;
+    const sendNow = !hasSchedule || scheduledAt <= now;
+
+    const notification = await Notification.create(
+      {
+        user_id: admin_id,
+        type: "admin send",
+        title,
+        description: message,
+        status: sendNow ? "sent" : "pending",
+      },
+      { transaction: t }
+    );
+
+    // bulk create recipients
+    const recipients = allUserIds.map((userId) => ({
+      notification_id: notification.id,
+      user_id: userId,
+      sent_At: null,
+    }));
+
+    await NotificationRecipeient.bulkCreate(recipients, { transaction: t });
+
+    if (sendNow) {
+      const users = await User.findAll({
+        where: { id: allUserIds },
+        attributes: ["id", "onesignal_id", "role"],
+        transaction: t,
+      });
+
+      for (const user of users) {
+        if (user.onesignal_id) {
+          const type = TechnicianIds.includes(user.id)
+            ? "technician"
+            : "customer";
+          await sendInAppNotification(user.onesignal_id, title, message, type);
+          pushSentCount++;
+        }
+        await NotificationRecipeient.update(
+          { sent_at: new Date().toISOString() },
+          {
+            where: {
+              notification_id: notification.id,
+              user_id: user.id,
+            },
+            transaction: t,
+          }
+        );
+      }
+
+      await notification.update({
+        status: "sent",
+        sent_count: pushSentCount,
+      });
+    }
+
+    await t.commit();
+    return {
+      success: true,
+      notification_id: notification.id,
+      total_recipients: allUserIds.length,
+      push_sent: pushSentCount,
+      scheduled: hasSchedule && scheduledAt > now,
+    };
+  } catch (error) {
+    await t.rollback();
+    console.error("Send notification error:", error);
+    throw error;
+  }
+};
+
+const getAllNotifications = async (admin_id, page, limit) => {
+  const offset = (page - 1) * limit;
+
+  const notifications = await Notification.findAndCountAll({
+    where: { user_id: admin_id },
+    limit,
+    offset,
+    order: [["createdAt", "DESC"]],
+  });
+
+  return {
+    data: notifications.rows,
+    totalItems: notifications.count,
+    totalPages: Math.ceil(notifications.count / limit),
+    currentPage: page,
+    limit,
+  };
+};
+
+const deleteNotification = async (id, admin_id) => {
+  return Notification.destroy({
+    where: { id, user_id: admin_id },
+  });
+};
+
 module.exports = {
   registerAdmin,
   checkUserExists,
@@ -540,4 +759,11 @@ module.exports = {
   getCustomerDetailsByIdService,
   getAllCustomers,
   updateStatus,
+  sendNotification,
+  getAllNotifications,
+  deleteNotification,
+  getAdminById,
+  changeAdminStatus,
+  deleteAdmin,
+  getAdminAll,
 };

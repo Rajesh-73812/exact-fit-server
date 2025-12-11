@@ -89,10 +89,10 @@ const upsertEmergency = async (req, res) => {
 const getAllEnquiry = async (req, res) => {
   const user_id = req.user.id;
   const { pageNumber = 1, size = 10, search = "" } = req.query;
-  console.log(req.query,"22222222222222222222222222222");
+  console.log(req.query, "22222222222222222222222222222");
   const page = Number(pageNumber) || 1;
   const pageSize = Number(size) || 10;
-  console.log(typeof page,typeof pageSize,"11111111111111111111111111111");
+  console.log(typeof page, typeof pageSize, "11111111111111111111111111111");
   try {
     const result = await bookingService.getAllEnquiry(
       user_id,
@@ -120,7 +120,6 @@ const getAllEnquiry = async (req, res) => {
   }
 };
 
-
 const getAllEmergency = async (req, res) => {
   const user_id = req.user.id;
 
@@ -133,8 +132,8 @@ const getAllEmergency = async (req, res) => {
   try {
     const result = await bookingService.getAllEmergency(
       user_id,
-      pageNumber,  // ✅ number
-      size,        // ✅ number
+      pageNumber,
+      size,
       search
     );
 
@@ -157,7 +156,6 @@ const getAllEmergency = async (req, res) => {
     });
   }
 };
-
 
 const getServiceById = async (req, res) => {
   const user_id = req.user.id;

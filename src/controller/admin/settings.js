@@ -8,7 +8,7 @@ const upsertSettings = async (req, res) => {
     contact_us_email,
     contact_us_number,
     website_address,
-    address
+    address,
   } = req.body;
   try {
     const settingsData = {
@@ -18,7 +18,7 @@ const upsertSettings = async (req, res) => {
       contact_us_email,
       contact_us_number,
       website_address,
-      address
+      address,
     };
 
     const result = await settingsService.upsertSettings(settingsData);
