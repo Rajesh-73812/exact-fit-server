@@ -5,6 +5,7 @@ const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const SubscriptionPlan = require("../models/subscriptionPlan");
 const User = require("../models/user");
 const Address = require("../models/address");
+const SubscriptionVisit = require("../models/SubscriptionVisit");
 const sequelize = require("../config/db");
 
 const createSubscription = async (data) => {
@@ -19,6 +20,17 @@ const createSubscription = async (data) => {
     payment_option,
   } = data;
 
+  await UserSubscription.update(
+    {
+      status: "inActive",
+    },
+    {
+      where: {
+        user_id,
+        status: "active",
+      },
+    }
+  );
   const plan = await Plan.findOne({ where: { id: plan_id } });
   if (!plan) {
     throw new Error("Plan not found");
@@ -191,6 +203,20 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
     limit,
     offset,
     include: [
+      {
+        model: SubscriptionVisit,
+        as: "visits",
+        attributes: [
+          [
+            "subservice_id",
+            "address_id",
+            "scheduled_date",
+            "actual_date",
+            "status",
+            "visit_number",
+          ],
+        ],
+      },
       {
         model: SubscriptionPlan,
         as: "subscription_plan",
