@@ -129,4 +129,26 @@ cron.schedule("* * * * *", async () => {
     );
   }
 });
-// subscription reminder
+
+// subscription removed when plan expired
+cron.schedule("0 0 * * *", async () => {
+  const expiredPlans = await User.findAll({
+    where: {
+      plan_end_date: {
+        [Op.lt]: new Date(),
+      },
+      subscription_plan_id: {
+        [Op.ne]: null,
+      },
+    },
+  });
+
+  for (const user of expiredPlans) {
+    await user.update({
+      subscription_plan_id: null,
+      plan_start_date: null,
+      plan_end_date: null,
+    });
+    console.log(`Removed subscription data for user ${user.id}`);
+  }
+});

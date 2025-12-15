@@ -106,10 +106,11 @@ const upsertPlan = async (req, res) => {
 };
 
 const getAllPlan = async (req, res) => {
-  const { search, page = 1, limit = 10 } = req.query;
+  const { filter, search, page = 1, limit = 10 } = req.query;
 
   try {
     const result = await planService.getAllPlan({
+      filter,
       search: search || undefined,
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),

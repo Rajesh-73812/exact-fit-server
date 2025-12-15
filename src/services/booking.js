@@ -367,6 +367,24 @@ const getAllEmergencyBooking = async ({
   }
 };
 
+const getEmergencyBookingById = async (id) => {
+  return await Booking.findOne({
+    where: {
+      id,
+      booking_type: "emergency",
+    },
+  });
+};
+
+const getAllEnquiryBookingById = async (id) => {
+  return await Booking.findOne({
+    where: {
+      id,
+      booking_type: "enquiry",
+    },
+  });
+};
+
 module.exports = {
   upsertEnquiry,
   upsertEmergency,
@@ -376,4 +394,6 @@ module.exports = {
   getAllSubscriptionBooking,
   getAllEnquiryBooking,
   getAllEmergencyBooking,
+  getEmergencyBookingById,
+  getAllEnquiryBookingById,
 };
