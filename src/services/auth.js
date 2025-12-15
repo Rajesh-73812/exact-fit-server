@@ -145,7 +145,7 @@ const getAdminAll = async ({ search = "", page = 1, limit = 10 }) => {
       "mobile",
       "role",
       "profile_pic",
-      "status",
+      "is_active",
       "createdAt",
     ],
     order: [["createdAt", "DESC"]],

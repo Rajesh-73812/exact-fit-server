@@ -39,3 +39,14 @@ PropertyType
 remove category(not required) #
 
 commercial_price, residential_price(float/decimal).optional #
+
+CREATE TABLE property_type_plans (
+id CHAR(36) PRIMARY KEY,
+property_type_id CHAR(36) NOT NULL,
+subscription_plan_id CHAR(36) NOT NULL,
+commercial_price DECIMAL(10,2) NULL,
+residential_price DECIMAL(10,2) NULL,
+createdAt DATETIME NOT NULL,
+updatedAt DATETIME NOT NULL,
+deletedAt DATETIME NULL,
+)

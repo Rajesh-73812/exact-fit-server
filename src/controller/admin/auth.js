@@ -10,7 +10,6 @@ const { sendEmail } = require("../../utils/sendEmail");
 const register = async (req, res) => {
   const { id, email, password, fullname, mobile, role, profile_pic } = req.body;
 
-  // For create: email + password required
   if (!id) {
     const { error } = loginValidator.validate({ email, password });
     if (error) {
@@ -24,7 +23,6 @@ const register = async (req, res) => {
 
   try {
     if (!id) {
-      // CREATE flow: check if user exists
       const existingAdmin = await AdminService.checkUserExists(email);
       if (existingAdmin) {
         return res.status(409).json({
@@ -52,7 +50,6 @@ const register = async (req, res) => {
       });
     }
 
-    // UPDATE flow: update only provided fields
     const updatePayload = {};
     if (email) updatePayload.email = email;
     if (password) {
@@ -364,8 +361,10 @@ const customerDetailsById = async (req, res) => {
 
 const updateStatus = async (req, res) => {
   const { id } = req.params;
+  console.log("111111111111");
   try {
     const updatedStatus = await AdminService.updateStatus(id);
+    console.log(updateStatus, "222222222222222");
     return res.status(200).json({
       success: true,
       message: "Status updated successfully.",

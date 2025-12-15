@@ -21,10 +21,13 @@ const PropertySubscription = sequelize.define(
       type: DataTypes.UUID,
       allowNull: false,
     },
-    price: {
+    commercial_price: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: 0,
+      allowNull: true,
+    },
+    residential_price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
     },
   },
   {

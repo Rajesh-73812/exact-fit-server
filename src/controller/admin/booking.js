@@ -65,8 +65,64 @@ const getAllEmergencyBooking = async (req, res) => {
   }
 };
 
+const getEmergencyBookingById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const booking = await bookingService.getEmergencyBookingById(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Data fetched successfully",
+      data: booking,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+const getAllEnquiryBookingById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const booking = await bookingService.getAllEnquiryBookingById(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Data fetched successfully",
+      data: booking,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   getAllSubscriptionBooking,
   getAllEnquiryBooking,
   getAllEmergencyBooking,
+  getEmergencyBookingById,
+  getAllEnquiryBookingById,
 };

@@ -53,8 +53,12 @@ const deleteBySlug = async (slug) => {
   await plan.destroy({ force: true });
 };
 
-const getAllPlan = async ({ search, page = 1, limit = 10 }) => {
+const getAllPlan = async ({ filter, search, page = 1, limit = 10 }) => {
   const where = {};
+  if (filter && filter !== "all") {
+    where.category = filter;
+  }
+
   if (search) {
     where[Op.or] = [{ name: { [Op.like]: `%${search}%` } }];
   }

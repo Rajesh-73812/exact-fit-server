@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const SubService = require("../models/sub-service");
+const Service = require("../models/service");
 
 /* ---------- 1. Check ONLY slug (not title) to prevent duplicate slug ---------- */
 const serviceExists = async (sub_service_slug, currentSlug = null) => {
@@ -92,10 +93,23 @@ const getAllService = async ({ search, page = 1, limit = 10 }) => {
 
   const { count, rows } = await SubService.findAndCountAll({
     where,
-    attributes: ["title", "sub_service_slug", "status", "position"],
+    attributes: [
+      "title",
+      "sub_service_slug",
+      "status",
+      "position",
+      "description",
+    ],
     order: [
       ["position", "ASC"],
       ["updatedAt", "DESC"],
+    ],
+    include: [
+      {
+        model: Service,
+        as: "service",
+        attributes: ["id", "title"],
+      },
     ],
     limit,
     offset,
