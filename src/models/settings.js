@@ -34,6 +34,10 @@ const Settings = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    address: {
+      type: DataTypes.STRING, // or DataTypes.TEXT if you expect very long address
+      allowNull: true,
+    },
   },
   { tableName: "settings", paranoid: true, timestamps: true }
 );

@@ -277,10 +277,123 @@ const getServiceById = async ({ user_id, id, type }) => {
   }
 };
 
+// for admin
+const getAllSubscriptionBooking = async () => {
+  return 1;
+  // try {
+  //   return 1;
+  // } catch (error) {
+  //   console.error(error);
+  // }
+};
+
+const getAllEnquiryBooking = async ({
+  page = 1,
+  pageSize = 10,
+  search = "",
+}) => {
+  try {
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize;
+    const whereClause = {
+      booking_type: "enquiry",
+    };
+
+    if (search) {
+      whereClause[Op.or] = [
+        { fullname: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+        { mobile: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const enquiries = await Booking.findAndCountAll({
+      where: whereClause,
+      offset: offset,
+      limit: limit,
+      order: [["createdAt", "DESC"]],
+    });
+
+    return {
+      rows: enquiries.rows,
+      totalCount: enquiries.count,
+      totalPages: Math.ceil(enquiries.count / pageSize),
+      currentPage: page,
+    };
+  } catch (error) {
+    console.error("Error fetching enquiries: ", error);
+    throw new Error("Error fetching enquiries");
+  }
+};
+
+const getAllEmergencyBooking = async ({
+  page = 1,
+  pageSize = 10,
+  search = "",
+}) => {
+  try {
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize;
+    const whereClause = {
+      booking_type: "emergency",
+    };
+
+    if (search) {
+      whereClause[Op.or] = [
+        { fullname: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+        { mobile: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    const emergencies = await Booking.findAndCountAll({
+      where: whereClause,
+      offset: offset,
+      limit: limit,
+      order: [["createdAt", "DESC"]],
+    });
+
+    return {
+      rows: emergencies.rows,
+      totalCount: emergencies.count,
+      totalPages: Math.ceil(emergencies.count / pageSize),
+      currentPage: page,
+    };
+  } catch (error) {
+    console.error("Error fetching emergencies: ", error);
+    throw new Error("Error fetching emergencies");
+  }
+};
+
+const getEmergencyBookingById = async (id) => {
+  return await Booking.findOne({
+    where: {
+      id,
+      booking_type: "emergency",
+    },
+  });
+};
+
+const getAllEnquiryBookingById = async (id) => {
+  return await Booking.findOne({
+    where: {
+      id,
+      booking_type: "enquiry",
+    },
+  });
+};
+
 module.exports = {
   upsertEnquiry,
   upsertEmergency,
   getAllEmergency,
   getAllEnquiry,
   getServiceById,
+  getAllSubscriptionBooking,
+  getAllEnquiryBooking,
+  getAllEmergencyBooking,
+  getEmergencyBookingById,
+  getAllEnquiryBookingById,
 };

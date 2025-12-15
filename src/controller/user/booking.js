@@ -88,7 +88,11 @@ const upsertEmergency = async (req, res) => {
 
 const getAllEnquiry = async (req, res) => {
   const user_id = req.user.id;
-  const { page = 1, pageSize = 10, search = "" } = req.query;
+  const { pageNumber = 1, size = 10, search = "" } = req.query;
+  console.log(req.query, "22222222222222222222222222222");
+  const page = Number(pageNumber) || 1;
+  const pageSize = Number(size) || 10;
+  console.log(typeof page, typeof pageSize, "11111111111111111111111111111");
   try {
     const result = await bookingService.getAllEnquiry(
       user_id,
@@ -118,14 +122,21 @@ const getAllEnquiry = async (req, res) => {
 
 const getAllEmergency = async (req, res) => {
   const user_id = req.user.id;
-  const { page = 1, pageSize = 10, search = "" } = req.query;
+
+  // 👇 req.query values are strings → explicitly cast
+  const { page = "1", pageSize = "10", search = "" } = req.query;
+
+  const pageNumber = Number(page) || 1;
+  const size = Number(pageSize) || 10;
+
   try {
     const result = await bookingService.getAllEmergency(
       user_id,
-      page,
-      pageSize,
+      pageNumber,
+      size,
       search
     );
+
     return res.status(200).json({
       success: true,
       message: "Emergencies fetched successfully",
@@ -134,7 +145,7 @@ const getAllEmergency = async (req, res) => {
         totalCount: result.totalCount,
         totalPages: result.totalPages,
         currentPage: result.currentPage,
-        pageSize: pageSize,
+        pageSize: size, // use numeric size
       },
     });
   } catch (error) {

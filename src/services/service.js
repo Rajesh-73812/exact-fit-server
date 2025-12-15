@@ -1,5 +1,7 @@
 const { Op } = require("sequelize");
 const Service = require("../models/service");
+const sequelize = require("../config/db");
+// const subService = require("../models/sub-service");
 
 const ServiceExists = async (service_slug, from = null, currentSlug = null) => {
   console.log(from, "frommmmmmmmm9999");
@@ -89,8 +91,19 @@ const upsertService = async (lookupSlug, serviceData) => {
   }
 };
 
-const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
+const getAllService = async ({
+  filter,
+  search,
+  position,
+  page = 1,
+  limit = 10,
+}) => {
   const where = {};
+
+  if (filter && filter !== "all") {
+    // here it checks if filter is subscription/ enquiry it entered if block otherwise no
+    where.type = filter;
+  }
 
   if (search) {
     where[Op.or] = [
@@ -105,7 +118,6 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
 
   const offset = (page - 1) * limit;
 
-  // THIS IS THE KEY: Use findAndCountAll
   const { rows, count } = await Service.findAndCountAll({
     where,
     attributes: [
@@ -116,6 +128,18 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
       "position",
       "image_url",
       "image_alt",
+      "type",
+
+      [
+        sequelize.literal(`(
+                        SELECT COUNT(*)
+                        FROM sub_service AS sub
+                        WHERE
+                            sub.service_id = service.id
+                            AND sub.deletedAt IS NULL
+                    )`),
+        "subserviceCount",
+      ],
     ],
     order: [
       ["position", "ASC"],
@@ -125,7 +149,6 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
     offset,
   });
 
-  // Count active/inactive (filtered by same search condition)
   const activeCount = await Service.count({
     where: { ...where, status: "active" },
   });
@@ -134,12 +157,23 @@ const getAllService = async ({ search, position, page = 1, limit = 10 }) => {
     where: { ...where, status: "inactive" },
   });
 
-  // Return object, not array
+  const totalSubserviceCount = await sequelize.query(
+    `
+    SELECT COUNT(*) AS totalCount
+    FROM sub_service
+    WHERE deletedAt IS NULL
+  `,
+    {
+      type: sequelize.QueryTypes.SELECT,
+    }
+  );
+
   return {
-    rows, // ← actual data
-    count, // ← total matching records (for pagination)
+    rows,
+    count,
     activeCount,
     inactiveCount,
+    totalSubserviceCount: totalSubserviceCount[0].totalCount,
   };
 };
 

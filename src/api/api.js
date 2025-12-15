@@ -6,12 +6,12 @@ const endPoints = {
     login: `/${VERSION}/login`,
     forgotPassword: `/${VERSION}/forgot-password`,
     fetchAdminById: `/${VERSION}/get-admin`,
-    updateAdminStatus: `/${VERSION}/update-status`,
-    remove: `/${VERSION}/delete-by-id`,
+    updateAdminStatus: `/${VERSION}/update-status/:id`,
+    remove: `/${VERSION}/delete-by-id/:id`,
     getAllAdmin: `/${VERSION}/get-all`,
     getAllCustomers: `/${VERSION}/get-all-customers`,
     getCustomerById: `/${VERSION}/get-customers-by-id/:id`,
-    updateStatus: `/${VERSION}/update-status/:id`,
+    updateStatus: `/${VERSION}/change-status/:id`,
     sentNotification: `/${VERSION}/sent-notification`,
     getAllNotifications: `/${VERSION}/get-all-notification`,
     deleteNotification: `/${VERSION}/delete-notification/:id`,
@@ -85,6 +85,13 @@ const endPoints = {
     changeTicketStatus: `/${VERSION}/change-status/:status/:ticketId`,
     viewTicket: `/${VERSION}/view-ticket/:id`,
   },
+  "a-booking": {
+    getAllSubscriptionBooking: `/${VERSION}/get-all-subscription-booking`,
+    getAllEmergencyBooking: `/${VERSION}/get-all-emergency-booking`,
+    getAllEmergencyBookingById: `/${VERSION}/get-emergency-booking-by-id/:id`,
+    getAllEnquiryBooking: `/${VERSION}/get-all-enquiry-booking`,
+    getAllEnquiryBookingById: `/${VERSION}/get-enquiry-booking-by-id/:id`,
+  },
   // for user
   user: {
     requestOTP: `/${VERSION}/request-otp`,
@@ -108,7 +115,7 @@ const endPoints = {
     getTechnicianAddress: `/${VERSION}/get-technician-address`,
   },
   "user-plan": {
-    getAllPlan: `/${VERSION}/get-all-plan`,
+    getAllPlanFetchByUser: `/${VERSION}/get-all-plan`,
     getPlanByBySlug: `/${VERSION}/get-plan-by-slug/:slug`,
   },
   property: {
