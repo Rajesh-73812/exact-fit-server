@@ -39,3 +39,5 @@ PropertyType
 remove category(not required) #
 
 commercial_price, residential_price(float/decimal).optional #
+
+ticket: technician_id(uuid),snapshot(json),note(text)

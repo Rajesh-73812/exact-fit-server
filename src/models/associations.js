@@ -10,6 +10,7 @@ const UserSubscription = require("../models/userSubscription");
 const SubscriptionPlan = require("../models/subscriptionPlan");
 const NotificationRecipeient = require("../models/notification_recipeient");
 const Notification = require("../models/notification");
+const SubscriptionVisit = require("../models/SubscriptionVisit");
 
 // In models/index.js or after model definitions
 User.hasMany(Address, {
@@ -75,6 +76,27 @@ NotificationRecipeient.belongsTo(User, { foreignKey: "user_id", as: "user" });
 User.hasMany(NotificationRecipeient, {
   foreignKey: "user_id",
   as: "receivedNotifications",
+});
+
+UserSubscription.hasMany(SubscriptionVisit, {
+  foreignKey: "user_subscription_id",
+  as: "visits",
+  onDelete: "CASCADE",
+});
+
+SubscriptionVisit.belongsTo(UserSubscription, {
+  foreignKey: "user_subscription_id",
+  as: "subscription",
+});
+
+SubscriptionVisit.belongsTo(SubService, {
+  foreignKey: "subservice_id",
+  as: "subservice",
+});
+
+SubService.hasMany(SubscriptionVisit, {
+  foreignKey: "subservice_id",
+  as: "visits",
 });
 
 module.exports = {
