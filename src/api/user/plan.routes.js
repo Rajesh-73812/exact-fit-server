@@ -5,13 +5,12 @@ const middleware = require("../../middlewares/authMiddleware");
 
 router.get(
   endPoints["user-plan"].getAllPlanFetchByUser,
-  middleware.authMiddleware,
   planController.getAllPlanFetchByUser
 );
 
 router.get(
   endPoints["user-plan"].getPlanByBySlug,
-  middleware.authMiddleware,
+  // middleware.authMiddleware,
   planController.getPlanBySlug
 );
 

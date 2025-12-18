@@ -93,8 +93,8 @@ const getAllPlanFetchByUser = async ({
   user_id,
   category,
   search,
-  page = 1,
-  limit = 10,
+  page ,
+  limit,
 }) => {
   const where = {};
   const user = await User.findByPk(user_id);
