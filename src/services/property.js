@@ -311,8 +311,8 @@ const getAllPropertyByPlan = async (user_id, planId) => {
         ? propertysub.propertyType.name
         : null,
       propertyId: propertysub.propertyType ? propertysub.propertyType.id : null,
-      commercialPrice: propertysub.commercial_price,
-      residentialPrice: propertysub.residential_price,
+      commercialPrice: propertysub.commercial_price || null,
+      residentialPrice: propertysub.residential_price || null,
     };
   });
 
