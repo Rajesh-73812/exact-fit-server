@@ -94,17 +94,17 @@ const getAllPlan = async ({ filter, search, page = 1, limit = 10 }) => {
 };
 
 const getAllPlanFetchByUser = async ({
-  user_id,
+  // user_id,
   category,
   search,
   page ,
   limit,
 }) => {
   const where = {};
-  const user = await User.findByPk(user_id);
-  if (!user) {
-    throw new Error("User not found");
-  }
+  // const user = await User.findByPk(user_id);
+  // if (!user) {
+  //   throw new Error("User not found");
+  // }
 
   // const userAddress = await Address.findOne({
   //   where: {
