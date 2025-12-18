@@ -19,4 +19,9 @@ router.get(
   ticketController.viewTicket
 );
 
+router.patch(
+  endPoints["support-ticket"].assignTech,
+  middleware.authMiddleware,
+  ticketController.assignTech
+);
 module.exports = router;
