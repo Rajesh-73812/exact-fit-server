@@ -56,8 +56,7 @@ const Ticket = sequelize.define(
         "pending",
         "in_progress",
         "completed",
-        "hold",
-        "resolved"
+        "opened"
       ),
       allowNull: false,
       defaultValue: "pending",
