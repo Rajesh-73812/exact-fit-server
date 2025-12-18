@@ -8,11 +8,25 @@ router.get(
   //   middleware.authMiddleware,
   bookingController.getAllEmergencyBooking
 );
+
+router.get(
+  endPoints["a-booking"].getAllEmergencyBookingById,
+  //   middleware.authMiddleware,
+  bookingController.getEmergencyBookingById
+);
+
 router.get(
   endPoints["a-booking"].getAllEnquiryBooking,
   //   middleware.authMiddleware,
   bookingController.getAllEnquiryBooking
 );
+
+router.get(
+  endPoints["a-booking"].getAllEnquiryBookingById,
+  //   middleware.authMiddleware,
+  bookingController.getAllEnquiryBookingById
+);
+
 router.get(
   endPoints["a-booking"].getAllSubscriptionBooking,
   //   middleware.authMiddleware,

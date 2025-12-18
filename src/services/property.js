@@ -2,90 +2,173 @@
 
 const PropertyType = require("../models/propertyType");
 const subscriptionPlan = require("../models/subscriptionPlan");
+const SubscriptionPlan = require("../models/subscriptionPlan");
 const PropertySubscription = require("../models/propertySubscription");
 const User = require("../models/user");
 const Address = require("../models/address");
 const { Op } = require("sequelize");
 const sequelize = require("../config/db");
 
-const propertyTypeExists = async (slug) => {
-  const propertyType = await PropertyType.findOne({
-    where: { slug, deletedAt: { [Op.is]: null } },
-  });
-  return propertyType;
+// const propertyTypeExists = async (slug) => {
+//   const propertyType = await PropertyType.findOne({
+//     where: { slug, deletedAt: { [Op.is]: null } },
+//   });
+//   return propertyType;
+// };
+
+const findBySlug = async (slug) => {
+  return PropertyType.findOne({ where: { slug: slug } });
 };
 
 const upsertPropertyWithSubscription = async (
-  slug,
-  propertyData,
-  subscriptionsWithPrices
+  payload,
+  { id = null, created_by = null } = {}
 ) => {
-  console.log(
-    "Incoming Data from Controller:",
+  const {
+    name,
     slug,
-    propertyData,
-    subscriptionsWithPrices
-  );
+    description,
+    is_active = true,
+    subscriptions = [],
+  } = payload;
 
-  const transaction = await sequelize.transaction();
-  console.log("Transaction started:", transaction);
+  // Normalize subscriptions: remove duplicates by subscription_plan_id
+  const subscriptionMap = new Map();
+  for (const sub of subscriptions) {
+    if (sub?.subscription_plan_id) {
+      subscriptionMap.set(sub.subscription_plan_id, {
+        subscription_plan_id: sub.subscription_plan_id,
+        commercial_price: sub.commercial_price ?? null,
+        residential_price: sub.residential_price ?? null,
+      });
+    }
+  }
 
-  try {
-    // Step 2: Check if the Property Type exists
-    console.log("Checking if property exists...");
-    const existingPropertyType = await propertyTypeExists(slug);
-    console.log("Existing Property Type:", existingPropertyType);
+  const normalizedSubscriptions = Array.from(subscriptionMap.values());
+  const planIds = normalizedSubscriptions.map((s) => s.subscription_plan_id);
 
+  let propertyTypeId;
+
+  await sequelize.transaction(async (t) => {
     let propertyType;
 
-    if (existingPropertyType) {
-      console.log("Updating existing property...");
-      propertyType = await existingPropertyType.update(propertyData, {
-        transaction,
+    // CREATE or UPDATE PropertyType
+    if (id) {
+      propertyType = await PropertyType.findByPk(id, {
+        transaction: t,
+        lock: t.LOCK.UPDATE,
       });
-      console.log("Updated Property:", propertyType);
+      if (!propertyType) throw new Error("PropertyType not found");
+
+      await propertyType.update(
+        { name, slug, description, is_active },
+        { transaction: t }
+      );
     } else {
-      console.log("Creating new property...");
-      propertyType = await PropertyType.create(propertyData, { transaction });
-      console.log("Created Property:", propertyType);
+      propertyType = await PropertyType.create(
+        { created_by, name, slug, description, is_active },
+        { transaction: t }
+      );
     }
 
-    console.log("Inserting subscriptions...");
-    for (let i = 0; i < subscriptionsWithPrices.length; i++) {
-      const { subscription_plan_id, price } = subscriptionsWithPrices[i];
-      console.log(
-        `Processing subscription ${i + 1}: subscription_plan_id = ${subscription_plan_id}, price = ${price}`
-      );
+    propertyTypeId = propertyType.id;
 
-      if (!subscription_plan_id || price === undefined) {
+    // Validate all subscription plans exist
+    if (planIds.length > 0) {
+      const existingPlans = await SubscriptionPlan.findAll({
+        where: { id: planIds },
+        attributes: ["id"],
+        transaction: t,
+      });
+
+      const foundIds = new Set(existingPlans.map((p) => p.id));
+      const missingIds = planIds.filter((pid) => !foundIds.has(pid));
+
+      if (missingIds.length > 0) {
         throw new Error(
-          `Invalid subscription data provided for subscription ${i + 1}`
+          `Subscription plans not found: ${missingIds.join(", ")}`
+        );
+      }
+    }
+
+    // Fetch all existing pivot rows (including soft-deleted)
+    const existingPivots = await PropertySubscription.findAll({
+      where: { property_type_id: propertyTypeId },
+      paranoid: false,
+      transaction: t,
+    });
+
+    const existingMap = new Map(
+      existingPivots.map((p) => [p.subscription_plan_id, p])
+    );
+    const keepPlanIds = new Set();
+
+    // Upsert pivot rows
+    for (const sub of normalizedSubscriptions) {
+      let pivot = existingMap.get(sub.subscription_plan_id);
+
+      if (pivot) {
+        // Restore if soft-deleted
+        if (pivot.deletedAt) {
+          await pivot.restore({ transaction: t });
+        }
+
+        // Update prices only if changed
+        const needsUpdate =
+          pivot.commercial_price !== sub.commercial_price ||
+          pivot.residential_price !== sub.residential_price;
+
+        if (needsUpdate) {
+          await pivot.update(
+            {
+              commercial_price: sub.commercial_price,
+              residential_price: sub.residential_price,
+            },
+            { transaction: t }
+          );
+        }
+      } else {
+        // Create new pivot
+        pivot = await PropertySubscription.create(
+          {
+            property_type_id: propertyTypeId,
+            subscription_plan_id: sub.subscription_plan_id,
+            commercial_price: sub.commercial_price,
+            residential_price: sub.residential_price,
+          },
+          { transaction: t }
         );
       }
 
-      const propertySubscription = await PropertySubscription.create(
-        {
-          property_type_id: propertyType.id,
-          subscription_plan_id,
-          price,
-          is_active: true,
-        },
-        { transaction }
-      );
-      console.log(`Subscription ${i + 1} inserted:`, propertySubscription);
+      keepPlanIds.add(sub.subscription_plan_id);
     }
 
-    console.log("Committing transaction...");
-    await transaction.commit();
-    console.log("Transaction committed successfully.");
+    // Soft-delete removed subscriptions
+    const toSoftDelete = existingPivots.filter(
+      (p) => !keepPlanIds.has(p.subscription_plan_id) && p.deletedAt === null
+    );
 
-    return { propertyType, created: !existingPropertyType };
-  } catch (error) {
-    console.error("Error during transaction:", error);
-    await transaction.rollback();
-    console.log("Transaction rolled back.");
-    throw error;
-  }
+    if (toSoftDelete.length > 0) {
+      const ids = toSoftDelete.map((p) => p.id);
+      await PropertySubscription.destroy({
+        where: { id: ids },
+        transaction: t,
+      });
+    }
+  }); // transaction auto-commits
+
+  // Return fresh data with active subscriptions only
+  return await PropertyType.findByPk(propertyTypeId, {
+    include: [
+      {
+        model: PropertySubscription,
+        as: "propertySubscriptions",
+        where: { deletedAt: null },
+        required: false,
+        // include: [{ model: SubscriptionPlan, as: "subscription_plan" }], // uncomment if needed
+      },
+    ],
+  });
 };
 
 const getPropertyBySlugOrId = async (slug) => {
@@ -99,19 +182,23 @@ const getPropertyBySlugOrId = async (slug) => {
 
   const propertyType = await PropertyType.findOne({
     where: whereClause,
-    attributes: ["id", "name", "slug", "category", "description", "is_active"],
+    attributes: ["id", "name", "slug", "description", "is_active"],
     include: [
       {
         model: PropertySubscription,
         as: "propertySubscriptions",
-        attributes: ["property_type_id", "subscription_plan_id", "price"],
+        attributes: [
+          "property_type_id",
+          "subscription_plan_id",
+          "residential_price",
+          "commercial_price",
+        ],
       },
     ],
   });
 
-  // Flatten the Sequelize instance
   if (propertyType) {
-    return propertyType.get({ plain: true }); // Convert to plain object
+    return propertyType.get({ plain: true });
   }
 
   return null;
@@ -120,7 +207,7 @@ const getPropertyBySlugOrId = async (slug) => {
 const getAllProperties = async () => {
   const properties = await PropertyType.findAll({
     where: { deletedAt: { [Op.is]: null } },
-    attributes: ["id", "name", "slug", "category", "description", "is_active"],
+    attributes: ["id", "name", "slug", "description", "is_active"],
   });
   return properties;
 };
@@ -172,10 +259,10 @@ const getAllPropertyByPlan = async (user_id, planId) => {
     throw new Error("User's default address not found");
   }
 
-  const userCategory = userAddress.category;
-  if (userCategory) {
-    where.category = userCategory;
-  }
+  // const userCategory = userAddress.category;
+  // if (userCategory) {
+  //   where.category = userCategory;
+  // }
   const subscriptionExists = await subscriptionPlan.findByPk(planId);
   if (!subscriptionExists) {
     console.log("Subscription plan not found!");
@@ -192,6 +279,13 @@ const getAllPropertyByPlan = async (user_id, planId) => {
         as: "propertyType",
         where,
         attributes: ["id", "name"],
+        include: [
+          {
+            model: PropertySubscription,
+            as: "propertySubscriptions",
+            attributes: ["commercial_price", "residential_price"],
+          },
+        ],
       },
     ],
   });
@@ -216,8 +310,9 @@ const getAllPropertyByPlan = async (user_id, planId) => {
       propertyName: propertysub.propertyType
         ? propertysub.propertyType.name
         : null,
-      price: propertysub.price,
       propertyId: propertysub.propertyType ? propertysub.propertyType.id : null,
+      commercialPrice: propertysub.commercial_price || null,
+      residentialPrice: propertysub.residential_price || null,
     };
   });
 
@@ -227,6 +322,7 @@ const getAllPropertyByPlan = async (user_id, planId) => {
 };
 
 module.exports = {
+  findBySlug,
   upsertPropertyWithSubscription,
   getPropertyBySlugOrId,
   getAllProperties,

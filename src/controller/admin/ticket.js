@@ -50,6 +50,7 @@ const changeTicketStatus = async (req, res) => {
     });
   }
 };
+
 const viewTicket = async (req, res) => {
   const { id } = req.params;
   try {
@@ -68,8 +69,36 @@ const viewTicket = async (req, res) => {
   }
 };
 
+const assignTech = async (req, res) => {
+  const { ticketId } = req.params;
+  const { status, technician_id, notes } = req.body;
+  console.log(req.body, "llllllllll");
+  try {
+    const result = await ticketService.assignTech(
+      ticketId,
+      status,
+      technician_id,
+      notes
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Assigned to technician successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      data: null,
+    });
+  }
+};
+
 module.exports = {
   getAllTickets,
   changeTicketStatus,
   viewTicket,
+  assignTech,
 };

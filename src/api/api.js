@@ -11,7 +11,7 @@ const endPoints = {
     getAllAdmin: `/${VERSION}/get-all`,
     getAllCustomers: `/${VERSION}/get-all-customers`,
     getCustomerById: `/${VERSION}/get-customers-by-id/:id`,
-    updateStatus: `/${VERSION}/update-status/:id`,
+    updateStatus: `/${VERSION}/change-status/:id`,
     sentNotification: `/${VERSION}/sent-notification`,
     getAllNotifications: `/${VERSION}/get-all-notification`,
     deleteNotification: `/${VERSION}/delete-notification/:id`,
@@ -84,11 +84,14 @@ const endPoints = {
     getAllTickets: `/${VERSION}/get-all`,
     changeTicketStatus: `/${VERSION}/change-status/:status/:ticketId`,
     viewTicket: `/${VERSION}/view-ticket/:id`,
+    assignTech: `/${VERSION}/assign-and-update-status/:ticketId`,
   },
   "a-booking": {
     getAllSubscriptionBooking: `/${VERSION}/get-all-subscription-booking`,
     getAllEmergencyBooking: `/${VERSION}/get-all-emergency-booking`,
+    getAllEmergencyBookingById: `/${VERSION}/get-emergency-booking-by-id/:id`,
     getAllEnquiryBooking: `/${VERSION}/get-all-enquiry-booking`,
+    getAllEnquiryBookingById: `/${VERSION}/get-enquiry-booking-by-id/:id`,
   },
   // for user
   user: {

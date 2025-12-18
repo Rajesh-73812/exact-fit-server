@@ -77,18 +77,25 @@ const getAllService = async (req, res) => {
     console.log(user_id);
   }
 
-  const { search, page, limit } = req.query;
+  const { filter, search, page, limit } = req.query;
   try {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 10;
 
     const result = await Service.getAllService({
+      filter,
       search: search || undefined,
       page: pageNum,
       limit: limitNum,
     });
 
-    const { rows, count, activeCount = 0, inactiveCount = 0 } = result;
+    const {
+      rows,
+      count,
+      activeCount = 0,
+      inactiveCount = 0,
+      totalSubserviceCount = 0,
+    } = result;
 
     const totalPages = Math.ceil(count / limitNum);
 
@@ -104,6 +111,7 @@ const getAllService = async (req, res) => {
       },
       activeCount,
       inactiveCount,
+      totalSubserviceCount,
     });
   } catch (error) {
     console.error("getAllService error:", error);

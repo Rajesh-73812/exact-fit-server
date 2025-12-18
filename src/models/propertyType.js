@@ -25,14 +25,14 @@ const PropertyType = sequelize.define(
       type: DataTypes.STRING,
       unique: true,
     },
-    commercial_price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
-    },
-    residential_price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: true,
-    },
+    // commercial_price: {
+    //   type: DataTypes.DECIMAL(10, 2),
+    //   allowNull: true,
+    // },
+    // residential_price: {
+    //   type: DataTypes.DECIMAL(10, 2),
+    //   allowNull: true,
+    // },
     description: {
       type: DataTypes.TEXT,
     },

@@ -5,53 +5,53 @@ const {
   handleErrorResponse,
 } = require("../../helper/response");
 
-const upsertProperty = async (req, res) => {
-  const { name, slug, category, description, subscriptions } = req.body;
-  const { id: created_by } = req.user || {};
-  console.log(req.body, "from req bodyyyyyyy");
-  console.log(created_by, "from created");
-  try {
-    // Data for the property
-    const propertyData = {
-      name,
-      slug,
-      category,
-      description,
-      created_by,
-    };
+// const upsertProperty = async (req, res) => {
+//   const { name, slug, category, description, subscriptions } = req.body;
+//   const { id: created_by } = req.user || {};
+//   console.log(req.body, "from req bodyyyyyyy");
+//   console.log(created_by, "from created");
+//   try {
+//     // Data for the property
+//     const propertyData = {
+//       name,
+//       slug,
+//       category,
+//       description,
+//       created_by,
+//     };
 
-    console.log(propertyData, "property data");
+//     console.log(propertyData, "property data");
 
-    // Call service to handle property and subscriptions (single or multiple)
-    const { propertyType, created } =
-      await propertyTypeService.upsertPropertyWithSubscription(
-        slug,
-        propertyData,
-        subscriptions
-      );
-    console.log(propertyType, "typeeeeeeeeeeeeeeee");
-    console.log(created, "booleann");
-    // Send appropriate response based on whether the property was created or updated
-    if (created) {
-      return handleSuccessResponse(
-        res,
-        `Property Type "${propertyType.name}" created successfully.`,
-        201,
-        propertyType
-      );
-    } else {
-      return handleSuccessResponse(
-        res,
-        `Property Type "${propertyType.name}" updated successfully.`,
-        200,
-        propertyType
-      );
-    }
-  } catch (error) {
-    console.error("Error in upsertProperty controller:", error);
-    return handleErrorResponse(res, error, 500);
-  }
-};
+//     // Call service to handle property and subscriptions (single or multiple)
+//     const { propertyType, created } =
+//       await propertyTypeService.upsertPropertyWithSubscription(
+//         slug,
+//         propertyData,
+//         subscriptions
+//       );
+//     console.log(propertyType, "typeeeeeeeeeeeeeeee");
+//     console.log(created, "booleann");
+//     // Send appropriate response based on whether the property was created or updated
+//     if (created) {
+//       return handleSuccessResponse(
+//         res,
+//         `Property Type "${propertyType.name}" created successfully.`,
+//         201,
+//         propertyType
+//       );
+//     } else {
+//       return handleSuccessResponse(
+//         res,
+//         `Property Type "${propertyType.name}" updated successfully.`,
+//         200,
+//         propertyType
+//       );
+//     }
+//   } catch (error) {
+//     console.error("Error in upsertProperty controller:", error);
+//     return handleErrorResponse(res, error, 500);
+//   }
+// };
 
 const getPropertyBySlugOrId = async (req, res) => {
   const { slug } = req.params;
@@ -80,7 +80,6 @@ const getPropertyBySlugOrId = async (req, res) => {
   }
 };
 
-// Get All Property Types
 const getAllProperty = async (req, res) => {
   try {
     const properties = await propertyTypeService.getAllProperties();
@@ -95,7 +94,6 @@ const getAllProperty = async (req, res) => {
   }
 };
 
-// Update the status of a Property Type (active/inactive)
 const updateStatusProperty = async (req, res) => {
   const { slug } = req.params;
 
@@ -116,7 +114,6 @@ const updateStatusProperty = async (req, res) => {
   }
 };
 
-// Delete Property Type
 const deleteProperty = async (req, res) => {
   const { slug } = req.params;
 
@@ -134,6 +131,39 @@ const deleteProperty = async (req, res) => {
   } catch (error) {
     console.error("Error in deleteProperty controller:", error);
     return handleErrorResponse(res, error, 500);
+  }
+};
+
+const upsertProperty = async (req, res) => {
+  try {
+    const created_by = req.user?.id || null;
+    const payload = req.body;
+    if (!payload.slug) {
+      return res.status(400).json({
+        success: false,
+        message: "Slug is required",
+      });
+    }
+
+    let id = null;
+    if (payload.slug) {
+      const existing = await propertyTypeService.findBySlug(payload.slug);
+      if (existing) {
+        id = existing.id;
+      }
+    }
+    const result = await propertyTypeService.upsertPropertyWithSubscription(
+      payload,
+      { id, created_by }
+    );
+    return res.status(id ? 201 : 200).json({
+      success: true,
+      message: id ? "Updated" : "Created",
+      data: result,
+    });
+  } catch (err) {
+    console.error("PropertyType upsert error:", err);
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 

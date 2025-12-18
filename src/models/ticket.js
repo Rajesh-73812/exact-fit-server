@@ -38,6 +38,19 @@ const Ticket = sequelize.define(
       allowNull: true,
       comment: "Multiple images allowed",
     },
+    technician_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
+    snapshot: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: "To store state or progress snapshots",
+    },
+    note: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.ENUM(
         "pending",
