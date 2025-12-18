@@ -84,6 +84,7 @@ const endPoints = {
     getAllTickets: `/${VERSION}/get-all`,
     changeTicketStatus: `/${VERSION}/change-status/:status/:ticketId`,
     viewTicket: `/${VERSION}/view-ticket/:id`,
+    assignTech: `/${VERSION}/assign-and-update-status/:ticketId`,
   },
   "a-booking": {
     getAllSubscriptionBooking: `/${VERSION}/get-all-subscription-booking`,

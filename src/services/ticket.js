@@ -179,6 +179,34 @@ const viewTicket = async (id) => {
   }
 };
 
+const assignTech = async (ticketId, status, technician_id, notes) => {
+  try {
+    const ticket = await Ticket.findByPk(ticketId);
+
+    if (!ticket) {
+      throw new Error("Ticket not found");
+    }
+
+    if (technician_id) {
+      ticket.technician_id = technician_id;
+    }
+
+    if (status) {
+      ticket.status = status;
+    }
+
+    if (notes) {
+      ticket.note = notes;
+    }
+
+    await ticket.save();
+    return ticket;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to assign technician");
+  }
+};
+
 module.exports = {
   createTicket,
   getAllTicket,
@@ -187,4 +215,5 @@ module.exports = {
   getAllTickets,
   updateTicketStatus,
   viewTicket,
+  assignTech,
 };
