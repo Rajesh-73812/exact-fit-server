@@ -228,6 +228,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         required: false,
       },
     ],
+    logging: console.log,
   });
 
   const subscriptions = rows.map((s) => {
