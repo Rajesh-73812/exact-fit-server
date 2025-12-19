@@ -21,17 +21,6 @@ const createSubscription = async (data) => {
     payment_option,
   } = data;
 
-  await UserSubscription.update(
-    {
-      status: "inActive",
-    },
-    {
-      where: {
-        user_id,
-        status: "active",
-      },
-    }
-  );
   const plan = await Plan.findOne({ where: { id: plan_id } });
   if (!plan) {
     throw new Error("Plan not found");
@@ -91,6 +80,20 @@ const createSubscription = async (data) => {
     status: "active",
     payment_status: "pending",
   });
+
+  console.log(1);
+
+  await UserSubscription.update(
+    { status: "inactive" },
+    {
+      where: {
+        user_id: user_id,
+        status: "active",
+      },
+    }
+  );
+
+  console.log(2);
 
   return subscription;
 };
