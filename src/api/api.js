@@ -88,6 +88,7 @@ const endPoints = {
   },
   "a-booking": {
     getAllSubscriptionBooking: `/${VERSION}/get-all-subscription-booking`,
+    getSubscriptionBookingById: `/${VERSION}/get-subscription-booking-by-id/:id`,
     getAllEmergencyBooking: `/${VERSION}/get-all-emergency-booking`,
     getAllEmergencyBookingById: `/${VERSION}/get-emergency-booking-by-id/:id`,
     getAllEnquiryBooking: `/${VERSION}/get-all-enquiry-booking`,

@@ -33,4 +33,10 @@ router.get(
   bookingController.getAllSubscriptionBooking
 );
 
+router.get(
+  endPoints["a-booking"].getSubscriptionBookingById,
+  //   middleware.authMiddleware,
+  bookingController.viewSubscription
+);
+
 module.exports = router;
