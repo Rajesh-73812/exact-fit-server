@@ -83,7 +83,6 @@ SubscriptionVisit.belongsTo(UserSubscription, {
   as: "user_subscription",
   foreignKey: "user_subscription_id",
 });
-
 UserSubscription.hasMany(SubscriptionVisit, {
   as: "visits",
   foreignKey: "user_subscription_id",
