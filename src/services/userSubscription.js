@@ -22,17 +22,6 @@ const createSubscription = async (data) => {
     payment_option,
   } = data;
 
-  await UserSubscription.update(
-    {
-      status: "inActive",
-    },
-    {
-      where: {
-        user_id,
-        status: "active",
-      },
-    }
-  );
   const plan = await Plan.findOne({ where: { id: plan_id } });
   if (!plan) {
     throw new Error("Plan not found");
@@ -92,6 +81,19 @@ const createSubscription = async (data) => {
     status: "active",
     payment_status: "pending",
   });
+
+  const existingSubscriptions = await UserSubscription.findAll({
+    where: {
+      user_id: user_id,
+      status: "active",
+    },
+  });
+
+  for (const sub of existingSubscriptions) {
+    if (sub.id !== subscription.id) {
+      await sub.update({ status: "inactive" });
+    }
+  }
 
   return subscription;
 };
@@ -180,6 +182,17 @@ const createCustomSubScriptionPlan = async ({
         },
         { transaction: t }
       );
+    }
+
+    const existingCustomSubscriptions = await UserSubscription.findAll({
+      where: {
+        user_id: user_id,
+        status: "active",
+        plan_id: null,
+      },
+    });
+    for (const sub of existingCustomSubscriptions) {
+      await sub.update({ status: "inactive" }, { transaction: t });
     }
 
     await t.commit();
