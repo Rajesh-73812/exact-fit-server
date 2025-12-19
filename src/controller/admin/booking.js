@@ -119,10 +119,45 @@ const getAllEnquiryBookingById = async (req, res) => {
   }
 };
 
+const viewSubscription = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Subscription ID is required",
+      });
+    }
+
+    const subscription = await bookingService.getSubscriptionById(id);
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        message: "Subscription not found",
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Subscription fetched successfully",
+      data: subscription,
+    });
+  } catch (err) {
+    console.error("View subscription error:", err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Server error",
+    });
+  }
+};
+
 module.exports = {
   getAllSubscriptionBooking,
   getAllEnquiryBooking,
   getAllEmergencyBooking,
   getEmergencyBookingById,
   getAllEnquiryBookingById,
+  viewSubscription,
 };

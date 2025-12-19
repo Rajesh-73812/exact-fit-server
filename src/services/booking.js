@@ -4,6 +4,11 @@ const User = require("../models/user");
 const Booking = require("../models/booking");
 const Service = require("../models/service");
 const SubService = require("../models/sub-service");
+const UserSubscription = require("../models/userSubscription");
+const SubscriptionVisit = require("../models/SubscriptionVisit");
+const SubscriptionPlan = require("../models/subscriptionPlan");
+const planSubService = require("../models/planSubService");
+const UserSubscriptionCustom = require("../models/userSubscriptionCustom");
 const {
   sendInAppNotification,
   createNotification,
@@ -278,13 +283,278 @@ const getServiceById = async ({ user_id, id, type }) => {
 };
 
 // for admin
-const getAllSubscriptionBooking = async () => {
-  return 1;
-  // try {
-  //   return 1;
-  // } catch (error) {
-  //   console.error(error);
-  // }
+const getAllSubscriptionBooking = async (opts = {}) => {
+  const limit = Math.min(parseInt(opts.limit || 10), 200);
+  const offset = parseInt(opts.offset || 0, 10);
+  const status = opts.status;
+  const where = { status: "active" }; // No user_id, just filter by active status
+
+  if (status) where.status = status; // If a specific status is provided, use it.
+
+  const { count, rows } = await UserSubscription.findAndCountAll({
+    where,
+    order: [["createdAt", "DESC"]], // Order by the latest subscription first
+    limit,
+    offset,
+    include: [
+      {
+        model: SubscriptionVisit,
+        as: "visits",
+        attributes: [
+          "subservice_id",
+          "address_id",
+          "scheduled_date",
+          "actual_date",
+          "status",
+          "visit_number",
+        ],
+        required: false, // Include visits even if there are no visits
+      },
+      {
+        model: SubscriptionPlan,
+        as: "subscription_plan",
+        attributes: ["name", "description"],
+        required: false,
+        include: [
+          {
+            model: planSubService,
+            as: "planSubServices",
+            attributes: ["subscription_plan_id", "service_id", "visit_count"],
+            include: [
+              {
+                model: Service,
+                as: "service",
+                attributes: ["id", "title", "description"],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        model: UserSubscriptionCustom,
+        as: "custom_items",
+        required: false,
+        attributes: [
+          "user_subscription_id",
+          "quantity",
+          "unit_price",
+          "total_amount",
+        ],
+        include: [
+          {
+            model: SubService,
+            as: "subservice",
+            attributes: [
+              "id",
+              "title",
+              "description",
+              "sub_service_visit_count",
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  // Process the subscription data into the desired format
+  const subscriptions = rows.map((s) => {
+    const isCustom = Array.isArray(s.custom_items) && s.custom_items.length > 0;
+
+    const base = {
+      id: s.id,
+      user_id: s.user_id,
+      start_date: s.start_date,
+      end_date: s.end_date,
+      status: s.status,
+      price_total: s.price_total,
+      payment_option: s.payment_option,
+      amount_per_cycle: s.amount_per_cycle,
+      payment_status: s.payment_status,
+      payment_method: s.payment_method,
+      subscriptionType: isCustom ? "custom" : "plan",
+      subscriptionPlanName: s.subscription_plan
+        ? s.subscription_plan.name
+        : null,
+      subscriptionPlanDescription: s.subscription_plan
+        ? s.subscription_plan.description
+        : null,
+    };
+
+    // Add custom subscription details if it exists
+    if (isCustom) {
+      base.details = {
+        items: s.custom_items.map((ci) => ({
+          id: ci.id,
+          subservice_id: ci.subservice_id,
+          quantity: ci.quantity,
+          unit_price: ci.unit_price,
+          total_amount: ci.total_amount,
+        })),
+      };
+      base.visits = s.visits && s.visits.length > 0 ? s.visits : [];
+    } else {
+      // Add the SubscriptionPlan details and visits if available
+      if (s.subscription_plan && s.subscription_plan.planSubServices) {
+        base.visits = s.subscription_plan.planSubServices.map((ps) => {
+          const service = ps.service || {};
+
+          // Filter visits that match the service/subservice_id
+          const scheduledVisits = s.visits.filter(
+            (visit) => visit.subservice_id === service.id
+          );
+
+          return {
+            service_name: service.title,
+            service_description: service.description,
+            visit_count: ps.visit_count,
+            scheduled_visits: scheduledVisits,
+          };
+        });
+      }
+    }
+
+    return base;
+  });
+
+  return {
+    total: count,
+    limit,
+    offset,
+    subscriptions,
+  };
+};
+
+const getSubscriptionById = async (subscriptionId) => {
+  const s = await UserSubscription.findOne({
+    where: { id: subscriptionId },
+    include: [
+      {
+        model: SubscriptionVisit,
+        as: "visits",
+        attributes: [
+          "subservice_id",
+          "address_id",
+          "scheduled_date",
+          "actual_date",
+          "status",
+          "visit_number",
+          "technician_id",
+        ],
+        required: false,
+      },
+      {
+        model: SubscriptionPlan,
+        as: "subscription_plan",
+        attributes: ["name", "description"],
+        required: false,
+        include: [
+          {
+            model: planSubService,
+            as: "planSubServices",
+            attributes: ["subscription_plan_id", "service_id", "visit_count"],
+            include: [
+              {
+                model: Service,
+                as: "service",
+                attributes: ["id", "title", "description"],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        model: UserSubscriptionCustom,
+        as: "custom_items",
+        required: false,
+        attributes: [
+          "id",
+          "subservice_id",
+          "quantity",
+          "unit_price",
+          "total_amount",
+        ],
+        include: [
+          {
+            model: SubService,
+            as: "subservice",
+            attributes: [
+              "id",
+              "title",
+              "description",
+              "sub_service_visit_count",
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  if (!s) return null;
+
+  const isCustom = Array.isArray(s.custom_items) && s.custom_items.length > 0;
+
+  const response = {
+    id: s.id,
+    user_id: s.user_id,
+    start_date: s.start_date,
+    end_date: s.end_date,
+    status: s.status,
+    price_total: s.price_total,
+    payment_option: s.payment_option,
+    amount_per_cycle: s.amount_per_cycle,
+    payment_status: s.payment_status,
+    payment_method: s.payment_method,
+    subscriptionType: isCustom ? "custom" : "plan",
+    subscriptionPlanName: s.subscription_plan?.name || null,
+    subscriptionPlanDescription: s.subscription_plan?.description || null,
+  };
+
+  /* ---------------- CUSTOM SUBSCRIPTION ---------------- */
+  if (isCustom) {
+    response.details = {
+      items: s.custom_items.map((ci) => ({
+        id: ci.id,
+        subservice_id: ci.subservice_id,
+        title: ci.subservice?.title,
+        description: ci.subservice?.description,
+        quantity: ci.quantity,
+        unit_price: ci.unit_price,
+        total_amount: ci.total_amount,
+      })),
+    };
+
+    response.visits = s.visits && s.visits.length > 0 ? s.visits : [];
+    return response;
+  }
+
+  /* ---------------- PLAN SUBSCRIPTION ---------------- */
+  if (s.subscription_plan && s.subscription_plan.planSubServices) {
+    response.visits = s.subscription_plan.planSubServices.map((ps) => {
+      const service = ps.service || {};
+
+      const scheduledVisits = (s.visits || []).filter(
+        (v) => v.subservice_id === service.id
+      );
+
+      return {
+        service_id: service.id,
+        service_name: service.title,
+        service_description: service.description,
+        visit_count: ps.visit_count,
+        scheduled_visits: scheduledVisits.map((v) => ({
+          scheduled_date: v.scheduled_date,
+          actual_date: v.actual_date,
+          status: v.status,
+          visit_number: v.visit_number,
+          technician_assigned: !!v.technician_id,
+        })),
+      };
+    });
+  } else {
+    response.visits = [];
+  }
+
+  return response;
 };
 
 const getAllEnquiryBooking = async ({
@@ -396,4 +666,5 @@ module.exports = {
   getAllEmergencyBooking,
   getEmergencyBookingById,
   getAllEnquiryBookingById,
+  getSubscriptionById,
 };
