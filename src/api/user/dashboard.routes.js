@@ -10,7 +10,7 @@ router.get(
 );
 router.get(
   endPoints.dashboard.getAllServiceAndSubServices,
-  middleware.authMiddleware,
+  // middleware.authMiddleware,
   dashboardController.getAllServices
 );
 

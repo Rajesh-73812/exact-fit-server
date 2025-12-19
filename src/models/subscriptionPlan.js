@@ -46,12 +46,12 @@ const SubscriptionPlan = sequelize.define(
       allowNull: true,
     },
     // Plan-level scheduled visits count (A)
-    scheduled_visits_count: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 3,
-      comment: "Number of scheduled visits per duration (plan-level default)",
-    },
+    // scheduled_visits_count: {
+    //   type: DataTypes.INTEGER,
+    //   allowNull: false,
+    //   defaultValue: 3,
+    //   comment: "Number of scheduled visits per duration (plan-level default)",
+    // },
     is_active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,

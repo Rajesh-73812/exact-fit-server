@@ -24,6 +24,7 @@ const allowedOrigins = [
   "http://localhost:3001",
   "http://localhost:3002",
   "https://exact-fit-admin.vercel.app",
+  "https://exact-fit-a3sl.vercel.app",
 ];
 
 app.use(

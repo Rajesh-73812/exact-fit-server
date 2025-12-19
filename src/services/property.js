@@ -3,7 +3,6 @@
 const PropertyType = require("../models/propertyType");
 const subscriptionPlan = require("../models/subscriptionPlan");
 const SubscriptionPlan = require("../models/subscriptionPlan");
-// const PropertyTypePlan = require("../models/subscriptionPlan");
 const PropertySubscription = require("../models/propertySubscription");
 const User = require("../models/user");
 const Address = require("../models/address");
@@ -171,6 +170,7 @@ const upsertPropertyWithSubscription = async (
     ],
   });
 };
+
 const getPropertyBySlugOrId = async (slug) => {
   const whereClause = {
     deletedAt: { [Op.is]: null },
@@ -259,10 +259,10 @@ const getAllPropertyByPlan = async (user_id, planId) => {
     throw new Error("User's default address not found");
   }
 
-  const userCategory = userAddress.category;
-  if (userCategory) {
-    where.category = userCategory;
-  }
+  // const userCategory = userAddress.category;
+  // if (userCategory) {
+  //   where.category = userCategory;
+  // }
   const subscriptionExists = await subscriptionPlan.findByPk(planId);
   if (!subscriptionExists) {
     console.log("Subscription plan not found!");
@@ -279,6 +279,13 @@ const getAllPropertyByPlan = async (user_id, planId) => {
         as: "propertyType",
         where,
         attributes: ["id", "name"],
+        include: [
+          {
+            model: PropertySubscription,
+            as: "propertySubscriptions",
+            attributes: ["commercial_price", "residential_price"],
+          },
+        ],
       },
     ],
   });
@@ -303,8 +310,9 @@ const getAllPropertyByPlan = async (user_id, planId) => {
       propertyName: propertysub.propertyType
         ? propertysub.propertyType.name
         : null,
-      price: propertysub.price,
       propertyId: propertysub.propertyType ? propertysub.propertyType.id : null,
+      commercialPrice: propertysub.commercial_price || null,
+      residentialPrice: propertysub.residential_price || null,
     };
   });
 
