@@ -113,6 +113,16 @@ Service.hasMany(PlanSubService, {
   as: "planSubServices",
 });
 
+UserSubscriptionCustom.belongsTo(SubService, {
+  foreignKey: "subservice_id",
+  as: "subservice",
+});
+
+SubService.hasMany(UserSubscriptionCustom, {
+  foreignKey: "subservice_id",
+  as: "custom_items",
+});
+
 module.exports = {
   sequelize,
   User,

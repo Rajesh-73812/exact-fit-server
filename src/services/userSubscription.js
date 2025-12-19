@@ -8,7 +8,9 @@ const Address = require("../models/address");
 const SubscriptionVisit = require("../models/SubscriptionVisit");
 const planSubService = require("../models/planSubService");
 const Service = require("../models/service");
+const SubService = require("../models/sub-service");
 const sequelize = require("../config/db");
+// const { Op } = require("sequelize");
 
 const createSubscription = async (data) => {
   const {
@@ -205,11 +207,131 @@ const createCustomSubScriptionPlan = async ({
   }
 };
 
+// const getAllSubscriptionsForUser = async (userId, opts = {}) => {
+//   const limit = Math.min(parseInt(opts.limit || 50, 10), 200);
+//   const offset = parseInt(opts.offset || 0, 10);
+//   const status = opts.status;
+//   const where = { user_id: userId, status: "active"};
+
+//   if (status) where.status = status;
+
+//   const { count, rows } = await UserSubscription.findAndCountAll({
+//     where,
+//     order: [["createdAt", "DESC"]],
+//     limit,
+//     offset,
+//     include: [
+//       {
+//         model: SubscriptionVisit,
+//         as: "visits",
+//         attributes: [
+//           "subservice_id",
+//           "address_id",
+//           "scheduled_date",
+//           "actual_date",
+//           "status",
+//           "visit_number",
+//         ],
+//         required: false,
+//       },
+//       {
+//         model: SubscriptionPlan,
+//         as: "subscription_plan",
+//         attributes: ["name", "description"],
+//         required: false,
+//         include: [
+//           {
+//             model: planSubService,
+//             as: "planSubServices",
+//             attributes: ["subscription_plan_id", "service_id", "visit_count"],
+//             include: [
+//               {
+//                 model: Service,
+//                 as: "service",
+//                 attributes: ["title", "description"],
+//               },
+//             ],
+//           },
+//         ],
+//       },
+//       {
+//         model: UserSubscriptionCustom,
+//         as: "custom_items",
+//         required: false,
+//         attributes: ["user_subscription_id", "quantity", "unit_price", "total_amount", ]
+//       },
+//     ],
+//   });
+
+//   // Process the subscription data into the desired format
+//   const subscriptions = rows.map((s) => {
+//     const isCustom = Array.isArray(s.custom_items) && s.custom_items.length > 0;
+
+//     const base = {
+//       id: s.id,
+//       user_id: s.user_id,
+//       start_date: s.start_date,
+//       end_date: s.end_date,
+//       status: s.status,
+//       price_total: s.price_total,
+//       payment_option: s.payment_option,
+//       amount_per_cycle: s.amount_per_cycle,
+//       payment_status: s.payment_status,
+//       payment_method: s.payment_method,
+//       subscriptionType: isCustom ? "custom" : "plan",
+//       subscriptionPlanName: s.subscription_plan
+//         ? s.subscription_plan.name
+//         : null,
+//       subscriptionPlanDescription: s.subscription_plan
+//         ? s.subscription_plan.description
+//         : null,
+//     };
+
+//     // Add custom subscription details if it exists
+//     if (isCustom) {
+//       base.details = {
+//         items: s.custom_items.map((ci) => ({
+//           id: ci.id,
+//           subservice_id: ci.subservice_id,
+//           quantity: ci.quantity,
+//           unit_price: ci.unit_price,
+//           total_amount: ci.total_amount,
+//           // snapshot: ci.snapshot,
+//         })),
+//         // plan_snapshot: s.plan_snapshot || null,
+//       };
+//     }
+
+//     // Add the SubscriptionVisits data if available
+//     if (s.visits && s.visits.length > 0) {
+//       base.visits = s.visits.map((visit) => ({
+//         subservice_id: visit.subservice_id,
+//         address_id: visit.address_id,
+//         scheduled_date: visit.scheduled_date,
+//         actual_date: visit.actual_date,
+//         status: visit.status,
+//         visit_number: visit.visit_number,
+//       }));
+//     } else {
+//       base.visits = [];
+//     }
+
+//     return base;
+//   });
+
+//   return {
+//     total: count,
+//     limit,
+//     offset,
+//     subscriptions,
+//   };
+// };
+
 const getAllSubscriptionsForUser = async (userId, opts = {}) => {
-  const limit = Math.min(parseInt(opts.limit || 50, 10), 200);
+  const limit = Math.min(parseInt(opts.limit || 10), 200);
   const offset = parseInt(opts.offset || 0, 10);
   const status = opts.status;
-  const where = { user_id: userId };
+  const where = { user_id: userId, status: "active" };
 
   if (status) where.status = status;
 
@@ -230,7 +352,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
           "status",
           "visit_number",
         ],
-        required: false,
+        required: false, // Include visits even if there are no visits (e.g., for custom subscriptions)
       },
       {
         model: SubscriptionPlan,
@@ -246,7 +368,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
               {
                 model: Service,
                 as: "service",
-                attributes: ["title", "description"],
+                attributes: ["id", "title", "description"],
               },
             ],
           },
@@ -256,6 +378,24 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         model: UserSubscriptionCustom,
         as: "custom_items",
         required: false,
+        attributes: [
+          "user_subscription_id",
+          "quantity",
+          "unit_price",
+          "total_amount",
+        ],
+        include: [
+          {
+            model: SubService,
+            as: "subservice",
+            attributes: [
+              "id",
+              "title",
+              "description",
+              "sub_service_visit_count",
+            ],
+          },
+        ],
       },
     ],
   });
@@ -293,24 +433,28 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
           quantity: ci.quantity,
           unit_price: ci.unit_price,
           total_amount: ci.total_amount,
-          snapshot: ci.snapshot,
         })),
-        plan_snapshot: s.plan_snapshot || null,
       };
-    }
-
-    // Add the SubscriptionVisits data if available
-    if (s.visits && s.visits.length > 0) {
-      base.visits = s.visits.map((visit) => ({
-        subservice_id: visit.subservice_id,
-        address_id: visit.address_id,
-        scheduled_date: visit.scheduled_date,
-        actual_date: visit.actual_date,
-        status: visit.status,
-        visit_number: visit.visit_number,
-      }));
+      base.visits = s.visits && s.visits.length > 0 ? s.visits : [];
     } else {
-      base.visits = [];
+      // Add the SubscriptionPlan details and visits if available
+      if (s.subscription_plan && s.subscription_plan.planSubServices) {
+        base.visits = s.subscription_plan.planSubServices.map((ps) => {
+          const service = ps.service || {};
+
+          // Filter visits that match the service/subservice_id
+          const scheduledVisits = s.visits.filter(
+            (visit) => visit.subservice_id === service.id
+          );
+
+          return {
+            service_name: service.title,
+            service_description: service.description,
+            visit_count: ps.visit_count,
+            scheduled_visits: scheduledVisits,
+          };
+        });
+      }
     }
 
     return base;
