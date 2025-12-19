@@ -7,6 +7,7 @@ const User = require("../models/user");
 const Address = require("../models/address");
 const SubscriptionVisit = require("../models/SubscriptionVisit");
 const planSubService = require("../models/planSubService");
+const Service = require("../models/service");
 const sequelize = require("../config/db");
 
 const createSubscription = async (data) => {
@@ -202,7 +203,6 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
 
   if (status) where.status = status;
 
-  // Fetch subscriptions with associated visits, plans, and custom items
   const { count, rows } = await UserSubscription.findAndCountAll({
     where,
     order: [["createdAt", "DESC"]],
@@ -211,7 +211,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
     include: [
       {
         model: SubscriptionVisit,
-        as: "visits", // Ensure this matches the alias in the association
+        as: "visits",
         attributes: [
           "subservice_id",
           "address_id",
@@ -220,7 +220,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
           "status",
           "visit_number",
         ],
-        required: false, // Include visits even if they don't exist
+        required: false,
       },
       {
         model: SubscriptionPlan,
@@ -232,6 +232,13 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
             model: planSubService,
             as: "planSubServices",
             attributes: ["subscription_plan_id", "service_id", "visit_count"],
+            include: [
+              {
+                model: Service,
+                as: "service",
+                attributes: ["title", "description"],
+              },
+            ],
           },
         ],
       },
@@ -241,7 +248,6 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         required: false,
       },
     ],
-    logging: console.log, // Log the generated SQL query for debugging
   });
 
   // Process the subscription data into the desired format
@@ -294,7 +300,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         visit_number: visit.visit_number,
       }));
     } else {
-      base.visits = []; // Ensure visits is always an array, even if empty
+      base.visits = [];
     }
 
     return base;
