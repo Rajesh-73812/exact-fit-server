@@ -21,6 +21,14 @@ const SubscriptionVisit = sequelize.define(
         isUUID: 4,
       },
     },
+    service_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      index: true,
+      validate: {
+        isUUID: 4,
+      },
+    },
     subservice_id: {
       type: DataTypes.UUID,
       allowNull: true, // e.g., AC service ID
