@@ -40,6 +40,9 @@ remove category(not required) #
 
 commercial_price, residential_price(float/decimal).optional #
 
+<<<<<<< HEAD
+ticket: technician_id(uuid),snapshot(json),note(text)
+=======
 CREATE TABLE property_type_plans (
 id CHAR(36) PRIMARY KEY,
 property_type_id CHAR(36) NOT NULL,
@@ -50,3 +53,5 @@ createdAt DATETIME NOT NULL,
 updatedAt DATETIME NOT NULL,
 deletedAt DATETIME NULL,
 )
+
+> > > > > > > bb55975c37f9a2b96e9b4a300e520f3933899a58

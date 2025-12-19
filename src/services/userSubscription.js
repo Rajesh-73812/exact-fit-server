@@ -6,6 +6,7 @@ const SubscriptionPlan = require("../models/subscriptionPlan");
 const User = require("../models/user");
 const Address = require("../models/address");
 const SubscriptionVisit = require("../models/SubscriptionVisit");
+const planSubService = require("../models/planSubService");
 const sequelize = require("../config/db");
 
 const createSubscription = async (data) => {
@@ -195,8 +196,10 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
   const offset = parseInt(opts.offset || 0, 10);
   const status = opts.status;
   const where = { user_id: userId };
+
   if (status) where.status = status;
 
+  // Fetch subscriptions with associated visits, plans, and custom items
   const { count, rows } = await UserSubscription.findAndCountAll({
     where,
     order: [["createdAt", "DESC"]],
@@ -205,22 +208,29 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
     include: [
       {
         model: SubscriptionVisit,
-        as: "visits",
+        as: "visits", // Ensure this matches the alias in the association
         attributes: [
-          [
-            "subservice_id",
-            "address_id",
-            "scheduled_date",
-            "actual_date",
-            "status",
-            "visit_number",
-          ],
+          "subservice_id",
+          "address_id",
+          "scheduled_date",
+          "actual_date",
+          "status",
+          "visit_number",
         ],
+        required: false, // Include visits even if they don't exist
       },
       {
         model: SubscriptionPlan,
         as: "subscription_plan",
         attributes: ["name", "description"],
+        required: false,
+        include: [
+          {
+            model: planSubService,
+            as: "planSubServices",
+            attributes: ["subscription_plan_id", "service_id", "visit_count"],
+          },
+        ],
       },
       {
         model: UserSubscriptionCustom,
@@ -228,18 +238,16 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         required: false,
       },
     ],
-    logging: console.log,
+    logging: console.log, // Log the generated SQL query for debugging
   });
 
+  // Process the subscription data into the desired format
   const subscriptions = rows.map((s) => {
     const isCustom = Array.isArray(s.custom_items) && s.custom_items.length > 0;
+
     const base = {
       id: s.id,
       user_id: s.user_id,
-      // address_id: s.address_id,
-      // plan_id: s.plan_id,
-      // property_type_id: s.property_type_id,
-      // service_id: s.service_id,
       start_date: s.start_date,
       end_date: s.end_date,
       status: s.status,
@@ -248,8 +256,6 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
       amount_per_cycle: s.amount_per_cycle,
       payment_status: s.payment_status,
       payment_method: s.payment_method,
-      // createdAt: s.createdAt,
-      // updatedAt: s.updatedAt,
       subscriptionType: isCustom ? "custom" : "plan",
       subscriptionPlanName: s.subscription_plan
         ? s.subscription_plan.name
@@ -259,6 +265,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         : null,
     };
 
+    // Add custom subscription details if it exists
     if (isCustom) {
       base.details = {
         items: s.custom_items.map((ci) => ({
@@ -271,10 +278,20 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         })),
         plan_snapshot: s.plan_snapshot || null,
       };
-      // } else {
-      //   base.details = {
-      //     plan_snapshot: s.plan_snapshot || null,
-      //   };
+    }
+
+    // Add the SubscriptionVisits data if available
+    if (s.visits && s.visits.length > 0) {
+      base.visits = s.visits.map((visit) => ({
+        subservice_id: visit.subservice_id,
+        address_id: visit.address_id,
+        scheduled_date: visit.scheduled_date,
+        actual_date: visit.actual_date,
+        status: visit.status,
+        visit_number: visit.visit_number,
+      }));
+    } else {
+      base.visits = []; // Ensure visits is always an array, even if empty
     }
 
     return base;

@@ -52,13 +52,7 @@ const Ticket = sequelize.define(
       allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM(
-        "pending",
-        "in_progress",
-        "completed",
-        "hold",
-        "resolved"
-      ),
+      type: DataTypes.ENUM("pending", "in_progress", "completed", "opened"),
       allowNull: false,
       defaultValue: "pending",
     },

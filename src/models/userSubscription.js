@@ -42,7 +42,13 @@ const UserSubscription = sequelize.define(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM("active", "expired", "cancelled", "pending"),
+      type: DataTypes.ENUM(
+        "active",
+        "expired",
+        "cancelled",
+        "pending",
+        "inactive"
+      ),
       defaultValue: "active",
     },
     price_total: {
