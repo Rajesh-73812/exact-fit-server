@@ -53,4 +53,5 @@ createdAt DATETIME NOT NULL,
 updatedAt DATETIME NOT NULL,
 deletedAt DATETIME NULL,
 )
->>>>>>> bb55975c37f9a2b96e9b4a300e520f3933899a58
+
+> > > > > > > bb55975c37f9a2b96e9b4a300e520f3933899a58
