@@ -245,7 +245,6 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         required: false,
       },
     ],
-    logging: console.log,
   });
 
   // Process the subscription data into the desired format
@@ -298,7 +297,7 @@ const getAllSubscriptionsForUser = async (userId, opts = {}) => {
         visit_number: visit.visit_number,
       }));
     } else {
-      base.visits = []; // Ensure visits is always an array, even if empty
+      base.visits = [];
     }
 
     return base;

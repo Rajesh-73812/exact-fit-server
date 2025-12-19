@@ -1,9 +1,11 @@
 const sequelize = require("../config/db");
 const { DataTypes } = require("sequelize");
 const SubService = require("./sub-service");
-const SubscriptionPlan = require("./subscriptionPlan");
+// const SubscriptionPlan = require("./subscriptionPlan");
 const UserSubscriptionCustom = require("./userSubscriptionCustom");
 const SubscriptionVisit = require("./SubscriptionVisit");
+const PlanSubService = require("./planSubService");
+const Service = require("./service");
 
 const UserSubscription = sequelize.define(
   "UserSubscription",
@@ -90,70 +92,177 @@ const UserSubscription = sequelize.define(
 
 module.exports = UserSubscription;
 
-// This works on ALL Sequelize v6 versions (even buggy ones)
+// // This works on ALL Sequelize v6 versions (even buggy ones)
+// UserSubscription.afterCreate(async (subscription, options) => {
+//   // If we're inside a transaction, wait for commit
+//   const transaction = options.transaction;
+//   if (transaction) {
+//     transaction.afterCommit(async () => {
+//       await createVisits(subscription);
+//     });
+//   } else {
+//     // No transaction → run immediately
+//     await createVisits(subscription);
+//   }
+// });
+
+// // Extract the logic so we can reuse it
+// async function createVisits(subscription) {
+//   try {
+//     console.log("Creating visits for subscription:", subscription.id);
+//     const visits = [];
+
+//     if (subscription.plan_id) {
+//       const plan = await SubscriptionPlan.findByPk(subscription.plan_id);
+//       if (!plan?.scheduled_visits_count) return;
+
+//       const count = plan.scheduled_visits_count;
+//       const start = new Date(subscription.start_date);
+//       const interval = 12 / count;
+
+//       for (let i = 1; i <= count; i++) {
+//         const date = new Date(start);
+//         date.setMonth(start.getMonth() + Math.round(interval * (i - 0.5)));
+//         visits.push({
+//           user_subscription_id: subscription.id,
+//           subservice_id: null,
+//           address_id: subscription.address_id,
+//           scheduled_date: date.toISOString().split("T")[0],
+//           status: "scheduled",
+//           visit_number: i,
+//           notes: `${plan.name} - Visit ${i}/${count}`,
+//         });
+//       }
+//     } else {
+//       const customLines = await UserSubscriptionCustom.findAll({
+//         where: { user_subscription_id: subscription.id },
+//       });
+
+//       console.log("Found custom lines:", customLines.length);
+
+//       for (const line of customLines) {
+//         const subservice = await SubService.findByPk(line.subservice_id);
+//         if (!subservice?.sub_service_visit_count) continue;
+
+//         const count = subservice.sub_service_visit_count;
+//         const start = new Date(subscription.start_date);
+//         const interval = 12 / count;
+
+//         for (let i = 1; i <= count; i++) {
+//           const date = new Date(start);
+//           date.setMonth(start.getMonth() + Math.round(interval * (i - 0.5)));
+//           visits.push({
+//             user_subscription_id: subscription.id,
+//             subservice_id: subservice.id,
+//             address_id: subscription.address_id,
+//             scheduled_date: date.toISOString().split("T")[0],
+//             status: "scheduled",
+//             visit_number: i,
+//             notes: `Custom - ${subservice.title} - Visit ${i}/${count}`,
+//           });
+//         }
+//       }
+//     }
+
+//     if (visits.length > 0) {
+//       await SubscriptionVisit.bulkCreate(visits);
+//       console.log(`SUCCESS: ${visits.length} visits created!`);
+//     }
+//   } catch (err) {
+//     console.error("Visit creation failed:", err);
+//   }
+// }
+
+// HOOK: Auto-create visits after subscription creation
 UserSubscription.afterCreate(async (subscription, options) => {
-  // If we're inside a transaction, wait for commit
   const transaction = options.transaction;
+
+  const run = async () => await createVisits(subscription);
+
   if (transaction) {
-    transaction.afterCommit(async () => {
-      await createVisits(subscription);
-    });
+    transaction.afterCommit(run);
   } else {
-    // No transaction → run immediately
-    await createVisits(subscription);
+    await run();
   }
 });
 
-// Extract the logic so we can reuse it
+// MAIN LOGIC: Create visits based on type of subscription
 async function createVisits(subscription) {
   try {
     console.log("Creating visits for subscription:", subscription.id);
     const visits = [];
+    const startDate = new Date(subscription.start_date);
 
+    // CASE 1: Pre-defined Plan (has plan_id)
     if (subscription.plan_id) {
-      const plan = await SubscriptionPlan.findByPk(subscription.plan_id);
-      if (!plan?.scheduled_visits_count) return;
+      const planServices = await PlanSubService.findAll({
+        where: { subscription_plan_id: subscription.plan_id },
+        include: [
+          {
+            model: Service,
+            as: "service",
+            attributes: ["id", "title"],
+          },
+        ],
+      });
 
-      const count = plan.scheduled_visits_count;
-      const start = new Date(subscription.start_date);
-      const interval = 12 / count;
-
-      for (let i = 1; i <= count; i++) {
-        const date = new Date(start);
-        date.setMonth(start.getMonth() + Math.round(interval * (i - 0.5)));
-        visits.push({
-          user_subscription_id: subscription.id,
-          subservice_id: null,
-          address_id: subscription.address_id,
-          scheduled_date: date.toISOString().split("T")[0],
-          status: "scheduled",
-          visit_number: i,
-          notes: `${plan.name} - Visit ${i}/${count}`,
-        });
+      if (planServices.length === 0) {
+        console.log("No services defined for this plan");
+        return;
       }
-    } else {
+
+      for (const ps of planServices) {
+        const count = ps.visit_count;
+        const service = ps.service;
+        const intervalMonths = 12 / count;
+
+        for (let i = 1; i <= count; i++) {
+          const scheduledDate = new Date(startDate);
+          scheduledDate.setMonth(
+            startDate.getMonth() + Math.round(intervalMonths * (i - 0.5))
+          );
+
+          visits.push({
+            user_subscription_id: subscription.id,
+            subservice_id: service.id, // or service_id if your column is named that
+            address_id: subscription.address_id,
+            scheduled_date: scheduledDate.toISOString().split("T")[0],
+            status: "scheduled",
+            visit_number: i,
+            notes: `${subscription.plan_snapshot.plan_name || "Plan"} - ${service.title} Visit ${i}/${count}`,
+          });
+        }
+      }
+    }
+    // CASE 2: Custom Subscription (no plan_id)
+    else {
       const customLines = await UserSubscriptionCustom.findAll({
         where: { user_subscription_id: subscription.id },
       });
 
-      console.log("Found custom lines:", customLines.length);
+      if (customLines.length === 0) {
+        console.log("No custom lines found");
+        return;
+      }
 
       for (const line of customLines) {
         const subservice = await SubService.findByPk(line.subservice_id);
         if (!subservice?.sub_service_visit_count) continue;
 
         const count = subservice.sub_service_visit_count;
-        const start = new Date(subscription.start_date);
-        const interval = 12 / count;
+        const intervalMonths = 12 / count;
 
         for (let i = 1; i <= count; i++) {
-          const date = new Date(start);
-          date.setMonth(start.getMonth() + Math.round(interval * (i - 0.5)));
+          const scheduledDate = new Date(startDate);
+          scheduledDate.setMonth(
+            startDate.getMonth() + Math.round(intervalMonths * (i - 0.5))
+          );
+
           visits.push({
             user_subscription_id: subscription.id,
             subservice_id: subservice.id,
             address_id: subscription.address_id,
-            scheduled_date: date.toISOString().split("T")[0],
+            scheduled_date: scheduledDate.toISOString().split("T")[0],
             status: "scheduled",
             visit_number: i,
             notes: `Custom - ${subservice.title} - Visit ${i}/${count}`,
@@ -164,9 +273,12 @@ async function createVisits(subscription) {
 
     if (visits.length > 0) {
       await SubscriptionVisit.bulkCreate(visits);
-      console.log(`SUCCESS: ${visits.length} visits created!`);
+      console.log(`SUCCESS: Created ${visits.length} visits`);
+    } else {
+      console.log("No visits created");
     }
-  } catch (err) {
-    console.error("Visit creation failed:", err);
+  } catch (error) {
+    console.error("Failed to create visits:", error);
+    // Do not throw — payment should not fail because of visit creation
   }
 }
