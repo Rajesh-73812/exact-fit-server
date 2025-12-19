@@ -82,19 +82,18 @@ const createSubscription = async (data) => {
     payment_status: "pending",
   });
 
-  console.log(1);
+  const existingSubscriptions = await UserSubscription.findAll({
+    where: {
+      user_id: user_id,
+      status: "active",
+    },
+  });
 
-  await UserSubscription.update(
-    { status: "inactive" },
-    {
-      where: {
-        user_id: user_id,
-        status: "active",
-      },
+  for (const sub of existingSubscriptions) {
+    if (sub.id !== subscription.id) {
+      await sub.update({ status: "inactive" });
     }
-  );
-
-  console.log(2);
+  }
 
   return subscription;
 };
@@ -183,6 +182,17 @@ const createCustomSubScriptionPlan = async ({
         },
         { transaction: t }
       );
+    }
+
+    const existingCustomSubscriptions = await UserSubscription.findAll({
+      where: {
+        user_id: user_id,
+        status: "active",
+        plan_id: null,
+      },
+    });
+    for (const sub of existingCustomSubscriptions) {
+      await sub.update({ status: "inactive" }, { transaction: t });
     }
 
     await t.commit();
