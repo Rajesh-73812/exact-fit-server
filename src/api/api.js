@@ -93,6 +93,7 @@ const endPoints = {
     getAllEmergencyBookingById: `/${VERSION}/get-emergency-booking-by-id/:id`,
     getAllEnquiryBooking: `/${VERSION}/get-all-enquiry-booking`,
     getAllEnquiryBookingById: `/${VERSION}/get-enquiry-booking-by-id/:id`,
+    assignTechnician: `/${VERSION}/subscription/visit/:visit_id/assign`,
   },
   // for user
   user: {
