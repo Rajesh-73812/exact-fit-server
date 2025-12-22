@@ -16,14 +16,14 @@ const SubscriptionVisit = sequelize.define(
     user_subscription_id: {
       type: DataTypes.UUID,
       allowNull: false,
-      index: true, // For fast queries by subscription
+      index: true, 
       validate: {
         isUUID: 4,
       },
     },
     subservice_id: {
       type: DataTypes.UUID,
-      allowNull: true, // e.g., AC service ID
+      allowNull: true, 
       index: true,
       validate: {
         isUUID: 4,
@@ -31,7 +31,7 @@ const SubscriptionVisit = sequelize.define(
     },
     address_id: {
       type: DataTypes.UUID,
-      allowNull: true, // Link to user's saved address; optional if set at booking time
+      allowNull: true, 
       validate: {
         isUUID: 4,
       },
@@ -45,25 +45,25 @@ const SubscriptionVisit = sequelize.define(
     },
     actual_date: {
       type: DataTypes.DATE,
-      allowNull: true, // Set when service is completed/performed
+      allowNull: true, 
       validate: {
         isDate: { msg: "Actual date must be a valid date" },
       },
     },
     status: {
       type: DataTypes.ENUM(
-        "scheduled", // Auto-generated slot
-        "pending", // User/technician confirms
-        "in_progress", // Service underway
-        "completed", // Finished; triggers history log
-        "cancelled" // By user or system
+        "scheduled",
+        "pending", 
+        "in_progress",
+        "completed", 
+        "cancelled" 
       ),
       allowNull: false,
       defaultValue: "scheduled",
     },
     technician_id: {
       type: DataTypes.UUID,
-      allowNull: true, // Assigned technician (FK to User.id where role='technician')
+      allowNull: true, 
       index: true,
       validate: {
         isUUID: 4,
@@ -71,7 +71,7 @@ const SubscriptionVisit = sequelize.define(
     },
     notes: {
       type: DataTypes.TEXT,
-      allowNull: true, // Service details, issues found, etc.
+      allowNull: true,
     },
     visit_number: {
       type: DataTypes.INTEGER,
@@ -83,7 +83,7 @@ const SubscriptionVisit = sequelize.define(
   {
     tableName: "subscription_visits",
     timestamps: true,
-    paranoid: true, // Soft deletes for history preservation
+    paranoid: true,
   }
 );
 

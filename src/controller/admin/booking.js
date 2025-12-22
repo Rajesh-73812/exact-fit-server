@@ -153,6 +153,48 @@ const viewSubscription = async (req, res) => {
   }
 };
 
+const assignTechnician = async (req, res) => {
+  try {
+    const { visit_id } = req.params;
+    const { technician_id, scheduled_date, status } = req.body;
+
+    // Validate visit_id
+    if (!visit_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Visit ID is required",
+      });
+    }
+
+    // Validate technician_id (mandatory)
+    if (!technician_id) {
+      return res.status(400).json({
+        success: false,
+        message: "technician_id is required",
+      });
+    }
+
+    const result = await bookingService.assignTechnicianToVisit({
+      visitId: visit_id,
+      technicianId: technician_id,
+      scheduledDate: scheduled_date, // optional
+      status: status,                 // optional
+    });
+
+    return res.json({
+      success: true,
+      message: "Technician assigned successfully",
+      data: result,
+    });
+  } catch (err) {
+    console.error("Assign technician error:", err);
+    return res.status(err.status || 500).json({
+      success: false,
+      message: err.message || "Failed to assign technician",
+    });
+  }
+};
+
 module.exports = {
   getAllSubscriptionBooking,
   getAllEnquiryBooking,
@@ -160,4 +202,5 @@ module.exports = {
   getEmergencyBookingById,
   getAllEnquiryBookingById,
   viewSubscription,
+  assignTechnician,
 };
