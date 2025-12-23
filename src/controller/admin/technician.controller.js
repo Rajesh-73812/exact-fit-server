@@ -107,7 +107,7 @@ const upsertTechnician = async (req, res) => {
 
 const getAllTechnicians = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = "" } = req.query;
+    const { page = 1, limit = 10, search = "", exclude = "false" } = req.query;
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
 
@@ -117,6 +117,7 @@ const getAllTechnicians = async (req, res) => {
         pageNum,
         limitNum,
         search,
+        exclude,
       });
 
     return res.status(200).json({

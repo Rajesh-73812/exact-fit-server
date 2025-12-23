@@ -655,6 +655,57 @@ const getAllEnquiryBookingById = async (id) => {
   });
 };
 
+const assignTechnicianToVisit = async ({
+  visitId,
+  technicianId,
+  scheduledDate,
+  status,
+}) => {
+  const visit = await SubscriptionVisit.findByPk(visitId, {
+    include: [{ model: Service, attributes: ["title"] }],
+  });
+
+  if (!visit) {
+    const error = new Error("Visit not found");
+    error.status = 404;
+    throw error;
+  }
+
+  // Block if visit is completed
+  if (visit.status === "completed") {
+    const error = new Error("Cannot assign technician to a completed visit");
+    error.status = 400;
+    throw error;
+  }
+
+  // Validate technician exists
+  const technician = await User.findByPk(technicianId);
+  if (!technician) {
+    const error = new Error("Technician not found");
+    error.status = 404;
+    throw error;
+  }
+
+  // Update fields
+  const updateData = { technician_id: technicianId };
+
+  if (scheduledDate) updateData.scheduled_date = scheduledDate;
+  if (status) {
+    if (status === "completed") {
+      const error = new Error("Cannot manually set status to completed");
+      error.status = 400;
+      throw error;
+    }
+    updateData.status = status;
+  }
+
+  await visit.update(updateData);
+
+  await visit.reload(); // refresh data
+
+  return visit;
+};
+
 module.exports = {
   upsertEnquiry,
   upsertEmergency,
@@ -667,4 +718,5 @@ module.exports = {
   getEmergencyBookingById,
   getAllEnquiryBookingById,
   getSubscriptionById,
+  assignTechnicianToVisit,
 };

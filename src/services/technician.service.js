@@ -111,7 +111,15 @@ const upsertTechnician = async (data) => {
   }
 };
 
-const getAllTechnicians = async (page = 1, limit = 10, search = "") => {
+const getAllTechnicians = async (
+  page = 1,
+  limit = 10,
+  search = "",
+  exclude
+) => {
+  if (exclude === "true") {
+    where.service_type = { [Op.ne]: "enquiry" };
+  }
   const offset = (page - 1) * limit;
   const where = { role: "technician", deletedAt: null };
   if (search) {
