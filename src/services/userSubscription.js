@@ -89,7 +89,6 @@ const createSubscription = async (data) => {
     payment_status: "pending",
   });
 
-
   const existingSubscriptions = await UserSubscription.findAll({
     where: {
       user_id: user_id,
