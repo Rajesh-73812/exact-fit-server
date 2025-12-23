@@ -177,8 +177,8 @@ const assignTechnician = async (req, res) => {
     const result = await bookingService.assignTechnicianToVisit({
       visitId: visit_id,
       technicianId: technician_id,
-      scheduledDate: scheduled_date, // optional
-      status: status,                 // optional
+      scheduledDate: scheduled_date,
+      status: status,
     });
 
     return res.json({

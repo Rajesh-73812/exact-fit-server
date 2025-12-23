@@ -43,6 +43,6 @@ router.post(
   endPoints["a-booking"].assignTechnician,
   // middleware.authMiddleware,
   bookingController.assignTechnician
-)
+);
 
 module.exports = router;

@@ -655,7 +655,12 @@ const getAllEnquiryBookingById = async (id) => {
   });
 };
 
-const assignTechnicianToVisit = async ({ visitId, technicianId, scheduledDate, status }) => {
+const assignTechnicianToVisit = async ({
+  visitId,
+  technicianId,
+  scheduledDate,
+  status,
+}) => {
   const visit = await SubscriptionVisit.findByPk(visitId, {
     include: [{ model: Service, attributes: ["title"] }],
   });
@@ -713,5 +718,5 @@ module.exports = {
   getEmergencyBookingById,
   getAllEnquiryBookingById,
   getSubscriptionById,
-  assignTechnicianToVisit
+  assignTechnicianToVisit,
 };

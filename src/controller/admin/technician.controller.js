@@ -117,7 +117,7 @@ const getAllTechnicians = async (req, res) => {
         pageNum,
         limitNum,
         search,
-        exclude
+        exclude,
       });
 
     return res.status(200).json({
