@@ -12,6 +12,7 @@ const SubscriptionVisit = require("../models/SubscriptionVisit");
 const NotificationRecipeient = require("../models/notification_recipeient");
 const Notification = require("../models/notification");
 const PlanSubService = require("../models/planSubService");
+const Booking = require("../models/booking");
 
 // In models/index.js or after model definitions
 User.hasMany(Address, {
@@ -122,6 +123,9 @@ SubService.hasMany(UserSubscriptionCustom, {
   foreignKey: "subservice_id",
   as: "custom_items",
 });
+
+Booking.belongsTo(Address, { foreignKey: "address_id", as: "address" });
+Address.hasOne(Booking, { foreignKey: "address_id", as: "booking" });
 
 module.exports = {
   sequelize,
