@@ -447,7 +447,7 @@ const getUserById = async (userId) => {
       {
         model: UserSubscription,
         as: "subscriptions",
-        where: { status: "active"},
+        where: { status: "active" },
         attributes: {
           exclude: ["createdAt", "updatedAt", "deletedAt", "plan_snapshot"],
         },
