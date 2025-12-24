@@ -432,6 +432,7 @@ const getSubscriptionById = async (subscriptionId) => {
         model: SubscriptionVisit,
         as: "visits",
         attributes: [
+          "id",
           "subservice_id",
           "address_id",
           "scheduled_date",
@@ -507,6 +508,7 @@ const getSubscriptionById = async (subscriptionId) => {
     subscriptionType: isCustom ? "custom" : "plan",
     subscriptionPlanName: s.subscription_plan?.name || null,
     subscriptionPlanDescription: s.subscription_plan?.description || null,
+    visits: [],
   };
 
   /* ---------------- CUSTOM SUBSCRIPTION ---------------- */
@@ -523,7 +525,16 @@ const getSubscriptionById = async (subscriptionId) => {
       })),
     };
 
-    response.visits = s.visits && s.visits.length > 0 ? s.visits : [];
+    // response.visits = s.visits && s.visits.length > 0 ? s.visits : [];
+    response.visits = (s.visits || []).map((v) => ({
+      id: v.id, // ✅
+      subservice_id: v.subservice_id,
+      scheduled_date: v.scheduled_date,
+      actual_date: v.actual_date,
+      status: v.status,
+      visit_number: v.visit_number,
+      technician_id: v.technician_id,
+    }));
     return response;
   }
 
@@ -542,10 +553,12 @@ const getSubscriptionById = async (subscriptionId) => {
         service_description: service.description,
         visit_count: ps.visit_count,
         scheduled_visits: scheduledVisits.map((v) => ({
+          id: v.id,
           scheduled_date: v.scheduled_date,
           actual_date: v.actual_date,
           status: v.status,
           visit_number: v.visit_number,
+          technician_id: v.technician_id,
           technician_assigned: !!v.technician_id,
         })),
       };
@@ -662,7 +675,7 @@ const assignTechnicianToVisit = async ({
   status,
 }) => {
   const visit = await SubscriptionVisit.findByPk(visitId, {
-    include: [{ model: Service, attributes: ["title"] }],
+    include: [{ model: Service, as: "service", attributes: ["title"] }],
   });
 
   if (!visit) {
