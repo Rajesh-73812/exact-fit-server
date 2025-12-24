@@ -3,7 +3,7 @@ const Notification = require("../models/notification");
 
 const getAll = async (user_id) => {
   return await Notification.findAll({
-    where: { user_id, is_read: true },
+    where: { user_id, is_read: false },
     attributes: ["title", "description", "createdAt"],
     order: [["createdAt", "DESC"]],
   });
