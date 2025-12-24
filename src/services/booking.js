@@ -167,7 +167,8 @@ const getAllEmergency = async (
   user_id,
   page = 1,
   pageSize = 10,
-  search = ""
+  search = "",
+  filter = "all"
 ) => {
   try {
     const offset = (page - 1) * pageSize;
@@ -177,6 +178,13 @@ const getAllEmergency = async (
       booking_type: "emergency",
     };
 
+    if (filter === "active") {
+      whereClause.status = { [Op.ne]: "completed" };
+    } else if (filter === "completed") {
+      whereClause.status = "completed";
+    } else if (filter === "pending") {
+      whereClause.status = "pending";
+    }
     if (search) {
       whereClause[Op.or] = [
         { fullname: { [Op.iLike]: `%${search}%` } },
@@ -205,7 +213,13 @@ const getAllEmergency = async (
   }
 };
 
-const getAllEnquiry = async (user_id, page = 1, pageSize = 10, search = "") => {
+const getAllEnquiry = async (
+  user_id,
+  page = 1,
+  pageSize = 10,
+  search = "",
+  filter = ""
+) => {
   try {
     const offset = (page - 1) * pageSize;
     const limit = pageSize;
@@ -213,6 +227,10 @@ const getAllEnquiry = async (user_id, page = 1, pageSize = 10, search = "") => {
       user_id: user_id,
       booking_type: "enquiry",
     };
+
+    if (filter) {
+      whereClause.status = filter;
+    }
 
     if (search) {
       whereClause[Op.or] = [
