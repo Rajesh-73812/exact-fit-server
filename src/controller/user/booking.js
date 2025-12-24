@@ -88,17 +88,26 @@ const upsertEmergency = async (req, res) => {
 
 const getAllEnquiry = async (req, res) => {
   const user_id = req.user.id;
-  const { pageNumber = 1, size = 10, search = "" } = req.query;
+  const { pageNumber = 1, size = 10, search = "", filter = "" } = req.query;
   console.log(req.query, "22222222222222222222222222222");
   const page = Number(pageNumber) || 1;
   const pageSize = Number(size) || 10;
   console.log(typeof page, typeof pageSize, "11111111111111111111111111111");
+  const allowedFilters = ["pending", "active", "cancelled", "completed"];
+  if (filter && !allowedFilters.includes(filter)) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Invalid filter status. You should pass one of the following values: 'pending', 'active', 'cancelled', 'completed'.",
+    });
+  }
   try {
     const result = await bookingService.getAllEnquiry(
       user_id,
       page,
       pageSize,
-      search
+      search,
+      filter
     );
     return res.status(200).json({
       success: true,
@@ -124,17 +133,31 @@ const getAllEmergency = async (req, res) => {
   const user_id = req.user.id;
 
   // 👇 req.query values are strings → explicitly cast
-  const { page = "1", pageSize = "10", search = "" } = req.query;
+  const {
+    page = "1",
+    pageSize = "10",
+    search = "",
+    filter = "all",
+  } = req.query;
 
   const pageNumber = Number(page) || 1;
   const size = Number(pageSize) || 10;
+  const validFilters = ["all", "active", "pending", "completed"];
+  if (!validFilters.includes(filter)) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Invalid filter. Allowed values are 'all', 'active', 'pending', or 'completed'.",
+    });
+  }
 
   try {
     const result = await bookingService.getAllEmergency(
       user_id,
       pageNumber,
       size,
-      search
+      search,
+      filter
     );
 
     return res.status(200).json({
