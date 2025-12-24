@@ -8,5 +8,10 @@ router.get(
   middleware.authMiddleware,
   notificationController.getAllNotifications
 );
+router.patch(
+  endPoints["u-notification"].clearAllNotifications,
+  middleware.authMiddleware,
+  notificationController.clearAllNotifications
+);
 
 module.exports = router;

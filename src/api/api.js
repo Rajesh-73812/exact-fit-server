@@ -150,6 +150,7 @@ const endPoints = {
   },
   "u-notification": {
     getAllNotifications: `/${VERSION}/get-all-notifications`,
+    clearAllNotifications: `/${VERSION}/clear-all-notifications`,
   },
 
   //for technician

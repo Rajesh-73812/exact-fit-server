@@ -26,6 +26,7 @@ const clrearNotification = async (user_id, notification_ids) => {
     throw new Error("Failed to clear notifications. Please try again later.");
   }
 };
+
 module.exports = {
   getAll,
   clrearNotification,
