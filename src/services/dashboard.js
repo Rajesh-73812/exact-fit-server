@@ -4,6 +4,8 @@ const Service = require("../models/service");
 const { Op, Sequelize } = require("sequelize");
 const Address = require("../models/address");
 const SubService = require("../models/sub-service");
+const moment = require("moment");
+const SubscriptionVisit = require("../models/SubscriptionVisit");
 
 const getUserTechnicianCounts = async () => {
   const currentDate = new Date();
@@ -318,10 +320,46 @@ const getTechnicianAddress = async (user_id) => {
 };
 
 const getTechnicianDashBoard = async (user_id) => {
-  return user_id;
+  try {
+    const today = moment().format("YYYY-MM-DD");
+
+    const assignedWork = await SubscriptionVisit.findAll({
+      where: {
+        technician_id: user_id,
+        scheduled_date: today,
+        status: {
+          [Op.ne]: "cancelled",
+        },
+      },
+    });
+
+    const completedServices = await SubscriptionVisit.count({
+      where: {
+        technician_id: user_id,
+        actual_date: today,
+        status: "completed",
+      },
+    });
+
+    const activeServices = await SubscriptionVisit.findAll({
+      where: {
+        technician_id: user_id,
+        status: {
+          [Op.or]: ["scheduled", "in_progress"],
+        },
+      },
+    });
+
+    return {
+      assignedWork: assignedWork,
+      completedServices: completedServices,
+      activeServices: activeServices,
+    };
+  } catch (error) {
+    console.error("Error fetching technician dashboard data:", error);
+  }
 };
 
-// const getDashboardStats = async(userId) => {}
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,

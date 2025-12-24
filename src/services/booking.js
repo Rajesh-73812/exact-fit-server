@@ -167,7 +167,8 @@ const getAllEmergency = async (
   user_id,
   page = 1,
   pageSize = 10,
-  search = ""
+  search = "",
+  filter = "all"
 ) => {
   try {
     const offset = (page - 1) * pageSize;
@@ -177,6 +178,13 @@ const getAllEmergency = async (
       booking_type: "emergency",
     };
 
+    if (filter === "active") {
+      whereClause.status = { [Op.ne]: "completed" };
+    } else if (filter === "completed") {
+      whereClause.status = "completed";
+    } else if (filter === "pending") {
+      whereClause.status = "pending";
+    }
     if (search) {
       whereClause[Op.or] = [
         { fullname: { [Op.iLike]: `%${search}%` } },
@@ -205,7 +213,13 @@ const getAllEmergency = async (
   }
 };
 
-const getAllEnquiry = async (user_id, page = 1, pageSize = 10, search = "") => {
+const getAllEnquiry = async (
+  user_id,
+  page = 1,
+  pageSize = 10,
+  search = "",
+  filter = ""
+) => {
   try {
     const offset = (page - 1) * pageSize;
     const limit = pageSize;
@@ -213,6 +227,10 @@ const getAllEnquiry = async (user_id, page = 1, pageSize = 10, search = "") => {
       user_id: user_id,
       booking_type: "enquiry",
     };
+
+    if (filter) {
+      whereClause.status = filter;
+    }
 
     if (search) {
       whereClause[Op.or] = [
@@ -249,6 +267,13 @@ const getServiceById = async ({ user_id, id, type }) => {
         id: id,
         user_id: user_id,
       },
+      include: [
+        {
+          model: Address,
+          as: "address",
+          required: false,
+        },
+      ],
     };
 
     if (type) {
@@ -256,7 +281,7 @@ const getServiceById = async ({ user_id, id, type }) => {
     }
 
     const booking = await Booking.findOne(condition);
-
+    console.log(booking, "book");
     if (!booking) {
       return null;
     }
@@ -275,6 +300,14 @@ const getServiceById = async ({ user_id, id, type }) => {
       plan_images: booking.plan_images,
       estimated_budget_range: booking.estimated_budget_range,
       description: booking.description,
+      emirate: booking.address.emirate,
+      building: booking.address.building,
+      area: booking.address.area,
+      appartment: booking.address.appartment,
+      addtional_address: booking.address.addtional_address,
+      location: booking.address.location,
+      latitude: booking.address.latitude,
+      longitude: booking.address.longitude,
     };
   } catch (error) {
     console.error("Error in getServiceById:", error);
@@ -432,6 +465,7 @@ const getSubscriptionById = async (subscriptionId) => {
         model: SubscriptionVisit,
         as: "visits",
         attributes: [
+          "id",
           "subservice_id",
           "address_id",
           "scheduled_date",
@@ -507,6 +541,7 @@ const getSubscriptionById = async (subscriptionId) => {
     subscriptionType: isCustom ? "custom" : "plan",
     subscriptionPlanName: s.subscription_plan?.name || null,
     subscriptionPlanDescription: s.subscription_plan?.description || null,
+    visits: [],
   };
 
   /* ---------------- CUSTOM SUBSCRIPTION ---------------- */
@@ -523,7 +558,16 @@ const getSubscriptionById = async (subscriptionId) => {
       })),
     };
 
-    response.visits = s.visits && s.visits.length > 0 ? s.visits : [];
+    // response.visits = s.visits && s.visits.length > 0 ? s.visits : [];
+    response.visits = (s.visits || []).map((v) => ({
+      id: v.id, // ✅
+      subservice_id: v.subservice_id,
+      scheduled_date: v.scheduled_date,
+      actual_date: v.actual_date,
+      status: v.status,
+      visit_number: v.visit_number,
+      technician_id: v.technician_id,
+    }));
     return response;
   }
 
@@ -542,10 +586,12 @@ const getSubscriptionById = async (subscriptionId) => {
         service_description: service.description,
         visit_count: ps.visit_count,
         scheduled_visits: scheduledVisits.map((v) => ({
+          id: v.id,
           scheduled_date: v.scheduled_date,
           actual_date: v.actual_date,
           status: v.status,
           visit_number: v.visit_number,
+          technician_id: v.technician_id,
           technician_assigned: !!v.technician_id,
         })),
       };
@@ -655,9 +701,14 @@ const getAllEnquiryBookingById = async (id) => {
   });
 };
 
-const assignTechnicianToVisit = async ({ visitId, technicianId, scheduledDate, status }) => {
+const assignTechnicianToVisit = async ({
+  visitId,
+  technicianId,
+  scheduledDate,
+  status,
+}) => {
   const visit = await SubscriptionVisit.findByPk(visitId, {
-    include: [{ model: Service, attributes: ["title"] }],
+    include: [{ model: Service, as: "service", attributes: ["title"] }],
   });
 
   if (!visit) {
@@ -713,5 +764,5 @@ module.exports = {
   getEmergencyBookingById,
   getAllEnquiryBookingById,
   getSubscriptionById,
-  assignTechnicianToVisit
+  assignTechnicianToVisit,
 };

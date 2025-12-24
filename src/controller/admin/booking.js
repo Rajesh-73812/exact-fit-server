@@ -157,6 +157,8 @@ const assignTechnician = async (req, res) => {
   try {
     const { visit_id } = req.params;
     const { technician_id, scheduled_date, status } = req.body;
+    console.log("assign technician.......", req.body);
+    console.log("PARAMS.......", req.params);
 
     // Validate visit_id
     if (!visit_id) {
@@ -178,7 +180,7 @@ const assignTechnician = async (req, res) => {
       visitId: visit_id,
       technicianId: technician_id,
       scheduledDate: scheduled_date, // optional
-      status: status,                 // optional
+      status: status, // optional
     });
 
     return res.json({

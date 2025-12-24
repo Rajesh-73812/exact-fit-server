@@ -16,14 +16,22 @@ const SubscriptionVisit = sequelize.define(
     user_subscription_id: {
       type: DataTypes.UUID,
       allowNull: false,
-      index: true, 
+      index: true,
+      validate: {
+        isUUID: 4,
+      },
+    },
+    service_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      index: true,
       validate: {
         isUUID: 4,
       },
     },
     subservice_id: {
       type: DataTypes.UUID,
-      allowNull: true, 
+      allowNull: true,
       index: true,
       validate: {
         isUUID: 4,
@@ -31,7 +39,7 @@ const SubscriptionVisit = sequelize.define(
     },
     address_id: {
       type: DataTypes.UUID,
-      allowNull: true, 
+      allowNull: true,
       validate: {
         isUUID: 4,
       },
@@ -45,7 +53,7 @@ const SubscriptionVisit = sequelize.define(
     },
     actual_date: {
       type: DataTypes.DATE,
-      allowNull: true, 
+      allowNull: true,
       validate: {
         isDate: { msg: "Actual date must be a valid date" },
       },
@@ -53,17 +61,17 @@ const SubscriptionVisit = sequelize.define(
     status: {
       type: DataTypes.ENUM(
         "scheduled",
-        "pending", 
+        "pending",
         "in_progress",
-        "completed", 
-        "cancelled" 
+        "completed",
+        "cancelled"
       ),
       allowNull: false,
       defaultValue: "scheduled",
     },
     technician_id: {
       type: DataTypes.UUID,
-      allowNull: true, 
+      allowNull: true,
       index: true,
       validate: {
         isUUID: 4,
