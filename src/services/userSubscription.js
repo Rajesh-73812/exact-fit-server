@@ -10,7 +10,12 @@ const planSubService = require("../models/planSubService");
 const Service = require("../models/service");
 const SubService = require("../models/sub-service");
 const sequelize = require("../config/db");
+const {
+  sendInAppNotification,
+  createNotification,
+} = require("../helper/notification");
 // const { Op } = require("sequelize");
+const notification = require("../config/notifications.json");
 
 const createSubscription = async (data) => {
   const {
@@ -96,7 +101,19 @@ const createSubscription = async (data) => {
       await sub.update({ status: "inactive" });
     }
   }
+  // send notification
+  await sendInAppNotification(
+    user.onesignal_id,
+    notification.subscription_activated.title,
+    notification.subscription_activated.message,
+    user.role
+  );
 
+  await createNotification(
+    user.id,
+    notification.subscription_activated.title,
+    notification.subscription_activated.message
+  );
   return subscription;
 };
 

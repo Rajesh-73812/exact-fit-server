@@ -148,6 +148,9 @@ const endPoints = {
   contactus: {
     createContactus: `/${VERSION}/create-contactus`,
   },
+  "u-notification": {
+    getAllNotifications: `/${VERSION}/get-all-notifications`,
+  },
 
   //for technician
   technician: {

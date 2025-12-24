@@ -249,6 +249,13 @@ const getServiceById = async ({ user_id, id, type }) => {
         id: id,
         user_id: user_id,
       },
+      include: [
+        {
+          model: Address,
+          as: "address",
+          required: false,
+        },
+      ],
     };
 
     if (type) {
@@ -256,7 +263,7 @@ const getServiceById = async ({ user_id, id, type }) => {
     }
 
     const booking = await Booking.findOne(condition);
-
+    console.log(booking, "book");
     if (!booking) {
       return null;
     }
@@ -275,6 +282,14 @@ const getServiceById = async ({ user_id, id, type }) => {
       plan_images: booking.plan_images,
       estimated_budget_range: booking.estimated_budget_range,
       description: booking.description,
+      emirate: booking.address.emirate,
+      building: booking.address.building,
+      area: booking.address.area,
+      appartment: booking.address.appartment,
+      addtional_address: booking.address.addtional_address,
+      location: booking.address.location,
+      latitude: booking.address.latitude,
+      longitude: booking.address.longitude,
     };
   } catch (error) {
     console.error("Error in getServiceById:", error);
