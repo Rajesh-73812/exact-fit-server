@@ -147,6 +147,16 @@ User.hasMany(SubscriptionVisit, {
 Booking.belongsTo(Address, { foreignKey: "address_id", as: "address" });
 Address.hasOne(Booking, { foreignKey: "address_id", as: "booking" });
 
+SubService.hasMany(SubscriptionVisit, {
+  foreignKey: "subservice_id",
+  as: "subscription_visits",
+  onDelete: "SET NULL",
+});
+SubscriptionVisit.belongsTo(SubService, {
+  foreignKey: "subservice_id",
+  as: "subservice",
+});
+
 module.exports = {
   sequelize,
   User,
