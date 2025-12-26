@@ -320,13 +320,13 @@ const getAllSubscriptionBooking = async (opts = {}) => {
   const limit = Math.min(parseInt(opts.limit || 10), 200);
   const offset = parseInt(opts.offset || 0, 10);
   const status = opts.status;
-  const where = { status: "active" }; // No user_id, just filter by active status
+  const where = { status: "active" };
 
-  if (status) where.status = status; // If a specific status is provided, use it.
+  if (status) where.status = status;
 
   const { count, rows } = await UserSubscription.findAndCountAll({
     where,
-    order: [["createdAt", "DESC"]], // Order by the latest subscription first
+    order: [["createdAt", "DESC"]],
     limit,
     offset,
     include: [
@@ -341,7 +341,7 @@ const getAllSubscriptionBooking = async (opts = {}) => {
           "status",
           "visit_number",
         ],
-        required: false, // Include visits even if there are no visits
+        required: false,
       },
       {
         model: SubscriptionPlan,
@@ -576,9 +576,9 @@ const getSubscriptionById = async (subscriptionId) => {
     response.visits = s.subscription_plan.planSubServices.map((ps) => {
       const service = ps.service || {};
 
-      const scheduledVisits = (s.visits || []).filter(
-        (v) => v.subservice_id === service.id
-      );
+      const scheduledVisits = s.visits
+        .filter((visit) => visit.subservice_id === service.id)
+        .sort((a, b) => a.visit_number - b.visit_number);
 
       return {
         service_id: service.id,
@@ -717,14 +717,12 @@ const assignTechnicianToVisit = async ({
     throw error;
   }
 
-  // Block if visit is completed
   if (visit.status === "completed") {
     const error = new Error("Cannot assign technician to a completed visit");
     error.status = 400;
     throw error;
   }
 
-  // Validate technician exists
   const technician = await User.findByPk(technicianId);
   if (!technician) {
     const error = new Error("Technician not found");
@@ -732,7 +730,6 @@ const assignTechnicianToVisit = async ({
     throw error;
   }
 
-  // Update fields
   const updateData = { technician_id: technicianId };
 
   if (scheduledDate) updateData.scheduled_date = scheduledDate;
@@ -747,7 +744,7 @@ const assignTechnicianToVisit = async ({
 
   await visit.update(updateData);
 
-  await visit.reload(); // refresh data
+  await visit.reload();
 
   return visit;
 };
