@@ -323,17 +323,19 @@ const getTechnicianDashBoard = async (user_id) => {
   try {
     const today = moment().format("YYYY-MM-DD");
 
+    // Get assigned work for the technician
     const assignedWork = await SubscriptionVisit.findAll({
       where: {
         technician_id: user_id,
         scheduled_date: today,
         status: {
-          [Op.ne]: "cancelled",
+          [Op.ne]: "cancelled", // Exclude cancelled visits
         },
       },
     });
 
-    const completedServices = await SubscriptionVisit.count({
+    // Get the count of completed services for the technician
+    const completedServicesCount = await SubscriptionVisit.count({
       where: {
         technician_id: user_id,
         actual_date: today,
@@ -341,22 +343,39 @@ const getTechnicianDashBoard = async (user_id) => {
       },
     });
 
-    const activeServices = await SubscriptionVisit.findAll({
+    // Get the count of active services for the technician
+    const activeServicesCount = await SubscriptionVisit.count({
       where: {
         technician_id: user_id,
         status: {
-          [Op.or]: ["scheduled", "in_progress"],
+          [Op.or]: ["scheduled", "in_progress"], // Services that are scheduled or in progress
         },
       },
     });
 
+    // Return the data in the requested format
     return {
-      assignedWork: assignedWork,
-      completedServices: completedServices,
-      activeServices: activeServices,
+      success: true,
+      message: "Dashboard data fetched successfully",
+      data: [
+        {
+          assignedWork: assignedWork, // Array of assigned work objects
+        },
+        {
+          completedServices: completedServicesCount, // Count of completed services
+        },
+        {
+          activeServices: activeServicesCount, // Count of active services
+        },
+      ],
     };
   } catch (error) {
     console.error("Error fetching technician dashboard data:", error);
+    return {
+      success: false,
+      message: "Error fetching data",
+      data: [],
+    };
   }
 };
 
