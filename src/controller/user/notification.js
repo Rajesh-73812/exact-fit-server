@@ -20,19 +20,9 @@ const getAllNotifications = async (req, res) => {
 
 const clearAllNotifications = async (req, res) => {
   const user_id = req.user?.id || null;
-  const notification_ids = req.body.notification_ids || [];
 
-  if (!notification_ids.length) {
-    return res.status(400).json({
-      success: false,
-      message: "Notification IDs are required",
-    });
-  }
   try {
-    const results = await notificationService.clrearNotification(
-      user_id,
-      notification_ids
-    );
+    const results = await notificationService.clrearNotification(user_id);
     return res.status(200).json({
       success: true,
       message: "Notfication cleared successfully",
