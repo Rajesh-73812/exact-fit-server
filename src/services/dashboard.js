@@ -327,13 +327,37 @@ const getTechnicianDashBoard = async (user_id) => {
     const assignedWork = await SubscriptionVisit.findAll({
       where: {
         technician_id: user_id,
-        scheduled_date: today,
+        // scheduled_date: today,
         status: {
-          [Op.ne]: "cancelled", // Exclude cancelled visits
+          [Op.ne]: "cancelled",
         },
       },
+      attributes: [
+        "scheduled_date",
+        "subservice_id",
+        "status",
+        "notes",
+        "visit_number",
+        "address_id",
+        "createdAt",
+      ],
+      include: [
+        {
+          model: SubService,
+          as: "subservice",
+          attributes: ["id", "title", "service_id"],
+          include: [
+            {
+              model: Service,
+              as: "service",
+              attributes: ["id", "title", "description"],
+            },
+          ],
+        },
+      ],
     });
 
+    console.log(assignedWork, "lllllllllllll");
     // Get the count of completed services for the technician
     const completedServicesCount = await SubscriptionVisit.count({
       where: {
