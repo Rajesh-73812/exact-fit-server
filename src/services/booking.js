@@ -305,6 +305,7 @@ const getServiceById = async ({ user_id, id, type }) => {
       area: booking.address.area,
       appartment: booking.address.appartment,
       addtional_address: booking.address.addtional_address,
+      save_as_address_type: booking.address.save_as_address_type,
       location: booking.address.location,
       latitude: booking.address.latitude,
       longitude: booking.address.longitude,
