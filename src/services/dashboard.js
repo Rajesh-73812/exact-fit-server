@@ -355,6 +355,7 @@ const getTechnicianDashBoard = async (user_id) => {
           ],
         },
       ],
+      logging: console.log,
     });
 
     console.log(assignedWork, "lllllllllllll");
