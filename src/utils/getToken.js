@@ -4,13 +4,20 @@ const jwt = require("jsonwebtoken");
 
 /**
  * Generates JWT Token
- * @param {Object} payload - Data to encode into the token (user details).
- * @returns {String} - JWT Token
+ * @param {Object} payload
  */
-const generateToken = (payload) => {
-  return jwt.sign(payload, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRATION_TIME,
-  });
+const generateToken = ({ id, role, permissions = [] }) => {
+  return jwt.sign(
+    {
+      id,
+      role, // ✅ GUARANTEED
+      permissions, // ✅ GUARANTEED
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRATION_TIME || "1d",
+    }
+  );
 };
 
 module.exports = generateToken;

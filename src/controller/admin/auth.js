@@ -113,12 +113,23 @@ const login = async (req, res) => {
         .json({ success: false, message: "Invalid credentials" });
     }
 
-    const token = await generateToken({ id: user.id, role: user.role });
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      data: { email: user.email, token: token },
-    });
+    const token = await generateToken({
+  id: user.id,
+  role: user.role,
+  permissions: user.permissions,
+});
+
+res.status(200).json({
+  success: true,
+  message: "Login successful",
+  data: {
+    email: user.email,
+    role: user.role,
+    token,
+    permissions: user.permissions,
+  },
+});
+
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });

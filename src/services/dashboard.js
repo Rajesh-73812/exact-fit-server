@@ -208,6 +208,7 @@ const getAllServices = async (options = {}) => {
             "title",
             "sub_service_slug",
             "price",
+            "image_url",
             "discount",
             "status",
             "createdAt",

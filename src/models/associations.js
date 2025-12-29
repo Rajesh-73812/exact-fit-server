@@ -13,6 +13,10 @@ const NotificationRecipeient = require("../models/notification_recipeient");
 const Notification = require("../models/notification");
 const PlanSubService = require("../models/planSubService");
 const Booking = require("../models/booking");
+const Role = require("./role");
+const Permission = require("./permission");
+const RolePermission = require("./rolepermission");
+const AdminRole = require("./adminrole");
 
 // In models/index.js or after model definitions
 User.hasMany(Address, {
@@ -147,6 +151,26 @@ User.hasMany(SubscriptionVisit, {
 Booking.belongsTo(Address, { foreignKey: "address_id", as: "address" });
 Address.hasOne(Booking, { foreignKey: "address_id", as: "booking" });
 
+User.belongsToMany(Role, {
+  through: AdminRole,
+  foreignKey: "admin_id",
+});
+
+Role.belongsToMany(User, {
+  through: AdminRole,
+  foreignKey: "role_id",
+});
+
+Role.belongsToMany(Permission, {
+  through: RolePermission,
+  foreignKey: "role_id",
+});
+
+Permission.belongsToMany(Role, {
+  through: RolePermission,
+  foreignKey: "permission_id",
+});
+
 module.exports = {
   sequelize,
   User,
@@ -159,4 +183,8 @@ module.exports = {
   UserSubscription,
   NotificationRecipeient,
   Notification,
+  Role,
+  Permission,
+  RolePermission,
+  AdminRole,
 };
