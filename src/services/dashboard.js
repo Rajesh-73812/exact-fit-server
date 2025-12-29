@@ -355,6 +355,7 @@ const getAllServices = async (options = {}) => {
           "sub_service_slug",
           "price",
           "discount",
+          "image_url",
           "status",
           "createdAt",
         ],
