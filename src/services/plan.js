@@ -222,7 +222,7 @@ const getAllPlanFetchByUser = async ({
   // user_id,
   category,
   search,
-  page ,
+  page,
   limit,
 }) => {
   const where = {};
@@ -288,14 +288,19 @@ const getAllPlanFetchByUser = async ({
 
 const getPlanBySlug = async (slug) => {
   try {
-    const plan = await subscriptionPlan.findOne({ where: { slug } , include:{
-    model: PlanService,
-    as: "planSubServices",
-    // where: { deletedAt: null },
-    required: false,
-    attributes: ["id", "service_id", "visit_count"],
-    include: [{ model: Service, as:"service", attributes: ["id", "title"] }],
-    }});
+    const plan = await subscriptionPlan.findOne({
+      where: { slug },
+      include: {
+        model: PlanService,
+        as: "planSubServices",
+        // where: { deletedAt: null },
+        required: false,
+        attributes: ["id", "service_id", "visit_count"],
+        include: [
+          { model: Service, as: "service", attributes: ["id", "title"] },
+        ],
+      },
+    });
     if (!plan) {
       return null;
     }

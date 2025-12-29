@@ -164,7 +164,7 @@ const endPoints = {
     removeOneSignal: `/${VERSION}/remove-onesignal-id`,
   },
   "technician-dashboard": {
-    dashboard: `/${VERSION}/dashboard`,
+    dashboard: `/${VERSION}/get-all-homedata`,
   },
 };
 // console.log('API Version:', VERSION);

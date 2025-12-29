@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+// const { Op } = require("sequelize");
 const Notification = require("../models/notification");
 
 const getAll = async (user_id) => {
@@ -16,11 +16,10 @@ const clrearNotification = async (user_id, notification_ids) => {
       {
         where: {
           user_id,
-          id: { [Op.in]: notification_ids },
+          is_read: false,
         },
       }
     );
-    console.log(`${notification_ids.length} notifications marked as read`);
   } catch (error) {
     console.error("Error clearing notifications:", error);
     throw new Error("Failed to clear notifications. Please try again later.");

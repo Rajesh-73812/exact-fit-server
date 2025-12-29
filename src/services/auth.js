@@ -51,7 +51,6 @@ const registerAdmin = async ({
     });
 
     await AdminRole.destroy({ where: { admin_id: id } });
-
   } else {
     admin = await User.create({
       email,
@@ -121,7 +120,6 @@ const checkUserExists = async (email) => {
     permissions: [...new Set(permissions)],
   };
 };
-
 
 const getAdminById = async (id) => {
   const admin = await User.findByPk(id, {

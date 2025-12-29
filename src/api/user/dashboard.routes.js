@@ -31,4 +31,10 @@ router.get(
   middleware.authMiddleware,
   dashboardController.getTechnicianAddress
 );
+router.get(
+  endPoints["technician-dashboard"].dashboard,
+  middleware.authMiddleware,
+  dashboardController.getTechnicianDashBoard
+);
+
 module.exports = router;

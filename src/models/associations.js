@@ -129,6 +129,16 @@ SubService.hasMany(UserSubscriptionCustom, {
 });
 
 // association between Service and SubscriptionVisit
+SubService.hasMany(SubscriptionVisit, {
+  foreignKey: "subservice_id",
+  as: "subscription_visits",
+  onDelete: "SET NULL",
+});
+SubscriptionVisit.belongsTo(SubService, {
+  foreignKey: "subservice_id",
+  as: "subservice",
+});
+
 Service.hasMany(SubscriptionVisit, {
   foreignKey: "service_id",
   as: "subscriptionVisits",
