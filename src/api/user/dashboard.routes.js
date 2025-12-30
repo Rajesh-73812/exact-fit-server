@@ -43,4 +43,15 @@ router.patch(
   dashboardController.acceptRequest
 );
 
+router.get(
+  endPoints["technician-dashboard"].getAllEmergencyBookings,
+  middleware.authMiddleware,
+  dashboardController.getAllEmergencyBookings
+);
+
+router.patch(
+  endPoints["technician-dashboard"].acceptEmergencyRequest,
+  middleware.authMiddleware,
+  dashboardController.acceptEmergencyRequest
+);
 module.exports = router;
