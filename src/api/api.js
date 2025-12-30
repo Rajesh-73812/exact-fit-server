@@ -165,6 +165,7 @@ const endPoints = {
   },
   "technician-dashboard": {
     dashboard: `/${VERSION}/get-all-homedata`,
+    Accept: `/${VERSION}/accept/:id`,
   },
 };
 // console.log('API Version:', VERSION);

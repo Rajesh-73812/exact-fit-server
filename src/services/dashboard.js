@@ -451,13 +451,15 @@ const getTechnicianDashBoard = async (user_id) => {
     // Get assigned work for the technician
     const assignedWork = await SubscriptionVisit.findAll({
       where: {
-        technician_id: user_id,
+        // technician_id: user_id,
         // scheduled_date: today,
         status: {
           [Op.ne]: "cancelled",
         },
       },
       attributes: [
+        "id",
+        "technician_id",
         "scheduled_date",
         "subservice_id",
         "status",
@@ -529,6 +531,31 @@ const getTechnicianDashBoard = async (user_id) => {
   }
 };
 
+const acceptRequest = async (visitId, userId) => {
+  if (!visitId || !userId) {
+    throw new Error("Visit ID and User ID are required");
+  }
+
+  const visit = await SubscriptionVisit.findOne({
+    where: { id: visitId },
+  });
+
+  if (!visit) {
+    throw new Error("Subscription visit not found");
+  }
+
+  if (visit.technician_id) {
+    throw new Error("Request already accepted");
+  }
+
+  await visit.update({
+    technician_id: userId,
+    status: "scheduled",
+  });
+
+  return visit;
+};
+
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,
@@ -538,4 +565,5 @@ module.exports = {
   getSubServicesBySlug,
   getTechnicianAddress,
   getTechnicianDashBoard,
+  acceptRequest,
 };
