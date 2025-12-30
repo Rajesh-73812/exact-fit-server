@@ -169,6 +169,7 @@ const endPoints = {
     Accept: `/${VERSION}/accept/:id`,
     getAllEmergencyBookings: `/${VERSION}/get-all-emergency-bookings`,
     acceptEmergencyRequest: `/${VERSION}/accept-emergency-bookings/:id`,
+    fetchScheduleServices: `/${VERSION}/fetch-scheduled-services`,
   },
 };
 // console.log('API Version:', VERSION);
