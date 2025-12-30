@@ -6,12 +6,7 @@ module.exports = {
      * STEP 1: Expand ENUM to allow BOTH admin & superadmin
      */
     await queryInterface.changeColumn("users", "role", {
-      type: Sequelize.ENUM(
-        "technician",
-        "admin",
-        "superadmin",
-        "customer"
-      ),
+      type: Sequelize.ENUM("technician", "admin", "superadmin", "customer"),
       allowNull: false,
     });
 
@@ -28,11 +23,7 @@ module.exports = {
      * STEP 3: Remove admin from ENUM
      */
     await queryInterface.changeColumn("users", "role", {
-      type: Sequelize.ENUM(
-        "technician",
-        "superadmin",
-        "customer"
-      ),
+      type: Sequelize.ENUM("technician", "superadmin", "customer"),
       allowNull: false,
     });
   },
@@ -42,12 +33,7 @@ module.exports = {
      * STEP 1: Re-add admin
      */
     await queryInterface.changeColumn("users", "role", {
-      type: Sequelize.ENUM(
-        "technician",
-        "admin",
-        "superadmin",
-        "customer"
-      ),
+      type: Sequelize.ENUM("technician", "admin", "superadmin", "customer"),
       allowNull: false,
     });
 
@@ -64,11 +50,7 @@ module.exports = {
      * STEP 3: Remove superadmin
      */
     await queryInterface.changeColumn("users", "role", {
-      type: Sequelize.ENUM(
-        "technician",
-        "admin",
-        "customer"
-      ),
+      type: Sequelize.ENUM("technician", "admin", "customer"),
       allowNull: false,
     });
   },

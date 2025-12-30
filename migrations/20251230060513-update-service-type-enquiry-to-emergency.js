@@ -4,12 +4,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     // 1️⃣ Expand ENUM to allow BOTH values
     await queryInterface.changeColumn("users", "service_type", {
-      type: Sequelize.ENUM(
-        "enquiry",
-        "emergency",
-        "subscription",
-        "both"
-      ),
+      type: Sequelize.ENUM("enquiry", "emergency", "subscription", "both"),
       allowNull: true,
     });
 
@@ -22,11 +17,7 @@ module.exports = {
 
     // 3️⃣ Shrink ENUM (remove enquiry)
     await queryInterface.changeColumn("users", "service_type", {
-      type: Sequelize.ENUM(
-        "emergency",
-        "subscription",
-        "both"
-      ),
+      type: Sequelize.ENUM("emergency", "subscription", "both"),
       allowNull: true,
     });
   },
@@ -34,12 +25,7 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     // 1️⃣ Expand ENUM again
     await queryInterface.changeColumn("users", "service_type", {
-      type: Sequelize.ENUM(
-        "enquiry",
-        "emergency",
-        "subscription",
-        "both"
-      ),
+      type: Sequelize.ENUM("enquiry", "emergency", "subscription", "both"),
       allowNull: true,
     });
 
@@ -52,11 +38,7 @@ module.exports = {
 
     // 3️⃣ Shrink ENUM back
     await queryInterface.changeColumn("users", "service_type", {
-      type: Sequelize.ENUM(
-        "enquiry",
-        "subscription",
-        "both"
-      ),
+      type: Sequelize.ENUM("enquiry", "subscription", "both"),
       allowNull: true,
     });
   },
