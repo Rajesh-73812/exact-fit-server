@@ -22,17 +22,50 @@ const jwt = require("jsonwebtoken");
 //   }
 // };
 
-const authMiddleware = async (req, res, next) => {
-  const authorizationHeader = req.headers.authorization;
+// const authMiddleware = async (req, res, next) => {
+//   const authorizationHeader = req.headers.authorization;
 
-  if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+//   if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+//     return res
+//       .status(401)
+//       .json({ success: false, message: "No token provided" });
+//   }
+
+//   const token = authorizationHeader.substring(7);
+//   console.log(token, "token from authorization header");
+
+//   try {
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+//     req.user = {
+//       id: decoded.id,
+//       role: decoded.role,
+//       permissions:
+//         decoded.role === "superadmin"
+//           ? ["*"] // 🔥 FULL ACCESS
+//           : decoded.permissions || [],
+//     };
+
+//     next();
+//   } catch (error) {
+//     return res.status(401).json({
+//       success: false,
+//       message: "Invalid token",
+//       error: error.message,
+//     });
+//   }
+// };
+
+const authMiddleware = async (req, res, next) => {
+  const auth = req.headers.authorization;
+
+  if (!auth || !auth.startsWith("Bearer ")) {
     return res
       .status(401)
       .json({ success: false, message: "No token provided" });
   }
 
-  const token = authorizationHeader.substring(7);
-  console.log(token, "token from authorization header");
+  const token = auth.slice(7);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -40,19 +73,16 @@ const authMiddleware = async (req, res, next) => {
     req.user = {
       id: decoded.id,
       role: decoded.role,
+      role_name: decoded.role_name,
       permissions:
-        decoded.role === "superadmin"
-          ? ["*"] // 🔥 FULL ACCESS
-          : decoded.permissions || [],
+        decoded.role === "superadmin" ? ["*"] : decoded.permissions || [],
     };
 
     next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid token",
-      error: error.message,
-    });
+  } catch (err) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Invalid token", error: err.message });
   }
 };
 

@@ -15,8 +15,7 @@ const Permission = sequelize.define(
     },
     key: {
       type: DataTypes.STRING,
-      unique: true,
-      allowNull: false, // eg: services:view
+      allowNull: false,
     },
     description: {
       type: DataTypes.STRING,
