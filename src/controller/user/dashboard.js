@@ -171,6 +171,42 @@ const acceptRequest = async (req, res) => {
   }
 };
 
+const getAllScheduleBookings = async (req, res) => {
+  const user_id = req.user?.id;
+  const { filter } = req.query;
+  try {
+    const filterList = [
+      "all",
+      "active",
+      "in_progress",
+      "completed",
+      "upcoming",
+    ];
+
+    if (!filterList.includes(filter)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "filter must be one of all, active, upcoming, in_progress, completed",
+      });
+    }
+
+    const bookings = await dashboardService.getAllBookings(user_id, filterList);
+    return res.status(400).json({
+      success: false,
+      message:
+        "filter must be one of all, active, upcoming, in_progress, completed",
+      data: bookings,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "internal server error",
+    });
+  }
+};
+
 module.exports = {
   getAllServices,
   getDefaultAddress,
@@ -180,4 +216,5 @@ module.exports = {
   getDashboardStats,
   getTechnicianDashBoard,
   acceptRequest,
+  getAllScheduleBookings,
 };

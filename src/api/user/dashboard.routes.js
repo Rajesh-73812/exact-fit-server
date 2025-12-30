@@ -43,4 +43,10 @@ router.patch(
   dashboardController.acceptRequest
 );
 
+router.get(
+  endPoints["technician-dashboard"].getAllScheduleBookings,
+  middleware.authMiddleware,
+  dashboardController.getAllScheduleBookings
+);
+
 module.exports = router;

@@ -556,6 +556,10 @@ const acceptRequest = async (visitId, userId) => {
   return visit;
 };
 
+// const getAllEmergencyBookings = async(id)=>{
+
+// };
+
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,
@@ -566,4 +570,5 @@ module.exports = {
   getTechnicianAddress,
   getTechnicianDashBoard,
   acceptRequest,
+  // getAllEmergencyBookings
 };
