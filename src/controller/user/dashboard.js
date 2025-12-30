@@ -149,6 +149,28 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+const acceptRequest = async (req, res) => {
+  const userId = req.user?.id;
+  const { id } = req.params;
+
+  try {
+    const data = await dashboardService.acceptRequest(id, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Request accepted successfully",
+      data,
+    });
+  } catch (error) {
+    console.error("Accept Request Error:", error.message);
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   getAllServices,
   getDefaultAddress,
@@ -157,4 +179,5 @@ module.exports = {
   getTechnicianAddress,
   getDashboardStats,
   getTechnicianDashBoard,
+  acceptRequest,
 };
