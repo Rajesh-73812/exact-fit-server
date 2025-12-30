@@ -171,31 +171,26 @@ const acceptRequest = async (req, res) => {
   }
 };
 
-const getAllScheduleBookings = async (req, res) => {
+const getAllEmergencyBookings = async (req, res) => {
   const user_id = req.user?.id;
   const { filter } = req.query;
   try {
-    const filterList = [
-      "all",
-      "active",
-      "in_progress",
-      "completed",
-      "upcoming",
-    ];
+    const filterList = ["all", "active", "in_progress", "completed"];
 
     if (!filterList.includes(filter)) {
       return res.status(400).json({
         success: false,
-        message:
-          "filter must be one of all, active, upcoming, in_progress, completed",
+        message: "filter must be one of all, active, in_progress, completed",
       });
     }
 
-    const bookings = await dashboardService.getAllBookings(user_id, filterList);
-    return res.status(400).json({
-      success: false,
-      message:
-        "filter must be one of all, active, upcoming, in_progress, completed",
+    const bookings = await dashboardService.getAllEmergencyBookings(
+      user_id,
+      filter
+    );
+    return res.status(200).json({
+      success: true,
+      message: "emergency booking fetched sucessfully",
       data: bookings,
     });
   } catch (error) {
@@ -203,6 +198,28 @@ const getAllScheduleBookings = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "internal server error",
+    });
+  }
+};
+
+const acceptEmergencyRequest = async (req, res) => {
+  const user_id = req.user?.id;
+  const { id } = req.params;
+
+  try {
+    const data = await dashboardService.acceptEmergencyBooking(id, user_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Request accepted successfully",
+      data,
+    });
+  } catch (error) {
+    console.error("Accept Request Error:", error.message);
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Internal server error",
     });
   }
 };
@@ -216,5 +233,6 @@ module.exports = {
   getDashboardStats,
   getTechnicianDashBoard,
   acceptRequest,
-  getAllScheduleBookings,
+  getAllEmergencyBookings,
+  acceptEmergencyRequest,
 };
