@@ -588,7 +588,7 @@ const getAllEmergencyBookings = async (user_id, filter) => {
         "estimated_budget_range",
         "description",
         "status",
-        "createdAt"
+        "createdAt",
       ],
       include: [
         {
@@ -637,6 +637,82 @@ const acceptEmergencyBooking = async (id, user_id) => {
   });
 };
 
+// Fetch Scheduled Services for Technician with Filtering(if upcoming -> it should check current date and scheduled_date)
+const fetchScheduleServices = async (technician_id, filter) => {
+  const whereConditions = {
+    technician_id: technician_id,
+  };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // start of today
+
+  switch (filter) {
+    case "active":
+      whereConditions.status = "active";
+      break;
+    case "in_progress":
+      whereConditions.status = "in_progress";
+      break;
+    case "upcoming":
+      whereConditions.status = "scheduled";
+      whereConditions.scheduled_date = { [Op.gte]: today };
+      break;
+    case "completed":
+      whereConditions.status = "completed";
+      break;
+    case "all":
+    default:
+      // No specific filtering
+      break;
+  }
+
+  try {
+    const services = await SubscriptionVisit.findAll({
+      where: whereConditions,
+      attributes: [
+        "id",
+        "technician_id",
+        "scheduled_date",
+        "actual_date",
+        "subservice_id",
+        "status",
+        "notes",
+        "user_subscription_id",
+        "visit_number",
+        "address_id",
+        "createdAt",
+      ],
+      include: [
+        {
+          model: SubService,
+          as: "subservice",
+          attributes: ["id", "title", "service_id"],
+          include: [
+            {
+              model: Service,
+              as: "service",
+              attributes: ["id", "title"],
+            },
+          ],
+        },
+      ],
+      logging: console.log,
+    });
+
+    return {
+      success: true,
+      message: "Scheduled services fetched successfully",
+      data: services,
+    };
+  } catch (error) {
+    console.error("Error fetching scheduled services:", error);
+    return {
+      success: false,
+      message: "Error fetching scheduled services",
+      data: [],
+    };
+  }
+};
+
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,
@@ -649,4 +725,5 @@ module.exports = {
   acceptRequest,
   getAllEmergencyBookings,
   acceptEmergencyBooking,
+  fetchScheduleServices,
 };

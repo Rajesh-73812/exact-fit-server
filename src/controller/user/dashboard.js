@@ -224,6 +224,43 @@ const acceptEmergencyRequest = async (req, res) => {
   }
 };
 
+const fetchScheduleServices = async (req, res) => {
+  const user_id = req.user?.id;
+  const { filter } = req.query;
+
+  try {
+    const filterList = [
+      "all",
+      "active",
+      "in_progress",
+      "upcoming",
+      "completed",
+    ];
+    if (!filterList.includes(filter)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "filter must be one of all, active, in_progress, upcoming, completed",
+      });
+    }
+    const services = await dashboardService.fetchScheduleServices(
+      user_id,
+      filter
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Scheduled services fetched successfully",
+      data: services,
+    });
+  } catch (error) {
+    console.error("Error fetching scheduled services:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch scheduled services",
+    });
+  }
+};
+
 module.exports = {
   getAllServices,
   getDefaultAddress,
@@ -233,6 +270,7 @@ module.exports = {
   getDashboardStats,
   getTechnicianDashBoard,
   acceptRequest,
+  fetchScheduleServices,
   getAllEmergencyBookings,
   acceptEmergencyRequest,
 };
