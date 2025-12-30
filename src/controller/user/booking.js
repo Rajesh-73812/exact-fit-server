@@ -209,8 +209,9 @@ const getServiceById = async (req, res) => {
 const cancelEnquiry = async (req, res) => {
   const user_id = req.user?.id;
   const { id } = req.params;
+
   try {
-    const result = await bookingService.cancelEnquiry({ user_id, id });
+    const result = await bookingService.cancelEnquiry(user_id, id);
     if (!result) {
       return res.status(404).json({
         success: false,

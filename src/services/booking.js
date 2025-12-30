@@ -316,7 +316,7 @@ const getServiceById = async ({ user_id, id, type }) => {
   }
 };
 
-const cancelEnquiry = async (id, user_id) => {
+const cancelEnquiry = async (user_id, id) => {
   const booking = await Booking.findOne({
     where: { id, user_id },
   });
