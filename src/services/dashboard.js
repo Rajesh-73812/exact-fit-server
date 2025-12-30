@@ -588,7 +588,7 @@ const getAllEmergencyBookings = async (user_id, filter) => {
         "estimated_budget_range",
         "description",
         "status",
-        "createdAt"
+        "createdAt",
       ],
       include: [
         {

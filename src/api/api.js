@@ -135,6 +135,7 @@ const endPoints = {
     getAllEnquiry: `/${VERSION}/get-all-enquiry`,
     getAllEmergency: `/${VERSION}/get-all-emergency`,
     getEnquiryById: `/${VERSION}/get-service-by-id`,
+    cancelEnquiry: `/${VERSION}/cancel-enquiry-by-id/:id`,
   },
   ticket: {
     createTicket: `/${VERSION}/rise-ticket`,
