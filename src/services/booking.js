@@ -316,6 +316,21 @@ const getServiceById = async ({ user_id, id, type }) => {
   }
 };
 
+const cancelEnquiry = async (id, user_id) => {
+  const booking = await Booking.findOne({
+    where: { id, user_id },
+  });
+
+  if (!booking) {
+    throw new Error("enquiry booking not found");
+  }
+
+  await booking.update({
+    status: "cancelled",
+  });
+
+  return booking;
+};
 // for admin
 const getAllSubscriptionBooking = async (opts = {}) => {
   const limit = Math.min(parseInt(opts.limit || 10), 200);
@@ -763,4 +778,5 @@ module.exports = {
   getAllEnquiryBookingById,
   getSubscriptionById,
   assignTechnicianToVisit,
+  cancelEnquiry,
 };
