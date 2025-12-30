@@ -181,6 +181,29 @@ Permission.belongsToMany(Role, {
   foreignKey: "permission_id",
 });
 
+// Service ↔ Booking
+Service.hasMany(Booking, {
+  foreignKey: "service_id",
+  as: "bookings",
+  onDelete: "SET NULL",
+});
+
+Booking.belongsTo(Service, {
+  foreignKey: "service_id",
+  as: "service",
+});
+
+SubService.hasMany(Booking, {
+  foreignKey: "sub_service_id",
+  as: "bookings",
+  onDelete: "SET NULL",
+});
+
+Booking.belongsTo(SubService, {
+  foreignKey: "sub_service_id",
+  as: "subservice",
+});
+
 module.exports = {
   sequelize,
   User,
