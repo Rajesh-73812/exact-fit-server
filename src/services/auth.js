@@ -6,6 +6,10 @@ const SubscriptionPlan = require("../models/subscriptionPlan");
 const sequelize = require("../config/db");
 const Notification = require("../models/notification");
 const NotificationRecipeient = require("../models/notification_recipeient");
+
+const Role = require("../models/role");
+const AdminRole = require("../models/adminrole");
+const Permission = require("../models/permission");
 const {
   sendInAppNotification,
   createNotification,
@@ -29,59 +33,92 @@ const registerAdmin = async ({
   password,
   fullname,
   mobile,
-  role,
   profile_pic,
+  role_ids = [], // array of role IDs
 }) => {
+  let admin;
+
   if (id) {
-    const admin = await User.findByPk(id);
+    admin = await User.findByPk(id);
     if (!admin) throw new Error("Admin not found");
 
-    const updateData = {};
-    if (email) updateData.email = email;
-    if (password) updateData.password = password;
-    if (fullname) updateData.fullname = fullname;
-    if (mobile) updateData.mobile = mobile;
-    if (role) updateData.role = role;
-    if (profile_pic) updateData.profile_pic = profile_pic;
+    await admin.update({
+      email,
+      password,
+      fullname,
+      mobile,
+      profile_pic,
+    });
 
-    await admin.update(updateData);
-    return admin;
+    await AdminRole.destroy({ where: { admin_id: id } });
+  } else {
+    admin = await User.create({
+      email,
+      password,
+      fullname,
+      mobile,
+      profile_pic,
+      role: "admin",
+    });
   }
 
-  const admin = await User.create({
-    email,
-    password,
-    fullname,
-    mobile,
-    role,
-    profile_pic,
-  });
+  if (role_ids.length) {
+    const mappings = role_ids.map((role_id) => ({
+      admin_id: admin.id,
+      role_id,
+    }));
+    await AdminRole.bulkCreate(mappings);
+  }
 
   return admin;
 };
 
-const checkUserExists = async (email, from = null) => {
-  let user;
-  if (from === "login") {
-    user = await User.findOne({
-      where: { email },
-      attributes: ["id", "password", "is_active"],
-      raw: true,
-    });
-  } else if (from === "forgot-password") {
-    user = await User.findOne({
-      where: { email },
-      attributes: ["email"],
-      raw: true,
-    });
-  } else {
-    user = await User.findOne({
-      where: { email },
-      attributes: ["id"],
-      raw: true,
-    });
+const checkUserExists = async (email) => {
+  const user = await User.findOne({ where: { email } });
+  if (!user) return null;
+
+  // 🔥 SUPERADMIN → FULL ACCESS
+  if (user.role === "superadmin") {
+    return {
+      id: user.id,
+      email: user.email,
+      password: user.password,
+      role: "superadmin",
+      is_active: user.is_active,
+      permissions: ["*"],
+    };
   }
-  return user;
+
+  // ADMIN → role based
+  const adminRoles = await AdminRole.findAll({
+    where: { admin_id: user.id },
+    include: [
+      {
+        model: Role,
+        include: [
+          {
+            model: Permission,
+            through: { attributes: [] },
+          },
+        ],
+      },
+    ],
+  });
+
+  const permissions = [];
+
+  adminRoles.forEach((ar) => {
+    ar.Role?.Permissions?.forEach((p) => permissions.push(p.key));
+  });
+
+  return {
+    id: user.id,
+    email: user.email,
+    password: user.password,
+    role: user.role, // always from users table
+    is_active: user.is_active,
+    permissions: [...new Set(permissions)],
+  };
 };
 
 const getAdminById = async (id) => {

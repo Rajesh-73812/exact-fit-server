@@ -36,17 +36,24 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded, "decoded token in auth middleware");
 
-    req.user = { id: decoded.id || decoded.userId, role: decoded.role };
+    req.user = {
+      id: decoded.id,
+      role: decoded.role,
+      permissions:
+        decoded.role === "superadmin"
+          ? ["*"] // 🔥 FULL ACCESS
+          : decoded.permissions || [],
+    };
+
     next();
   } catch (error) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Invalid token", error: error });
+    return res.status(401).json({
+      success: false,
+      message: "Invalid token",
+      error: error.message,
+    });
   }
 };
 
-module.exports = {
-  authMiddleware,
-};
+module.exports = { authMiddleware };
