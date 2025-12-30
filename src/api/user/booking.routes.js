@@ -31,4 +31,9 @@ router.get(
   bookingController.getServiceById
 );
 
+router.patch(
+  endPoints.booking.cancelEnquiry,
+  middleware.authMiddleware,
+  bookingController.cancelEnquiry
+);
 module.exports = router;
