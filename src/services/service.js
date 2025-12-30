@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const Service = require("../models/service");
+const SubService = require("../models/sub-service");
 const sequelize = require("../config/db");
 // const subService = require("../models/sub-service");
 
@@ -59,6 +60,26 @@ const ServiceExists = async (service_slug, from = null, currentSlug = null) => {
         "status",
         "external_link",
         "createdAt",
+      ],
+      include: [
+        {
+          model: SubService,
+          as: "sub_services",
+          attributes: [
+            "id",
+            "service_id",
+            "title",
+            "sub_service_slug",
+            "position",
+            "description",
+            "image_url",
+            "image_alt",
+            "status",
+            "external_link",
+            "discount",
+            "price",
+          ],
+        },
       ],
     });
     if (!service) {

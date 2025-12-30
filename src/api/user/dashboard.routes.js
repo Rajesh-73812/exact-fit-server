@@ -37,4 +37,10 @@ router.get(
   dashboardController.getTechnicianDashBoard
 );
 
+router.patch(
+  endPoints["technician-dashboard"].Accept,
+  middleware.authMiddleware,
+  dashboardController.acceptRequest
+);
+
 module.exports = router;

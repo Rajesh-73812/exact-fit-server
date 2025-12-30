@@ -106,7 +106,7 @@ const topUsersByBookingCount = async () => {
       include: [
         {
           model: Booking, // Join the Booking model
-          attributes: [], // We don't need any columns from the Booking table, just counting the rows
+          attributes: [], // We don"t need any columns from the Booking table, just counting the rows
           required: true, // Ensures the user has at least one booking
           where: {
             status: "completed", // Only count completed bookings
@@ -134,12 +134,138 @@ const topUsersByBookingCount = async () => {
 
 // for mobile
 
+// const ALLOWED_SORT_FIELDS = new Set([
+//   "createdAt",
+//   "updatedAt",
+//   "title",
+//   "position",
+//   "id",
+// ]);
+
+// const getAllServices = async (options = {}) => {
+//   const {
+//     search,
+//     filters = {},
+//     pagination = { page: 1, limit: 10 },
+//     sort = { sortBy: "createdAt", order: "DESC" },
+//   } = options;
+
+//   const page = Math.max(parseInt(pagination.page, 10) || 1, 1);
+//   const limit = Math.min(
+//     Math.max(parseInt(pagination.limit, 10) || 10, 1),
+//     200
+//   );
+//   const offset = (page - 1) * limit;
+
+//   const sortBy = ALLOWED_SORT_FIELDS.has(sort.sortBy)
+//     ? sort.sortBy
+//     : "createdAt";
+//   const order =
+//     String(sort.order || "DESC").toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+//   // Base where clauses
+//   const serviceWhere = {};
+//   const subServiceWhere = {};
+
+//   // Apply filters
+//   if (filters.category) {
+//     serviceWhere.category = filters.category;
+//   }
+
+//   if (typeof filters.is_active === "boolean") {
+//     serviceWhere.status = filters.is_active ? "active" : "inactive";
+//   }
+
+//   // SEARCH CONDITIONS
+//   if (search && String(search).trim()) {
+//     const likePattern = `%${search.trim()}%`;
+
+//     serviceWhere[Op.or] = [
+//       { title: { [Op.like]: likePattern } },
+//       { description: { [Op.like]: likePattern } },
+
+//       // OR SEARCH in SubService fields
+//       { "$sub_services.title$": { [Op.like]: likePattern } },
+//       { "$sub_services.description$": { [Op.like]: likePattern } },
+//     ];
+
+//     // subService where is optional — only used to filter rows inside include
+//     subServiceWhere[Op.or] = [
+//       { title: { [Op.like]: likePattern } },
+//       { description: { [Op.like]: likePattern } },
+//     ];
+//   }
+
+//   try {
+//     const { count, rows } = await Service.findAndCountAll({
+//       where: serviceWhere,
+//       include: [
+//         {
+//           model: SubService,
+//           as: "sub_services",
+//           attributes: [
+//             "id",
+//             "title",
+//             "sub_service_slug",
+//             "price",
+//             "discount",
+//             "status",
+//             "createdAt",
+//           ],
+//           where: subServiceWhere,
+//           required: false,
+//         },
+//       ],
+//       limit,
+//       offset,
+//       order: [[sortBy, order]],
+//       distinct: true,
+//       subQuery: false,
+//     });
+
+//     const pages = Math.max(Math.ceil(count / limit), 1);
+
+//     const data = rows.map((service) => {
+//       const plain = service.get({ plain: true });
+
+//       // Filter sub-services on backend (extra layer)
+//       if (search) {
+//         const reg = new RegExp(search.trim(), "i");
+//         plain.sub_services = plain.sub_services.filter(
+//           (ss) =>
+//             reg.test(ss.title) || (ss.description && reg.test(ss.description))
+//         );
+//       }
+
+//       plain.subServiceCount = plain.sub_services.length;
+
+//       return plain;
+//     });
+
+//     return {
+//       rows: data,
+//       meta: {
+//         totalServices: count,
+//         page,
+//         limit,
+//         pages,
+//         sortBy,
+//         order,
+//       },
+//     };
+//   } catch (error) {
+//     console.error("Error fetching services:", error);
+//     throw new Error("Failed to fetch services");
+//   }
+// };
+
+// for getting default address
+
 const ALLOWED_SORT_FIELDS = new Set([
   "createdAt",
   "updatedAt",
   "title",
   "position",
-  "id",
 ]);
 
 const getAllServices = async (options = {}) => {
@@ -150,116 +276,115 @@ const getAllServices = async (options = {}) => {
     sort = { sortBy: "createdAt", order: "DESC" },
   } = options;
 
-  const page = Math.max(parseInt(pagination.page, 10) || 1, 1);
-  const limit = Math.min(
-    Math.max(parseInt(pagination.limit, 10) || 10, 1),
-    200
-  );
+  // Pagination
+  const page = Math.max(Number(pagination.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(pagination.limit) || 10, 1), 200);
   const offset = (page - 1) * limit;
 
+  // Sorting
   const sortBy = ALLOWED_SORT_FIELDS.has(sort.sortBy)
     ? sort.sortBy
     : "createdAt";
-  const order =
-    String(sort.order || "DESC").toUpperCase() === "ASC" ? "ASC" : "DESC";
+  const order = String(sort.order).toUpperCase() === "ASC" ? "ASC" : "DESC";
 
-  // Base where clauses
+  // Base where conditions
   const serviceWhere = {};
-  const subServiceWhere = {};
 
-  // Apply filters
-  if (filters.category) {
-    serviceWhere.category = filters.category;
-  }
-
+  if (filters.category) serviceWhere.category = filters.category;
   if (typeof filters.is_active === "boolean") {
     serviceWhere.status = filters.is_active ? "active" : "inactive";
   }
 
-  // SEARCH CONDITIONS
-  if (search && String(search).trim()) {
-    const likePattern = `%${search.trim()}%`;
-
+  // Search
+  const normalizedSearch =
+    typeof search === "string" && search.trim() ? search.trim() : null;
+  if (normalizedSearch) {
+    const likePattern = `%${normalizedSearch}%`;
     serviceWhere[Op.or] = [
-      { title: { [Op.like]: likePattern } },
-      { description: { [Op.like]: likePattern } },
-
-      // OR SEARCH in SubService fields
-      { "$sub_services.title$": { [Op.like]: likePattern } },
-      { "$sub_services.description$": { [Op.like]: likePattern } },
-    ];
-
-    // subService where is optional — only used to filter rows inside include
-    subServiceWhere[Op.or] = [
       { title: { [Op.like]: likePattern } },
       { description: { [Op.like]: likePattern } },
     ];
   }
 
-  try {
-    const { count, rows } = await Service.findAndCountAll({
-      where: serviceWhere,
-      include: [
-        {
-          model: SubService,
-          as: "sub_services",
-          attributes: [
-            "id",
-            "title",
-            "sub_service_slug",
-            "price",
-            "discount",
-            "status",
-            "createdAt",
-          ],
-          where: subServiceWhere,
-          required: false, // Keep parent even if sub-services don't match
-        },
-      ],
-      limit,
-      offset,
-      order: [[sortBy, order]],
-      distinct: true,
-      subQuery: false,
-    });
+  // Step 1: Get total count of matching services (ignoring subservices)
+  const totalCount = await Service.count({
+    where: serviceWhere,
+    distinct: true,
+    col: "id",
+  });
 
-    const pages = Math.max(Math.ceil(count / limit), 1);
+  // Step 2: Get paginated list of service IDs only
+  const serviceIds = await Service.findAll({
+    attributes: ["id"],
+    where: serviceWhere,
+    offset,
+    limit,
+    order: [[sortBy, order]],
+    raw: true,
+  }).then((rows) => rows.map((row) => row.id));
 
-    const data = rows.map((service) => {
-      const plain = service.get({ plain: true });
-
-      // Filter sub-services on backend (extra layer)
-      if (search) {
-        const reg = new RegExp(search.trim(), "i");
-        plain.sub_services = plain.sub_services.filter(
-          (ss) =>
-            reg.test(ss.title) || (ss.description && reg.test(ss.description))
-        );
-      }
-
-      plain.subServiceCount = plain.sub_services.length;
-
-      return plain;
-    });
-
+  // If no services match pagination, return empty
+  if (serviceIds.length === 0) {
     return {
-      rows: data,
+      rows: [],
       meta: {
-        totalServices: count,
+        totalServices: totalCount,
         page,
         limit,
-        pages,
+        pages: Math.ceil(totalCount / limit),
         sortBy,
         order,
       },
     };
-  } catch (error) {
-    console.error("Error fetching services:", error);
-    throw new Error("Failed to fetch services");
   }
-};
 
-// for getting default address
+  // Step 3: Fetch full services + subservices using the paginated IDs
+  const services = await Service.findAll({
+    where: {
+      ...serviceWhere,
+      id: serviceIds,
+    },
+    include: [
+      {
+        model: SubService,
+        as: "sub_services",
+        required: false,
+        attributes: [
+          "id",
+          "title",
+          "sub_service_slug",
+          "price",
+          "discount",
+          "image_url",
+          "status",
+          "createdAt",
+        ],
+      },
+    ],
+    order: [[sortBy, order]],
+  });
+
+  // Format response
+  const data = services.map((service) => {
+    const plain = service.get({ plain: true });
+    plain.subServiceCount = Array.isArray(plain.sub_services)
+      ? plain.sub_services.length
+      : 0;
+    return plain;
+  });
+
+  return {
+    rows: data,
+    meta: {
+      totalServices: totalCount,
+      page,
+      limit,
+      pages: Math.ceil(totalCount / limit),
+      sortBy,
+      order,
+    },
+  };
+};
 
 const getDefaultAddress = async (user_id) => {
   const address = await Address.findOne({
@@ -326,13 +451,15 @@ const getTechnicianDashBoard = async (user_id) => {
     // Get assigned work for the technician
     const assignedWork = await SubscriptionVisit.findAll({
       where: {
-        technician_id: user_id,
+        // technician_id: user_id,
         // scheduled_date: today,
         status: {
           [Op.ne]: "cancelled",
         },
       },
       attributes: [
+        "id",
+        "technician_id",
         "scheduled_date",
         "subservice_id",
         "status",
@@ -355,6 +482,7 @@ const getTechnicianDashBoard = async (user_id) => {
           ],
         },
       ],
+      logging: console.log,
     });
 
     console.log(assignedWork, "lllllllllllll");
@@ -403,6 +531,31 @@ const getTechnicianDashBoard = async (user_id) => {
   }
 };
 
+const acceptRequest = async (visitId, userId) => {
+  if (!visitId || !userId) {
+    throw new Error("Visit ID and User ID are required");
+  }
+
+  const visit = await SubscriptionVisit.findOne({
+    where: { id: visitId },
+  });
+
+  if (!visit) {
+    throw new Error("Subscription visit not found");
+  }
+
+  if (visit.technician_id) {
+    throw new Error("Request already accepted");
+  }
+
+  await visit.update({
+    technician_id: userId,
+    status: "scheduled",
+  });
+
+  return visit;
+};
+
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,
@@ -412,4 +565,5 @@ module.exports = {
   getSubServicesBySlug,
   getTechnicianAddress,
   getTechnicianDashBoard,
+  acceptRequest,
 };

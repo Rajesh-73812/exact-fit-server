@@ -130,7 +130,7 @@ const endPoints = {
     allSubscription: `/${VERSION}/get-subscription`,
   },
   booking: {
-    upsertEnquiry: `/${VERSION}/upsert-enquiry`,
+    upsertEnquiry: `/${VERSION}/upsert-enquiry/:id`,
     upsertEmergency: `/${VERSION}/upsert-emergency`,
     getAllEnquiry: `/${VERSION}/get-all-enquiry`,
     getAllEmergency: `/${VERSION}/get-all-emergency`,
@@ -165,6 +165,7 @@ const endPoints = {
   },
   "technician-dashboard": {
     dashboard: `/${VERSION}/get-all-homedata`,
+    Accept: `/${VERSION}/accept/:id`,
   },
 };
 // console.log('API Version:', VERSION);
