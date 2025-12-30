@@ -9,6 +9,10 @@ const Permission = sequelize.define(
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
+    user_id: {
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
     key: {
       type: DataTypes.STRING,
       unique: true,
