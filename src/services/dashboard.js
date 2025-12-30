@@ -1,11 +1,12 @@
 const User = require("../models/user");
-const Booking = require("../models");
+const Booking = require("../models/booking");
 const Service = require("../models/service");
 const { Op, Sequelize } = require("sequelize");
 const Address = require("../models/address");
 const SubService = require("../models/sub-service");
 const moment = require("moment");
 const SubscriptionVisit = require("../models/SubscriptionVisit");
+const sequelize = require("../config/db");
 
 const getUserTechnicianCounts = async () => {
   const currentDate = new Date();
@@ -556,6 +557,165 @@ const acceptRequest = async (visitId, userId) => {
   return visit;
 };
 
+const getAllEmergencyBookings = async (user_id, filter) => {
+  const whereConditions = {
+    booking_type: "emergency",
+  };
+  if (filter === "active") {
+    whereConditions.status = "active";
+  } else if (filter === "in_progress") {
+    whereConditions.status = "in_progress";
+  } else if (filter === "completed") {
+    whereConditions.status = "completed";
+  }
+
+  try {
+    const bookings = await Booking.findAll({
+      where: whereConditions,
+      attributes: [
+        "user_id",
+        "fullname",
+        "email",
+        "mobile",
+        "booking_type",
+        "service_id",
+        "sub_service_id",
+        "address_id",
+        "technician_id",
+        "scope_of_work",
+        "existing_drawing",
+        "plan_images",
+        "estimated_budget_range",
+        "description",
+        "status",
+        "createdAt",
+      ],
+      include: [
+        {
+          model: Service,
+          as: "service",
+          attributes: ["title"],
+        },
+      ],
+      order: [
+        [
+          sequelize.literal('CASE WHEN "user_id" IS NULL THEN 0 ELSE 1 END'),
+          "ASC",
+        ],
+        [
+          sequelize.literal(
+            'CASE WHEN "user_id" = "' + user_id + '" THEN 0 ELSE 1 END'
+          ),
+          "ASC",
+        ],
+        ["createdAt", "DESC"],
+      ],
+    });
+    return bookings;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Error fetching bookings: " + error.message);
+  }
+};
+
+const acceptEmergencyBooking = async (id, user_id) => {
+  if (!id || !user_id) {
+    throw new Error("emergency ID and User ID are required");
+  }
+  const booking = await Booking.findByPk(id);
+  if (!booking) {
+    throw new Error("emergency booking  not found");
+  }
+
+  if (booking.technician_id) {
+    throw new Error("Request already accepted");
+  }
+
+  await booking.update({
+    technician_id: user_id,
+    status: "active",
+  });
+};
+
+// Fetch Scheduled Services for Technician with Filtering(if upcoming -> it should check current date and scheduled_date)
+const fetchScheduleServices = async (technician_id, filter="all") => {
+  const whereConditions = {
+    technician_id: technician_id,
+  };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // start of today
+
+  switch (filter) {
+    case "active":
+      whereConditions.status = "active";
+      break;
+    case "in_progress":
+      whereConditions.status = "in_progress";
+      break;
+    case "upcoming":
+      whereConditions.status = "scheduled";
+      whereConditions.scheduled_date = { [Op.gte]: today };
+      break;
+    case "completed":
+      whereConditions.status = "completed";
+      break;
+    case "all":
+    default:
+      // No specific filtering
+      break;
+  }
+
+  try {
+    const services = await SubscriptionVisit.findAll({
+      where: whereConditions,
+      attributes: [
+        "id",
+        "technician_id",
+        "scheduled_date",
+        "actual_date",
+        "subservice_id",
+        "status",
+        "notes",
+        "user_subscription_id",
+        "visit_number",
+        "address_id",
+        "createdAt",
+      ],
+      include: [
+        {
+          model: SubService,
+          as: "subservice",
+          attributes: ["id", "title", "service_id"],
+          include: [
+            {
+              model: Service,
+              as: "service",
+              attributes: ["id", "title"],
+            },
+          ],
+        },
+      ],
+      order: [
+        ["scheduled_date", "DESC"], // latest scheduled first
+        ["createdAt", "DESC"],      // fallback
+      ],
+    });
+
+    return {
+      success: true,
+      message: "Scheduled services fetched successfully",
+      data: services,
+    };
+  } catch (error) {
+    console.error("Error fetching scheduled services:", error);
+    return {
+      success: false,
+      message: "Error fetching scheduled services",
+      data: [],
+    };
+  }
+};
+
 module.exports = {
   getUserTechnicianCounts,
   topUsersByBookingCount,
@@ -566,4 +726,7 @@ module.exports = {
   getTechnicianAddress,
   getTechnicianDashBoard,
   acceptRequest,
+  getAllEmergencyBookings,
+  acceptEmergencyBooking,
+  fetchScheduleServices,
 };

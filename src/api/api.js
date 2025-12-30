@@ -131,11 +131,12 @@ const endPoints = {
     allSubscription: `/${VERSION}/get-subscription`,
   },
   booking: {
-    upsertEnquiry: `/${VERSION}/upsert-enquiry/:id`,
+    upsertEnquiry: `/${VERSION}/upsert-enquiry`,
     upsertEmergency: `/${VERSION}/upsert-emergency`,
     getAllEnquiry: `/${VERSION}/get-all-enquiry`,
     getAllEmergency: `/${VERSION}/get-all-emergency`,
     getEnquiryById: `/${VERSION}/get-service-by-id`,
+    cancelEnquiry: `/${VERSION}/cancel-enquiry-by-id/:id`,
   },
   ticket: {
     createTicket: `/${VERSION}/rise-ticket`,
@@ -167,6 +168,9 @@ const endPoints = {
   "technician-dashboard": {
     dashboard: `/${VERSION}/get-all-homedata`,
     Accept: `/${VERSION}/accept/:id`,
+    getAllEmergencyBookings: `/${VERSION}/get-all-emergency-bookings`,
+    acceptEmergencyRequest: `/${VERSION}/accept-emergency-bookings/:id`,
+    fetchScheduleServices: `/${VERSION}/fetch-scheduled-services`,
   },
 };
 // console.log('API Version:', VERSION);

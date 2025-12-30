@@ -206,10 +206,38 @@ const getServiceById = async (req, res) => {
   }
 };
 
+const cancelEnquiry = async (req, res) => {
+  const user_id = req.user?.id;
+  const { id } = req.params;
+
+  try {
+    const result = await bookingService.cancelEnquiry(user_id, id);
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found or you do not have access to this booking.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "enquiry cancelled successfully.",
+      data: result,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   upsertEnquiry,
   upsertEmergency,
   getAllEnquiry,
   getAllEmergency,
   getServiceById,
+  cancelEnquiry,
 };
