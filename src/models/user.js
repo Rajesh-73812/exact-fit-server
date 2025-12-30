@@ -44,18 +44,18 @@ const user = sequelize.define(
       },
     },
     role: {
-      type: DataTypes.ENUM("technician", "admin", "customer"), // add super admin if needed
+      type: DataTypes.ENUM("technician", "superadmin", "customer"), // add super admin if needed
       allowNull: false,
       validate: {
         notEmpty: { msg: "Role cannot be empty" },
         isIn: {
-          args: [["technician", "admin", "customer"]],
-          msg: "Role must be one of: technician, admin, customer",
+          args: [["technician", "superadmin", "customer"]],
+          msg: "Role must be one of: technician, superadmin , customer",
         },
       },
     },
     service_type: {
-      type: DataTypes.ENUM("enquiry", "subscription", "both"),
+      type: DataTypes.ENUM("emergency", "subscription", "both"),
       allowNull: true,
     },
     skill: {
