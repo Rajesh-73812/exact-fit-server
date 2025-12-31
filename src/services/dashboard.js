@@ -696,8 +696,8 @@ const fetchScheduleServices = async (technician_id, filter = "all") => {
         },
       ],
       order: [
-        ["scheduled_date", "DESC"],
-        ["createdAt", "DESC"],
+        ["scheduled_date", "DESC"], // latest scheduled first
+        ["createdAt", "DESC"], // fallback
       ],
     });
 

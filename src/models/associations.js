@@ -204,6 +204,17 @@ Booking.belongsTo(SubService, {
   as: "subservice",
 });
 
+User.hasMany(Booking, {
+  foreignKey: "user_id",
+  as: "bookings",
+  onDelete: "CASCADE",
+});
+
+Booking.belongsTo(User, {
+  foreignKey: "user_id",
+  as: "customer",
+});
+
 module.exports = {
   sequelize,
   User,

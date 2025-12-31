@@ -66,6 +66,7 @@ For now, when I select a plan, the selected plan is stored in local storage. Aft
 
 I implemented a few validations, but all form validations still need to be checked. Also, the success popup message needs to be changed. I had implemented it earlier, but during the update process it got changed, so it needs to be corrected again.
 {showPopup && (
+
 <!-- <div
           className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
           onClick={handleClosePopup}
