@@ -226,7 +226,7 @@ const acceptEmergencyRequest = async (req, res) => {
 
 const fetchScheduleServices = async (req, res) => {
   const user_id = req.user?.id;
-  const { filter="all" } = req.query;
+  const { filter = "all" } = req.query;
 
   try {
     const filterList = [
