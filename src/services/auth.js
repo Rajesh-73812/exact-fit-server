@@ -7,8 +7,6 @@ const sequelize = require("../config/db");
 const Notification = require("../models/notification");
 const NotificationRecipeient = require("../models/notification_recipeient");
 
-const Role = require("../models/role");
-const AdminRole = require("../models/adminrole");
 const Permission = require("../models/permission");
 const {
   sendInAppNotification,
@@ -34,90 +32,113 @@ const registerAdmin = async ({
   fullname,
   mobile,
   profile_pic,
-  role_ids = [], // array of role IDs
+  role,
+  role_name,
+  permissions = [], // ✅ Accept permissions array
 }) => {
-  let admin;
+  const t = await sequelize.transaction(); // Use transaction for consistency
+  let user;
 
-  if (id) {
-    admin = await User.findByPk(id);
-    if (!admin) throw new Error("Admin not found");
+  try {
+    if (id) {
+      // Update existing
+      user = await User.findByPk(id, { transaction: t });
+      if (!user) throw new Error("User not found");
 
-    await admin.update({
-      email,
-      password,
-      fullname,
-      mobile,
-      profile_pic,
-    });
+      await user.update(
+        {
+          email,
+          password,
+          fullname,
+          mobile,
+          profile_pic,
+          role,
+          role_name: role === "staff" ? role_name : null,
+        },
+        { transaction: t }
+      );
 
-    await AdminRole.destroy({ where: { admin_id: id } });
-  } else {
-    admin = await User.create({
-      email,
-      password,
-      fullname,
-      mobile,
-      profile_pic,
-      role: "admin",
-    });
+      // Replace permissions for staff
+      if (role === "staff") {
+        await Permission.destroy({ where: { user_id: id }, transaction: t });
+        if (permissions.length > 0) {
+          const permEntries = permissions.map((key) => ({ user_id: id, key }));
+          await Permission.bulkCreate(permEntries, { transaction: t });
+        }
+      }
+    } else {
+      // Create new
+      user = await User.create(
+        {
+          email,
+          password,
+          fullname,
+          mobile,
+          profile_pic,
+          role,
+          role_name: role === "staff" ? role_name : null,
+        },
+        { transaction: t }
+      );
+
+      // Insert permissions for staff
+      if (role === "staff" && permissions.length > 0) {
+        const permEntries = permissions.map((key) => ({
+          user_id: user.id,
+          key,
+        }));
+        await Permission.bulkCreate(permEntries, { transaction: t });
+      }
+    }
+
+    await t.commit();
+    return user;
+  } catch (error) {
+    await t.rollback();
+    throw error;
   }
-
-  if (role_ids.length) {
-    const mappings = role_ids.map((role_id) => ({
-      admin_id: admin.id,
-      role_id,
-    }));
-    await AdminRole.bulkCreate(mappings);
-  }
-
-  return admin;
 };
 
+/* =========================================================
+   LOGIN – FETCH PERMISSIONS
+========================================================= */
 const checkUserExists = async (email) => {
   const user = await User.findOne({ where: { email } });
   if (!user) return null;
 
-  // 🔥 SUPERADMIN → FULL ACCESS
+  // SUPERADMIN → FULL ACCESS
   if (user.role === "superadmin") {
     return {
       id: user.id,
       email: user.email,
       password: user.password,
-      role: "superadmin",
+      role: user.role,
+      role_name: user.role_name,
       is_active: user.is_active,
       permissions: ["*"],
     };
   }
 
-  // ADMIN → role based
-  const adminRoles = await AdminRole.findAll({
-    where: { admin_id: user.id },
-    include: [
-      {
-        model: Role,
-        include: [
-          {
-            model: Permission,
-            through: { attributes: [] },
-          },
-        ],
-      },
-    ],
-  });
+  let permissions = [];
 
-  const permissions = [];
+  if (user.role === "staff") {
+    const rows = await Permission.findAll({
+      where: { user_id: user.id },
+      attributes: ["key"],
+      raw: true,
+    });
 
-  adminRoles.forEach((ar) => {
-    ar.Role?.Permissions?.forEach((p) => permissions.push(p.key));
-  });
+    permissions = rows.map((r) => r.key);
+  }
 
   return {
     id: user.id,
     email: user.email,
     password: user.password,
-    role: user.role, // always from users table
+    role: user.role,
+    role_name: user.role_name,
     is_active: user.is_active,
-    permissions: [...new Set(permissions)],
+    permissions,
   };
 };
 
@@ -129,51 +150,51 @@ const getAdminById = async (id) => {
       "email",
       "mobile",
       "role",
+      "role_name",
       "profile_pic",
+      "is_active", // Add is_active for consistency
       "status",
       "createdAt",
     ],
   });
 
   if (!admin) throw new Error("Admin not found");
-  return admin;
+
+  let permissions = [];
+  if (admin.role === "superadmin") {
+    permissions = ["*"];
+  } else if (admin.role === "staff") {
+    const rows = await Permission.findAll({
+      where: { user_id: id },
+      attributes: ["key"],
+      raw: true,
+    });
+    permissions = rows.map((r) => r.key);
+  }
+
+  return {
+    ...admin.get({ plain: true }),
+    permissions,
+  };
 };
-
-const changeAdminStatus = async (id) => {
-  const admin = await User.findByPk(id);
-  if (!admin) throw new Error("Admin not found");
-
-  admin.is_active = admin.is_active === 1 ? 0 : 1;
-  await admin.save();
-  return admin;
-};
-
-const deleteAdmin = async (id) => {
-  const admin = await User.findByPk(id);
-  if (!admin) throw new Error("Admin not found");
-
-  await admin.destroy();
-  return { message: "Admin deleted successfully" };
-};
-
+/* =========================================================
+   ADMIN LIST
+========================================================= */
 const getAdminAll = async ({ search = "", page = 1, limit = 10 }) => {
-  const pageNum = Number(page) || 1;
-  const limitNum = Number(limit) || 10;
-  const offset = (pageNum - 1) * limitNum;
+  const offset = (page - 1) * limit;
 
   const where = {
-    role: "admin",
+    role: { [Op.in]: ["superadmin", "staff"] },
   };
 
-  if (search && search.trim()) {
-    const q = `%${search.trim()}%`;
+  if (search) {
     where[Op.or] = [
-      { fullname: { [Op.like]: q } },
-      { email: { [Op.like]: q } },
+      { fullname: { [Op.like]: `%${search}%` } },
+      { email: { [Op.like]: `%${search}%` } },
     ];
   }
 
-  const { count, rows } = await User.findAndCountAll({
+  const { rows, count } = await User.findAndCountAll({
     where,
     attributes: [
       "id",
@@ -181,27 +202,44 @@ const getAdminAll = async ({ search = "", page = 1, limit = 10 }) => {
       "email",
       "mobile",
       "role",
+      "role_name",
       "profile_pic",
       "is_active",
       "createdAt",
     ],
     order: [["createdAt", "DESC"]],
-    limit: limitNum,
+    limit,
     offset,
   });
-
-  const totalItems = count;
-  const totalPages = Math.max(1, Math.ceil(totalItems / limitNum));
 
   return {
     data: rows,
     pagination: {
-      totalItems,
-      totalPages,
-      currentPage: pageNum,
-      itemsPerPage: limitNum,
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
     },
   };
+};
+
+/* =========================================================
+   SIMPLE STATUS TOGGLE
+========================================================= */
+const changeAdminStatus = async (id) => {
+  const user = await User.findByPk(id);
+  if (!user) throw new Error("User not found");
+
+  user.is_active = !user.is_active;
+  await user.save();
+  return user;
+};
+
+const deleteAdmin = async (id) => {
+  const user = await User.findByPk(id);
+  if (!user) throw new Error("User not found");
+
+  await user.destroy();
+  return { message: "User deleted successfully" };
 };
 
 // for mobile

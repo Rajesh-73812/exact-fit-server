@@ -8,75 +8,43 @@ const AdminService = require("../../services/auth");
 const { sendEmail } = require("../../utils/sendEmail");
 
 const register = async (req, res) => {
-  const { id, email, password, fullname, mobile, role, profile_pic } = req.body;
+  const {
+    email,
+    password,
+    fullname,
+    mobile,
+    role,
+    role_name,
+    profile_pic,
+    permissions,
+  } = req.body;
 
-  if (!id) {
-    const { error } = loginValidator.validate({ email, password });
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message:
-          error.details?.[0]?.message || "Email and password are required",
-      });
-    }
+  if (role === "staff" && !role_name) {
+    return res.status(400).json({
+      success: false,
+      message: "role_name is required for staff",
+    });
   }
 
-  try {
-    if (!id) {
-      const existingAdmin = await AdminService.checkUserExists(email);
-      if (existingAdmin) {
-        return res.status(409).json({
-          success: false,
-          message: "Admin already exists",
-        });
-      }
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
 
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
+  const user = await AdminService.registerAdmin({
+    email,
+    password: hashedPassword,
+    fullname,
+    mobile,
+    role,
+    role_name,
+    profile_pic,
+    permissions, // ✅ Pass permissions for creation in Permission table
+  });
 
-      const newAdmin = await AdminService.registerAdmin({
-        email,
-        password: hashedPassword,
-        fullname,
-        mobile,
-        role: role || "admin",
-        profile_pic,
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: "Admin registered successfully",
-        data: { id: newAdmin.id, email: newAdmin.email },
-      });
-    }
-
-    const updatePayload = {};
-    if (email) updatePayload.email = email;
-    if (password) {
-      const salt = await bcrypt.genSalt(10);
-      updatePayload.password = await bcrypt.hash(password, salt);
-    }
-    if (fullname) updatePayload.fullname = fullname;
-    if (mobile) updatePayload.mobile = mobile;
-    if (role) updatePayload.role = role;
-    if (profile_pic) updatePayload.profile_pic = profile_pic;
-
-    const updatedAdmin = await AdminService.registerAdmin({
-      id,
-      ...updatePayload,
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Admin updated successfully",
-      data: { id: updatedAdmin.id, email: updatedAdmin.email },
-    });
-  } catch (err) {
-    console.error("Register controller error:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
-  }
+  return res.status(201).json({
+    success: true,
+    message: "User created successfully",
+    data: user,
+  });
 };
 
 const login = async (req, res) => {
@@ -86,66 +54,113 @@ const login = async (req, res) => {
   if (error) {
     return res.status(400).json({
       success: false,
-      message: error.details[0].message || "email and password required",
+      message: error.details[0].message,
     });
   }
 
-  try {
-    const user = await AdminService.checkUserExists(email, "login");
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
-    }
+  const user = await AdminService.checkUserExists(email);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
 
-    if (user.is_active === 0) {
-      return res.status(403).json({
-        success: false,
-        message:
-          "Your account is deactivated. Please contact admin or super admin.",
-      });
-    }
+  if (!user.is_active) {
+    return res.status(403).json({
+      success: false,
+      message: "Account deactivated",
+    });
+  }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credentials" });
-    }
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid credentials",
+    });
+  }
 
-    const token = await generateToken({
-      id: user.id,
+  const token = generateToken({
+    id: user.id,
+    role: user.role,
+    role_name: user.role_name,
+    permissions: user.permissions,
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      email: user.email,
       role: user.role,
+      role_name: user.role_name,
       permissions: user.permissions,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      data: {
-        email: user.email,
-        role: user.role,
-        token,
-        permissions: user.permissions,
-      },
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
+      token,
+    },
+  });
 };
 
 const fetchAdminById = async (req, res) => {
-  const id = req.user?.id;
+  const { id } = req.params;
+
   try {
     const admin = await AdminService.getAdminById(id);
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Admin details fetched successfully",
-      data: admin,
+      data: admin, // Includes permissions
     });
   } catch (error) {
-    res.status(404).json({ success: false, message: error.message });
+    return res.status(404).json({ success: false, message: error.message });
+  }
+};
+
+const updateAdmin = async (req, res) => {
+  const { id } = req.params;
+  const {
+    email,
+    fullname,
+    mobile,
+    password,
+    role_name,
+    profile_pic,
+    permissions,
+  } = req.body;
+
+  if (password && password.length < 6) {
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+  }
+
+  try {
+    const hashedPassword = password
+      ? await bcrypt.hash(password, await bcrypt.genSalt(10))
+      : undefined;
+
+    const updatedAdmin = await AdminService.registerAdmin({
+      // Reuse service for update
+      id,
+      email,
+      password: hashedPassword,
+      fullname,
+      mobile,
+      role: "staff", // Assume staff; adjust if needed
+      role_name,
+      profile_pic,
+      permissions,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin updated successfully",
+      data: updatedAdmin,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -494,6 +509,7 @@ const deleteNotification = async (req, res) => {
 module.exports = {
   register,
   login,
+  updateAdmin,
   updateProfile,
   forgotPassword,
   getAllCustomers,

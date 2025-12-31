@@ -1,4 +1,3 @@
-// models/permission.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 
@@ -17,7 +16,6 @@ const Permission = sequelize.define(
     key: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true, // eg: services:view
     },
     description: {
       type: DataTypes.STRING,

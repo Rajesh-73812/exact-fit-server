@@ -11,6 +11,11 @@ router.get(
   middleware.authMiddleware,
   admin.fetchAdminById
 );
+router.put(
+  endPoints.admin.updateAdmin,
+  middleware.authMiddleware,
+  admin.updateAdmin
+);
 router.patch(
   endPoints.admin.updateAdminStatus,
   middleware.authMiddleware,
