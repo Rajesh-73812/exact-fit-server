@@ -638,7 +638,7 @@ const acceptEmergencyBooking = async (id, user_id) => {
 };
 
 // Fetch Scheduled Services for Technician with Filtering(if upcoming -> it should check current date and scheduled_date)
-const fetchScheduleServices = async (technician_id, filter="all") => {
+const fetchScheduleServices = async (technician_id, filter = "all") => {
   const whereConditions = {
     technician_id: technician_id,
   };
@@ -696,8 +696,8 @@ const fetchScheduleServices = async (technician_id, filter="all") => {
         },
       ],
       order: [
-        ["scheduled_date", "DESC"], // latest scheduled first
-        ["createdAt", "DESC"],      // fallback
+        ["scheduled_date", "DESC"],
+        ["createdAt", "DESC"],
       ],
     });
 
